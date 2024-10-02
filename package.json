@@ -10,7 +10,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/node": "^22.7.4",
     "cac": "^6.7.14",
     "tsx": "^4.19.1"
+  },
+  "dependencies": {
+    "mri": "^1.2.0"
   }
 }
