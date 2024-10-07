@@ -68,6 +68,7 @@ cli
     const options = [
       ...new Set([...(command?.options ?? []), ...cli.globalCommand.options]),
     ];
+    console.log(options)
 
     let isCompletingFlagValue = false;
     let flagName = "";
@@ -123,24 +124,27 @@ cli
     } else if (toComplete.startsWith("-") && !endsWithSpace) {
       const flag = toComplete.replace(/^-+/, ""); // Remove leading '-'
 
-      if (flag) {
+      // Determine options to suggest
+      let optionsToSuggest = options.filter((o) => o.names.some((name) => name.startsWith(flag)) && !cli.options[o.name]);
+      // TODO: --type does not show up because there's a default for it in the cli object
+
+      const requiredOptions = optionsToSuggest.filter(
+        (o) => o.required,
+      );
+
+      console.log(flag, optionsToSuggest)
+      if (requiredOptions.length) {
+        // Required options not yet specified
+        optionsToSuggest = requiredOptions;
+      }
+
+      if (optionsToSuggest.length > 0) {
         completions.push(
-          ...options
-            .filter(
-              (o) =>
-                !cli.options[o.name] &&
-                o.names.some((name) => name.startsWith(flag)),
-            )
-            .map((o) => `--${o.name}\t${o.description}`),
-        );
-      } else {
-        // Suggest all options not already used
-        completions.push(
-          ...options
-            .filter((o) => !cli.options[o.name])
-            .map((o) => `--${o.name}\t${o.description}`),
+          ...optionsToSuggest.map((o) => `--${o.name}\t${o.description}`),
         );
       }
+
+      directive = ShellCompDirective.ShellCompDirectiveNoFileComp;
     } else {
       cli.parse([execPath, processArgs[0], ...previousArgs, toComplete], {
         run: false,
@@ -154,40 +158,166 @@ cli
         const commandParts: { type: "command"; value: string }[] = c.name
           .split(" ")
           .map((part) => ({ type: "command", value: part }));
-        const args: { type: "positional"; position: number; value: Command["args"][number] }[] =
-          c.args.map((arg, i) => ({ type: "positional", position: i, value: arg }));
+        const args: {
+          type: "positional";
+          position: number;
+          value: Positional;
+        }[] =
+          positionalMap.get(c.name)?.map((arg, i) => ({
+            type: "positional",
+            position: i,
+            value: arg,
+          })) ?? [];
         const parts = [...commandParts, ...args];
-        // console.log(commandParts,'args', args)
 
         for (let i = 0; i < parts.length; i++) {
           const fullCommandPart = fullCommandParts[i];
           const part = parts[i];
-        
+
           if (part.type === "command") {
+            // Command part matching
             if (part.value === fullCommandPart) {
-              // if (commandPart !== toComplete) {
+              // Command part matches user input, continue to next part
               continue;
-              // }
-            }
-            if (!fullCommandPart || part.value?.includes(fullCommandPart)) {
+            } else if (
+              !fullCommandPart ||
+              part.value.startsWith(fullCommandPart)
+            ) {
+              // User is typing this command part, provide completion
               completions.push(`${part.value}\t${c.description}`);
             }
-          } else {
-            if (!fullCommandPart && endsWithSpace) {
-              
+            // Command part does not match, break
+            break;
+          } else if (part.type === "positional") {
+            const positional = part.value;
+            // Positional argument handling
+            if (part.value.variadic) {
+              const comps = await positional.completion(
+                previousArgs,
+                toComplete,
+              );
+              completions.push(
+                ...comps.map(
+                  (comp) => `${comp.action}\t${comp.description ?? ""}`,
+                ),
+              );
+              break;
             }
-            console.log(endsWithSpace, fullCommandPart)
-            console.log(part.value, part.position, toComplete, fullCommandParts)
-            const index = i + part.position
-            console.log(i, part.position, index)
-            // TODO: fix this
-            
-            continue
+            if (typeof fullCommandPart !== "undefined") {
+              // User has provided input for this positional argument
+              if (i === fullCommandParts.length - 1 && !endsWithSpace) {
+                console.log(i, fullCommandParts);
+                // User is still typing this positional argument, provide completions
+                const comps = await positional.completion(
+                  previousArgs,
+                  toComplete,
+                );
+                completions.push(
+                  ...comps.map(
+                    (comp) => `${comp.action}\t${comp.description ?? ""}`,
+                  ),
+                );
+                break;
+              } else {
+                // Positional argument is already provided, move to next
+                previousArgs.push(fullCommandPart);
+                continue;
+              }
+            } else {
+              // User has not provided input for this positional argument
+              const comps = await positional.completion(
+                previousArgs,
+                toComplete,
+              );
+              completions.push(
+                ...comps.map(
+                  (comp) => `${comp.action}\t${comp.description ?? ""}`,
+                ),
+              );
+              break;
+            }
           }
-
-          // console.log("remaining", commandPart, fullCommandPart);
-          break;
         }
+
+        // for (let i = 0; i < parts.length; i++) {
+        //   const fullCommandPart = fullCommandParts[i];
+        //   const part = parts[i];
+        //   const isLastPart = i === parts.length - 1;
+
+        //   if (part.type === "command") {
+        //     if (part.value === fullCommandPart) {
+        //       // if (commandPart !== toComplete) {
+        //       continue;
+
+        //       // }
+        //     }
+        //     if (!fullCommandPart || part.value?.includes(fullCommandPart)) {
+        //       completions.push(`${part.value}\t${c.description}`);
+        //       break;
+        //     }
+        //   } else {
+        //     let positional: Positional | null = null;
+        //     if (isLastPart) {
+        //       if (part.value.variadic) {
+        //         positional = part.value;
+        //       }
+        //     } else {
+        //       const isEmpty = typeof fullCommandPart === "undefined";
+        //       console.log(part.value);
+        //       console.log({
+        //         previousArgs,
+        //         toComplete,
+        //         fullCommandPart,
+        //         endsWithSpace,
+        //         isEmpty,
+        //       });
+
+        //       if (endsWithSpace) {
+        //         if (fullCommandPart) {
+        //           positional = args[part.position + 1].value;
+        //           previousArgs.push(toComplete);
+        //           toComplete = "";
+        //           console.log("here");
+        //         } else {
+        //           positional = part.value;
+        //         }
+        //       } else {
+        //         if (fullCommandPart) {
+        //           positional = part.value;
+        //         }
+        //       }
+        //     }
+
+        //     if (positional) {
+        //       const comps = await positional.completion(
+        //         previousArgs,
+        //         toComplete,
+        //       );
+        //       completions.push(
+        //         ...comps.map(
+        //           (comp) => `${comp.action}\t${comp.description ?? ""}`,
+        //         ),
+        //       );
+        //       break;
+        //     }
+        //     if (!fullCommandPart) {
+        //       break;
+        //     }
+
+        //     // console.log(fullCommandParts, parts)
+
+        //     // console.log(endsWithSpace, fullCommandPart)
+        //     // console.log(part.value, part.position, toComplete, fullCommandParts)
+        //     const index = i + part.position;
+        //     // console.log(i, part.position, index)
+        //     // TODO: fix this
+
+        //     continue;
+        //   }
+
+        //   // console.log("remaining", commandPart, fullCommandPart);
+        //   break;
+        // }
 
         // if (
         //   baseCommand === fullCommandName &&
