@@ -1,2 +1,2 @@
-export function generate(name: string, includeDescription: boolean) {
+export function generate(name: string, exec: string) {
 }

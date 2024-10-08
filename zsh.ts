@@ -1,11 +1,6 @@
-import { ShellCompDirective, ShellCompNoDescRequestCmd, ShellCompRequestCmd } from "./shared";
+import { ShellCompDirective } from "./shared";
 
-export function generate(name: string, exec: string, includeDescription: boolean) {
-  let compCmd = ShellCompRequestCmd;
-  if (!includeDescription) {
-    compCmd = ShellCompNoDescRequestCmd;
-  }
-
+export function generate(name: string, exec: string) {
   return `#compdef ${name}
 compdef _${name} ${name}
 
@@ -52,7 +47,7 @@ _${name}() {
     fi
 
     # Prepare the command to obtain completions
-    requestComp="${exec} ${compCmd} -- \${words[2,-1]}"
+    requestComp="${exec} complete -- \${words[2,-1]}"
     if [ "\${lastChar}" = "" ]; then
         # If the last parameter is complete (there is a space following it)
         # We add an extra empty parameter so we can indicate this to the go completion code.

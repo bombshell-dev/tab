@@ -53,7 +53,7 @@ export const ShellCompDirective = {
 
 
 
-type Completion = {
+export type Completion = {
   action: string;
   description?: string;
 };
