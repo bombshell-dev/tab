@@ -167,7 +167,6 @@ for (const c of [cli.globalCommand, ...cli.commands]) {
     if (o.rawName.includes("--port <port>")) {
       // Completion for --port
       flagMap.set(optionKey, async (previousArgs, toComplete) => {
-        console.log({previousArgs, toComplete})
         return [
           { action: "3000", description: "Development server port" },
           { action: "8080", description: "Alternative port" },
@@ -210,18 +209,10 @@ for (const c of [cli.globalCommand, ...cli.commands]) {
       value: arg.value,
       completion: async (previousArgs, toComplete) => {
         if (arg.value === "root") {
-          // Completion for the [root] positional argument in the dev command
-          const currentDir = process.cwd();
-          const dirs = await fs.readdir(currentDir);
-          const dirCompletions: Completion[] = [];
-          for (const dir of dirs) {
-            const dirPath = path.join(currentDir, dir);
-            const stat = await fs.lstat(dirPath);
-            if (stat.isDirectory() && dir.startsWith(toComplete)) {
-              dirCompletions.push({ action: dir, description: "" });
-            }
-          }
-          return dirCompletions;
+          return [
+            { action: "src/", description: "💣️.sh loves vite!" },
+            { action: "./", description: "This one is better." },
+          ];
         }
         return [];
       },

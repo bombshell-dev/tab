@@ -70,10 +70,25 @@ export default function tab(instance: CAC): void {
         let isCompletingFlagValue = false;
         let flagName = "";
         let option: (typeof options)[number] | null = null;
-        const lastArg = previousArgs[previousArgs.length - 1] 
+        const lastArg = previousArgs[previousArgs.length - 1];
 
-        console.log({ lastArg, toComplete, endsWithSpace, flagName });
-        // TODO: fix for "--port 3" 
+        function processOption() {
+          const matchedOption = options.find((o) =>
+            o.names.some((name) => name === flagName),
+          );
+
+          if (matchedOption && !matchedOption.isBoolean) {
+            isCompletingFlagValue = true;
+            option = matchedOption;
+            if (endsWithSpace) {
+              toComplete = "";
+            }
+          } else {
+            isCompletingFlagValue = false;
+            option = null;
+          }
+        }
+
         if (toComplete.startsWith("--")) {
           // Long option
           flagName = toComplete.slice(2);
@@ -82,11 +97,14 @@ export default function tab(instance: CAC): void {
             // Option with '=', get the name before '='
             flagName = flagName.slice(0, equalsIndex);
             toComplete = toComplete.slice(toComplete.indexOf("=") + 1);
+            processOption();
           } else if (!endsWithSpace) {
             // If not ending with space, still typing option name
             flagName = "";
           } else {
-            toComplete = ""
+            // User pressed space after typing the option name
+            processOption();
+            toComplete = "";
           }
         } else if (toComplete.startsWith("-") && toComplete.length > 1) {
           // Short option
@@ -94,14 +112,16 @@ export default function tab(instance: CAC): void {
           if (!endsWithSpace) {
             // Still typing option name
             flagName = "";
+          } else {
+            processOption();
+            toComplete = "";
           }
-        }
-
-        if (flagName) {
-          option = options.find((o) => o.names.includes(flagName)) ?? null;
-          if (option && !option.isBoolean) {
-            isCompletingFlagValue = true;
-          }
+        } else if (lastArg?.startsWith("--") && !endsWithSpace) {
+          flagName = lastArg.slice(2);
+          processOption();
+        } else if (lastArg?.startsWith("-") && lastArg.length > 1  && !endsWithSpace) {
+          flagName = lastArg.slice(2);
+          processOption();
         }
 
         if (isCompletingFlagValue) {
@@ -113,7 +133,7 @@ export default function tab(instance: CAC): void {
             // Call custom completion function for the flag
             const comps = await flagCompletionFn(previousArgs, toComplete);
             completions.push(
-              ...comps.map((comp) => `${comp.action}\t${comp.description}`),
+              ...comps.map((comp) => `${comp.action}\t${comp.description ?? ''}`),
             );
             directive = ShellCompDirective.ShellCompDirectiveNoFileComp;
           } else {
@@ -143,7 +163,7 @@ export default function tab(instance: CAC): void {
 
           if (optionsToSuggest.length > 0) {
             completions.push(
-              ...optionsToSuggest.map((o) => `--${o.name}\t${o.description}`),
+              ...optionsToSuggest.map((o) => `--${o.name}\t${o.description ?? ''}`),
             );
           }
 
@@ -194,7 +214,7 @@ export default function tab(instance: CAC): void {
                   part.value.startsWith(fullCommandPart)
                 ) {
                   // User is typing this command part, provide completion
-                  completions.push(`${part.value}\t${c.description}`);
+                  completions.push(`${part.value}\t${c.description ?? ""}`);
                 }
                 // Command part does not match, break
                 break;
