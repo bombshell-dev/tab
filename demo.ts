@@ -106,6 +106,7 @@ function convertHost(value) {
   return value;
 }
 
+// https://github.com/vitejs/vite/blob/main/packages/vite/src/node/cli.ts
 // Global options
 cli
   .option("-c, --config <file>", `[string] use specified config file`)

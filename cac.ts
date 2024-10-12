@@ -1,3 +1,4 @@
+// @bombsh/tab/cac
 import { CAC } from "cac";
 import * as zsh from "./zsh";
 import * as bash from "./bash";
