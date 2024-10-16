@@ -11,9 +11,22 @@ import {
   ShellCompDirective,
 } from "./shared";
 
+function quoteIfNeeded(path: string): string {
+  return path.includes(" ") ? `'${path}'` : path;
+}
+
 const execPath = process.execPath;
 const processArgs = process.argv.slice(1);
-const x = `${execPath} ${process.execArgv.join(" ")} ${processArgs[0]}`;
+
+// Apply the quoting function to each part of x
+// This ensures that paths like "Program Files" are quoted for PowerShell execution.
+const quotedExecPath = quoteIfNeeded(execPath);
+const quotedProcessArgs = processArgs.map(quoteIfNeeded);
+const quotedProcessExecArgs = process.execArgv.map(quoteIfNeeded);
+
+const x = `${quotedExecPath} ${quotedProcessExecArgs.join(" ")} ${
+  quotedProcessArgs[0]
+}`;
 
 export default function tab(instance: CAC): void {
   instance.command("complete [shell]").action(async (shell, extra) => {
@@ -75,7 +88,7 @@ export default function tab(instance: CAC): void {
 
         function processOption() {
           const matchedOption = options.find((o) =>
-            o.names.some((name) => name === flagName),
+            o.names.some((name) => name === flagName)
           );
 
           if (matchedOption && !matchedOption.isBoolean) {
@@ -120,21 +133,27 @@ export default function tab(instance: CAC): void {
         } else if (lastArg?.startsWith("--") && !endsWithSpace) {
           flagName = lastArg.slice(2);
           processOption();
-        } else if (lastArg?.startsWith("-") && lastArg.length > 1  && !endsWithSpace) {
+        } else if (
+          lastArg?.startsWith("-") &&
+          lastArg.length > 1 &&
+          !endsWithSpace
+        ) {
           flagName = lastArg.slice(2);
           processOption();
         }
 
         if (isCompletingFlagValue) {
           const flagCompletionFn = flagMap.get(
-            `${command.name} ${option?.name}`,
+            `${command.name} ${option?.name}`
           );
 
           if (flagCompletionFn) {
             // Call custom completion function for the flag
             const comps = await flagCompletionFn(previousArgs, toComplete);
             completions.push(
-              ...comps.map((comp) => `${comp.action}\t${comp.description ?? ''}`),
+              ...comps.map(
+                (comp) => `${comp.action}\t${comp.description ?? ""}`
+              )
             );
             directive = ShellCompDirective.ShellCompDirectiveNoFileComp;
           } else {
@@ -164,7 +183,9 @@ export default function tab(instance: CAC): void {
 
           if (optionsToSuggest.length > 0) {
             completions.push(
-              ...optionsToSuggest.map((o) => `--${o.name}\t${o.description ?? ''}`),
+              ...optionsToSuggest.map(
+                (o) => `--${o.name}\t${o.description ?? ""}`
+              )
             );
           }
 
@@ -174,7 +195,7 @@ export default function tab(instance: CAC): void {
             [execPath, processArgs[0], ...previousArgs, toComplete],
             {
               run: false,
-            },
+            }
           );
           const fullCommandName = args
             .filter((arg) => !arg.startsWith("-"))
@@ -225,12 +246,12 @@ export default function tab(instance: CAC): void {
                 if (part.value.variadic) {
                   const comps = await positional.completion(
                     previousArgs,
-                    toComplete,
+                    toComplete
                   );
                   completions.push(
                     ...comps.map(
-                      (comp) => `${comp.action}\t${comp.description ?? ""}`,
-                    ),
+                      (comp) => `${comp.action}\t${comp.description ?? ""}`
+                    )
                   );
                   break;
                 }
@@ -240,12 +261,12 @@ export default function tab(instance: CAC): void {
                     // User is still typing this positional argument, provide completions
                     const comps = await positional.completion(
                       previousArgs,
-                      toComplete,
+                      toComplete
                     );
                     completions.push(
                       ...comps.map(
-                        (comp) => `${comp.action}\t${comp.description ?? ""}`,
-                      ),
+                        (comp) => `${comp.action}\t${comp.description ?? ""}`
+                      )
                     );
                     break;
                   } else {
@@ -257,12 +278,12 @@ export default function tab(instance: CAC): void {
                   // User has not provided input for this positional argument
                   const comps = await positional.completion(
                     previousArgs,
-                    toComplete,
+                    toComplete
                   );
                   completions.push(
                     ...comps.map(
-                      (comp) => `${comp.action}\t${comp.description ?? ""}`,
-                    ),
+                      (comp) => `${comp.action}\t${comp.description ?? ""}`
+                    )
                   );
                   break;
                 }
