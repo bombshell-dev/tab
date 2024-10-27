@@ -131,7 +131,7 @@ cli
   .option("--strictPort", `[boolean] exit if specified port is already in use`)
   .option(
     "--force",
-    `[boolean] force the optimizer to ignore the cache and re-bundle`,
+    `[boolean] force the optimizer to ignore the cache and re-bundle`
   )
   .action((root, options) => {
     console.log(`Starting dev server at ${root || "."} with options:`, options);
@@ -193,7 +193,7 @@ for (const c of [cli.globalCommand, ...cli.commands]) {
       // Completion for --config
       flagMap.set(optionKey, async (previousArgs, toComplete) => {
         const configFiles = ["vite.config.ts", "vite.config.js"].filter(
-          (file) => file.startsWith(toComplete),
+          (file) => file.startsWith(toComplete)
         );
         return configFiles.map((file) => ({ action: file }));
       });
