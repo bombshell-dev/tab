@@ -26,6 +26,7 @@ export function generate(
 
   return `# powershell completion for ${name} -*- shell-script -*-
 
+  [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
     function __${name}_debug {
         if ($env:BASH_COMP_DEBUG_FILE) {
             "$args" | Out-File -Append -FilePath "$env:BASH_COMP_DEBUG_FILE"
