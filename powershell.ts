@@ -1,5 +1,7 @@
 import { ShellCompDirective } from "./shared";
 
+// TODO: issue with -- -- completions
+
 export function generate(
   name: string,
   exec: string,
