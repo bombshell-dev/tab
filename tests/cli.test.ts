@@ -13,9 +13,9 @@ function runCommand(command: string): Promise<string> {
   });
 }
 
-describe("CLI Completion Tests", () => {
+describe("CLI Completion Tests cac", () => {
   it("should complete vite commands", async () => {
-    const output = await runCommand("pnpm tsx demo.ts complete --");
+    const output = await runCommand("pnpm tsx demo.cac.ts complete --");
     console.log("Command Output:", output);
     expect(output).toContain("src/");
     expect(output).toContain("./");
@@ -23,7 +23,7 @@ describe("CLI Completion Tests", () => {
   });
 
   it("should complete options", async () => {
-    const output = await runCommand("pnpm tsx demo.ts complete -- --");
+    const output = await runCommand("pnpm tsx demo.cac.ts complete -- --");
     console.log("Command Output:", output);
     expect(output).toContain("--port");
     expect(output).toContain("--config");
