@@ -96,8 +96,11 @@ export default function tab(mainCommand) {
           if (toComplete.startsWith("--")) {
             if (toComplete === "--") {
               const allFlags = [...flagMap.keys()];
+              const specifiedFlags = previousArgs.filter(arg => arg.startsWith('--'));
+              const availableFlags = allFlags.filter(flag => !specifiedFlags.includes(flag));
+
               completions.push(
-                ...allFlags.map(
+                ...availableFlags.map(
                   (flag) =>
                     `${flag}\t${matchedCommand.args[flag.slice(2)]?.description ?? "Option"}`
                 )
