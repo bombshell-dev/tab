@@ -57,6 +57,7 @@ for (const command of [main, ...Object.values(main.subCommands)]) {
 
   for (const [argName, argConfig] of Object.entries(command.args || {})) {
     const optionKey = `--${argName}`;
+
     if (argName === "port") {
       flagMap.set(optionKey, async (_, toComplete) => {
         const options = [
@@ -67,9 +68,7 @@ for (const command of [main, ...Object.values(main.subCommands)]) {
           ? options.filter(comp => comp.action.startsWith(toComplete))
           : options;
       });
-    }
-
-    if (argName === "host") {
+    } else if (argName === "host") {
       flagMap.set(optionKey, async (_, toComplete) => {
         const options = [
           { action: "localhost", description: "Localhost" },
@@ -79,9 +78,14 @@ for (const command of [main, ...Object.values(main.subCommands)]) {
           ? options.filter(comp => comp.action.startsWith(toComplete))
           : options;
       });
-    }
-
-    if (argName === "mode") {
+    } else if (argName === "config") {
+      flagMap.set(optionKey, async (_, toComplete) => {
+        const configFiles = ["vite.config.ts", "vite.config.js"].filter(
+          (file) => file.startsWith(toComplete)
+        );
+        return configFiles.map((file) => ({ action: file }));
+      });
+    } else if (argName === "mode") {
       flagMap.set(optionKey, async (_, toComplete) => {
         const options = [
           { action: "development", description: "Development mode" },
@@ -90,6 +94,14 @@ for (const command of [main, ...Object.values(main.subCommands)]) {
         return toComplete
           ? options.filter(comp => comp.action.startsWith(toComplete))
           : options;
+      });
+    } else {
+      flagMap.set(optionKey, async (_, toComplete) => {
+        const flag = optionKey.startsWith("--") ? optionKey.slice(2) : optionKey;
+        if (!toComplete || optionKey.startsWith(toComplete)) {
+          return [{ action: optionKey, description: argConfig.description }];
+        }
+        return [];
       });
     }
   }

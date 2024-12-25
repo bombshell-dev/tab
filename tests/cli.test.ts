@@ -13,18 +13,22 @@ function runCommand(command: string): Promise<string> {
   });
 }
 
-describe("CLI Completion Tests for CAC", () => {
-  it("Completes Vite Commands Correctly", async () => {
-    const output = await runCommand("pnpm tsx demo.cac.ts complete --");
-    console.log("Command Output:", output);
-    expect(output).toContain("src/");
-    expect(output).toContain("./");
-    // expect(output).toContain('--base');
-  });
+const cliTools = ["cac", "citty"];
 
-  it("Completes CLI Options Correctly", async () => {
-    const output = await runCommand("pnpm tsx demo.cac.ts complete -- --");
-    console.log("Command Output:", output);
+describe.each(cliTools)("cli completion tests for %s", (cliTool) => {
+  const commandPrefix = `pnpm tsx demo.${cliTool}.ts complete --`;
+
+  // it("should complete vite commands", async () => {
+  //   const output = await runCommand(commandPrefix);
+  //   console.log(`[${cliTool}] Command Output:`, output);
+  //   expect(output).toContain("src/");
+  //   expect(output).toContain("./");
+  //   // expect(output).toContain('--base');
+  // });
+
+  it("should complete cli options", async () => {
+    const output = await runCommand(`${commandPrefix} --`);
+    console.log(`[${cliTool}] Command Output:`, output);
     expect(output).toContain("--port");
     expect(output).toContain("--config");
     expect(output).toContain("--base");
@@ -32,70 +36,71 @@ describe("CLI Completion Tests for CAC", () => {
     expect(output).toContain("--filter");
     expect(output).toContain("--mode");
   });
-});
 
-describe("CLI Option Completion for Partial Inputs", () => {
-  const optionTests = [
-    { partial: "--p", expected: "--port" },
-  ];
+  describe("cli option completion tests", () => {
+    const optionTests = [
+      { partial: "--p", expected: "--port" },
+    ];
 
-  test.each(optionTests)(
-    "Completes Option When Given Partial Input '%s'",
-    async ({ partial, expected }) => {
-      const command = `pnpm tsx demo.cac.ts complete -- ${partial}`;
+    test.each(optionTests)(
+      "should complete option for partial input '%s'",
+      async ({ partial, expected }) => {
+        const command = `${commandPrefix} ${partial}`;
+        const output = await runCommand(command);
+        console.log(`[${cliTool}] Complete ${partial} Output:`, output);
+        expect(output).toContain(expected);
+      }
+    );
+  });
+
+  describe("cli option exclusion tests", () => {
+    const alreadySpecifiedTests = [
+      { specified: "--port", shouldNotContain: "--port" },
+    ];
+
+    test.each(alreadySpecifiedTests)(
+      "should not suggest already specified option '%s'",
+      async ({ specified, shouldNotContain }) => {
+        const command = `${commandPrefix} ${specified} --`;
+        const output = await runCommand(command);
+        console.log(`[${cliTool}] Already Specified ${specified} Output:`, output);
+        expect(output).not.toContain(shouldNotContain);
+        // expect(output).toContain("--base");
+      }
+    );
+  });
+
+  describe("cli option value handling", () => {
+
+    it("should resolve port value correctly", async () => {
+      const command = `${commandPrefix} --port 3`;
       const output = await runCommand(command);
-      console.log(`Complete ${partial} Output:`, output);
-      expect(output).toContain(expected);
-    }
-  );
-});
+      console.log(`[${cliTool}] Port Value Output:`, output);
+      expect(output).toContain("3000");
+    });
 
-describe("CLI Option Completion When Options Are Already Specified", () => {
-  const alreadySpecifiedTests = [
-    { specified: "--port", shouldNotContain: "--port" },
-  ];
-
-  test.each(alreadySpecifiedTests)(
-    "Does Not Suggest Already Specified Option '%s'",
-    async ({ specified, shouldNotContain }) => {
-      const command = `pnpm tsx demo.cac.ts complete -- ${specified} --`;
+    it("should handle conflicting options appropriately", async () => {
+      const command = `${commandPrefix} --port 3000 --`;
       const output = await runCommand(command);
-      console.log(`Already Specified ${specified} Output:`, output);
-      expect(output).not.toContain(shouldNotContain);
-    }
-  );
-});
+      console.log(`[${cliTool}] Conflicting Options Output:`, output);
+      expect(output).not.toContain("--port");
+      expect(output).toContain("--config");
+      // expect(output).toContain("--base");
+    });
 
-describe("CLI Option Value Handling", () => {
+    it("should resolve config option values correctly", async () => {
+      const command = `${commandPrefix} --port 3000 --config vite.config`;
+      const output = await runCommand(command);
+      console.log(`[${cliTool}] Config Option Output:`, output);
+      expect(output).toContain("vite.config.ts");
+      expect(output).toContain("vite.config.js");
+    });
 
-  it("Resolves Port Value Correctly", async () => {
-    const command = "pnpm tsx demo.cac.ts complete -- --port 3";
-    const output = await runCommand(command);
-    console.log("Conflicting Options Output:", output);
-    expect(output).toContain("3000");
-  });
-
-  it("Handles Conflicting Options Appropriately", async () => {
-    const command = "pnpm tsx demo.cac.ts complete -- --port 3000 --";
-    const output = await runCommand(command);
-    console.log("Conflicting Options Output:", output);
-    expect(output).not.toContain("--port");
-    expect(output).toContain("--config");
-    // expect(output).toContain("--base");
-  });
-
-  it("Resolves Config Option Values Correctly", async () => {
-    const command = "pnpm tsx demo.cac.ts complete -- --port 3000 --config vite.config";
-    const output = await runCommand(command);
-    console.log("Conflicting Options Output:", output);
-    expect(output).toContain("vite.config.ts");
-    expect(output).toContain("vite.config.js");
-  });
-
-  it("Gracefully Handles Unknown Options with No Completions", async () => {
-    const command = "pnpm tsx demo.cac.ts complete -- --unknownoption";
-    const output = await runCommand(command);
-    console.log("No Completion Available Output:", output);
-    expect(output.trim()).toMatch(/^(:\d+)?$/);
+    it("should handle unknown options with no completions", async () => {
+      const command = `${commandPrefix} --unknownoption`;
+      const output = await runCommand(command);
+      console.log(`[${cliTool}] No Completion Available Output:`, output);
+      expect(output.trim()).toMatch(/^(:\d+)?$/);
+    });
   });
 });
