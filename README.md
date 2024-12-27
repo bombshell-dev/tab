@@ -14,8 +14,17 @@ pnpm tsx demo.ts complete -- --po
 
 - [x] tests vitest (this should mostly test the completions array, e.g. logs)
 - [x] powershell completions generation
-- [] citty support `@bomsh/tab/citty`
+- [x] citty support `@bomsh/tab/citty`
 - [] `@bombsh/tab`
 
 - [] fish
 - [] bash
+
+```ts
+const completion = new Completion()
+completion.addCommand()
+completion.addOption()
+
+// better name
+completion.parse()
+```
