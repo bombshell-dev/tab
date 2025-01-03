@@ -1,4 +1,4 @@
-import { defineCommand } from "citty";
+import { ArgDef, defineCommand } from "citty";
 import * as zsh from "../zsh";
 import * as bash from "../bash";
 import * as fish from "../fish";
@@ -40,12 +40,16 @@ export default async function tab(instance: CommandDef) {
   //TODO: resolver function 
   for (const [cmd, resolvableConfig] of Object.entries(subCommands)) {
     const config = typeof resolvableConfig === "function" ? await resolvableConfig() : await resolvableConfig
-    completion.addCommand(cmd, config.meta?.description, config.run);
-    if (cmd.args) {
-      for (const [argName, argConfig] of Object.entries(cmd.args)) {
-        const conf = argConfig;
+    const meta = typeof config.meta === "function" ? await config.meta() : await config.meta;
+    if (!meta || typeof meta?.description !== "string") {
+      throw new Error("Invalid meta or missing description.");
+    }
+    completion.addCommand(cmd, meta.description, config.run ?? (() => { }));
+    if (config.args) {
+      for (const [argName, argConfig] of Object.entries(config.args)) {
+        const conf = argConfig as ArgDef;
         completion.addOption(
-          cmd.meta.name,
+          meta.name!,
           `--${argName}`,
           conf.description ?? "",
           () => { }
