@@ -19,32 +19,33 @@ const x = `${quotedExecPath} ${quotedProcessExecArgs.join(" ")} ${quotedProcessA
 const completion = new Completion();
 
 export default async function tab(instance: CommandDef) {
-  const meta =
-    typeof instance.meta === "function" ? await instance.meta() : await instance.meta;
+  const meta = await resolve(instance.meta);
 
   if (!meta) {
-    throw new Error()
+    throw new Error("Invalid meta.");
   }
-  const name = meta.name
+  const name = meta.name;
   if (!name) {
-    throw new Error()
+    throw new Error("Invalid meta or missing name.");
   }
 
-  const subCommands = typeof instance.subCommands === "function" ? await instance.subCommands() : await instance.subCommands
+  const subCommands = await resolve(instance.subCommands);
   if (!subCommands) {
-    throw new Error()
+    throw new Error("Invalid or missing subCommands.");
   }
 
   completion.addCommand(meta.name!, meta?.description ?? "", () => { });
-  // Object.values(subCommands).forEach((cmd) => {
-  //TODO: resolver function 
+
   for (const [cmd, resolvableConfig] of Object.entries(subCommands)) {
-    const config = typeof resolvableConfig === "function" ? await resolvableConfig() : await resolvableConfig
-    const meta = typeof config.meta === "function" ? await config.meta() : await config.meta;
+    const config = await resolve(resolvableConfig);
+    const meta = await resolve(config.meta);
+
     if (!meta || typeof meta?.description !== "string") {
       throw new Error("Invalid meta or missing description.");
     }
+
     completion.addCommand(cmd, meta.description, config.run ?? (() => { }));
+
     if (config.args) {
       for (const [argName, argConfig] of Object.entries(config.args)) {
         const conf = argConfig as ArgDef;
@@ -57,7 +58,6 @@ export default async function tab(instance: CommandDef) {
       }
     }
   }
-  // });
 
   if (instance.args) {
     for (const [argName, argConfig] of Object.entries(instance.args)) {
@@ -114,12 +114,14 @@ export default async function tab(instance: CommandDef) {
         }
         default: {
           const extra = ctx.args._ || [];
-          // We simply call parse (which prints completions directly)
           await completion.parse(extra, instance);
-          // parse() does its own console.logs, so no return object to destructure
           return;
         }
       }
     },
   });
+}
+
+async function resolve<T>(resolvable: T | (() => T | Promise<T>)): Promise<T> {
+  return typeof resolvable === "function" ? await (resolvable as () => T | Promise<T>)() : resolvable;
 }
