@@ -1,10 +1,10 @@
-import { ArgDef, defineCommand } from "citty";
-import * as zsh from "../zsh";
-import * as bash from "../bash";
-import * as fish from "../fish";
-import * as powershell from "../powershell";
+import { ArgDef, defineCommand, parseArgs } from "citty";
+import * as zsh from "./zsh";
+import * as bash from "./bash";
+import * as fish from "./fish";
+import * as powershell from "./powershell";
 import { Completion } from ".";
-import { CommandDef, PositionalArgDef } from "citty";
+import type { ArgsDef, CommandDef, PositionalArgDef } from "citty";
 
 function quoteIfNeeded(path) {
   return path.includes(" ") ? `'${path}'` : path;
@@ -16,9 +16,49 @@ const quotedExecPath = quoteIfNeeded(execPath);
 const quotedProcessArgs = processArgs.map(quoteIfNeeded);
 const quotedProcessExecArgs = process.execArgv.map(quoteIfNeeded);
 const x = `${quotedExecPath} ${quotedProcessExecArgs.join(" ")} ${quotedProcessArgs[0]}`;
-const completion = new Completion();
 
-export default async function tab(instance: CommandDef) {
+async function handleSubCommands(
+  completion: Completion,
+  subCommands: Record<string, any>,
+  parentCmd?: string
+) {
+  for (const [cmd, resolvableConfig] of Object.entries(subCommands)) {
+    const config = await resolve(resolvableConfig);
+    const meta = await resolve(config.meta);
+
+    if (!meta || typeof meta?.description !== "string") {
+      throw new Error("Invalid meta or missing description.");
+    }
+
+    const name = completion.addCommand(cmd, meta.description, async (previousArgs, toComplete, endsWithSpace) => {
+      return []
+    }, parentCmd);
+
+    // Handle nested subcommands recursively
+    if (config.subCommands) {
+      await handleSubCommands(completion, config.subCommands, name);
+    }
+
+    // Handle arguments
+    if (config.args) {
+      for (const [argName, argConfig] of Object.entries(config.args)) {
+        const conf = argConfig as ArgDef;
+        completion.addOption(
+          name,
+          `--${argName}`,
+          conf.description ?? "",
+          async (previousArgs, toComplete, endsWithSpace) => {
+            return []
+          }
+        );
+      }
+    }
+  }
+}
+
+export default async function tab<T extends ArgsDef = ArgsDef>(instance: CommandDef<T>) {
+  const completion = new Completion();
+
   const meta = await resolve(instance.meta);
 
   if (!meta) {
@@ -34,62 +74,39 @@ export default async function tab(instance: CommandDef) {
     throw new Error("Invalid or missing subCommands.");
   }
 
-  completion.addCommand(meta.name!, meta?.description ?? "", () => { });
+  const root = ''
+  completion.addCommand(root, meta?.description ?? "", async (previousArgs, toComplete, endsWithSpace) => {
+    return []
+  });
 
-  for (const [cmd, resolvableConfig] of Object.entries(subCommands)) {
-    const config = await resolve(resolvableConfig);
-    const meta = await resolve(config.meta);
-
-    if (!meta || typeof meta?.description !== "string") {
-      throw new Error("Invalid meta or missing description.");
-    }
-
-    completion.addCommand(cmd, meta.description, config.run ?? (() => { }));
-
-    if (config.args) {
-      for (const [argName, argConfig] of Object.entries(config.args)) {
-        const conf = argConfig as ArgDef;
-        completion.addOption(
-          meta.name!,
-          `--${argName}`,
-          conf.description ?? "",
-          () => { }
-        );
-      }
-    }
-  }
+  await handleSubCommands(completion, subCommands);
 
   if (instance.args) {
     for (const [argName, argConfig] of Object.entries(instance.args)) {
       const conf = argConfig as PositionalArgDef;
       completion.addOption(
-        meta.name!,
+        root,
         `--${argName}`,
         conf.description ?? "",
-        () => { }
+        async (previousArgs, toComplete, endsWithSpace) => {
+          return []
+        }
       );
     }
   }
 
-  subCommands["complete"] = defineCommand({
+  const completeCommand = defineCommand({
     meta: {
       name: "complete",
       description: "Generate shell completion scripts",
     },
-    args: {
-      shell: {
-        type: "positional",
-        required: false,
-        description: "Specify shell type",
-      },
-    },
     async run(ctx) {
-      let shell: string | undefined = ctx.args.shell;
-      if (shell?.startsWith("--")) {
+      let shell: string | undefined = ctx.rawArgs[0];
+      const extra = ctx.rawArgs.slice(ctx.rawArgs.indexOf("--") + 1);
+
+      if (shell === '--') {
         shell = undefined;
       }
-
-      const extra = ctx.args._ || [];
 
       switch (shell) {
         case "zsh": {
@@ -113,15 +130,24 @@ export default async function tab(instance: CommandDef) {
           break;
         }
         default: {
-          const extra = ctx.args._ || [];
-          await completion.parse(extra, instance);
-          return;
+          console.log(completion)
+          const args = (await resolve(instance.args))!;
+          const parsed = parseArgs(extra, args);
+          // TODO: this is not ideal at all
+          const matchedCommand = parsed._.join(' ')
+          return completion.parse(extra, matchedCommand);
         }
       }
     },
   });
+
+  subCommands.complete = completeCommand
+
+  return completion
 }
 
-async function resolve<T>(resolvable: T | (() => T | Promise<T>)): Promise<T> {
-  return typeof resolvable === "function" ? await (resolvable as () => T | Promise<T>)() : resolvable;
+type Resolvable<T> = T | Promise<T> | (() => T) | (() => Promise<T>);
+
+async function resolve<T>(resolvable: Resolvable<T>): Promise<T> {
+  return resolvable instanceof Function ? await resolvable() : await resolvable;
 }

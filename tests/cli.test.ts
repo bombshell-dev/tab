@@ -102,5 +102,16 @@ describe.each(cliTools)("cli completion tests for %s", (cliTool) => {
       console.log(`[${cliTool}] No Completion Available Output:`, output);
       expect(output.trim()).toMatch(/^(:\d+)?$/);
     });
+
+    // pnpm tsx demo.citty.ts complete -- dev --port ""
+    // if the user done writing --port (ends with space) then it should suggest the ports (3000, ...)
+    // if the user not done writing (no end with space), then it should keep suggesting the --port option
+    // if the user wrote --port= (not end with space) then it should suggest the ports too (3000, ...)
+
+    // add test cases for positionals
+    // like `vite src/` (single positional argument)
+    // or `vite src/ ./` (multiple positionals, see https://www.npmjs.com/package/cac#variadic-arguments)
+    // for all the tests we should use inline snapshots (https://vitest.dev/guide/snapshot.html#inline-snapshots) instead of regex or anything else
+
   });
 });
