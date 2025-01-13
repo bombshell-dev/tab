@@ -9,7 +9,7 @@ Tools like git and their autocompletion experience inspired us to build this too
 ```ts
 import { Completion, script } from "@bombsh/tab";
 
-const name = "vite"
+const name = "my-cli"
 const completion = new Completion()
 
 completion.addCommand("start", "Start the application", async (previousArgs, toComplete, endsWithSpace) => {
@@ -48,7 +48,7 @@ if (process.argv[2] === "--") {
 }
 ```
 
-Now your user can run `source <(vite complete zsh)` and they will get completions for the `vite` command using the [autocompletion server](#autocompletion-server).
+Now your user can run `source <(my-cli complete zsh)` and they will get completions for the `my-cli` command using the [autocompletion server](#autocompletion-server).
 
 ## Adapters
 
@@ -60,7 +60,7 @@ Since we are heavy users of tools like `cac` and `citty`, we have created adapte
 import cac from "cac";
 import tab from "@bombsh/tab/cac";
 
-const cli = cac("vite");
+const cli = cac("my-cli");
 
 cli
   .command("dev", "Start dev server")
@@ -82,7 +82,7 @@ portOptionCompletion.handler = async (previousArgs, toComplete, endsWithSpace) =
 
 cli.parse();
 ```
-Now autocompletion will be available for any specified command and option in your cac instance. If your user writes `vite dev --po`, they will get suggestions for the `--port` option. Or if they write `vite d` they will get suggestions for the `dev` command.
+Now autocompletion will be available for any specified command and option in your cac instance. If your user writes `my-cli dev --po`, they will get suggestions for the `--port` option. Or if they write `my-cli d` they will get suggestions for the `dev` command.
 
 Suggestions are missing in the adapters since yet cac or citty do not have a way to provide suggestions (tab just came out!), we'd have to provide them manually. Mutations do not hurt in this situation.
 
@@ -94,8 +94,8 @@ import tab from "@bombsh/tab/citty";
 
 const main = defineCommand({
   meta: {
-    name: "vite",
-    description: "Vite CLI tool",
+    name: "my-cli",
+    description: "My CLI tool",
   },
 });
 
@@ -131,19 +131,30 @@ const cli = createMain(main);
 cli();
 ```
 
+## Recipe
+
+`source <(my-cli complete zsh)` won't be enough since the user would have to run this command each time they spin up a new shell instance.
+
+We suggest this approach for the end user that you as a maintainer might want to push.
+
+```
+my-cli completion zsh > ~/completion-for-my-cli.zsh
+echo 'source ~/completion-for-my-cli.zsh' >> ~/.zshrc
+```
+
 ## Autocompletion Server
 
 By integrating tab into your cli, your cli would have a new command called `complete`. This is where all the magic happens. And the shell would contact this command to get completions. That's why we call it the autocompletion server.
 
 ```zsh
-vite complete -- --po
+my-cli complete -- --po
 --port  Specify the port number   
 :0 
 ```
 
 The autocompletion server can be a standard to identify whether a package provides autocompletions. Whether running `tool complete --` would result in an output that ends with `:{Number}` (matching the pattern `/:\d+$/`).
 
-In situations like `vite dev --po` you'd have autocompletions! But in the case of `pnpm vite dev --po` which is what most of us use, tab does not inject autocompletions for a tool like pnpm. 
+In situations like `my-cli dev --po` you'd have autocompletions! But in the case of `pnpm my-cli dev --po` which is what most of us use, tab does not inject autocompletions for a tool like pnpm. 
 
 Since pnpm already has its own autocompletion [script](https://pnpm.io/completion), this provides the opportunity to check whether a package provides autocompletions and use those autocompletions if available.
 
@@ -153,8 +164,7 @@ Other package managers like `npm` and `yarn` can decide whether to support this 
 
 ## Inspiration 
 - git
-- [cobra](https://github.com/spf13/cobra/blob/main/shell_completions.go)
-
+- [cobra](https://github.com/spf13/cobra/blob/main/shell_completions.go), without cobra, tab would have took 10x longer to build
 
 ## TODO
 - [] fish
