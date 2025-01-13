@@ -130,7 +130,6 @@ export default async function tab<T extends ArgsDef = ArgsDef>(instance: Command
           break;
         }
         default: {
-          console.log(completion)
           const args = (await resolve(instance.args))!;
           const parsed = parseArgs(extra, args);
           // TODO: this is not ideal at all
