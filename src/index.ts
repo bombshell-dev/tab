@@ -1,3 +1,8 @@
+import * as zsh from "./zsh";
+import * as bash from "./bash";
+import * as fish from "./fish";
+import * as powershell from "./powershell";
+
 // ShellCompRequestCmd is the name of the hidden command that is used to request
 // completion results from the program. It is used by the shell completion scripts.
 export const ShellCompRequestCmd: string = "__complete";
@@ -206,5 +211,33 @@ export class Completion {
 
         completions.forEach((comp) => console.log(comp));
         console.log(`:${directive}`);
+    }
+}
+
+export function script(shell: "zsh" | "bash" | "fish" | "powershell", name: string, x: string) {
+    switch (shell) {
+      case "zsh": {
+        const script = zsh.generate(name, x);
+        console.log(script);
+        break;
+      }
+      case "bash": {
+        const script = bash.generate(name, x);
+        console.log(script);
+        break;
+      }
+      case "fish": {
+        const script = fish.generate(name, x);
+        console.log(script);
+        break;
+      }
+      case "powershell": {
+        const script = powershell.generate(name, x);
+        console.log(script);
+        break;
+      }
+      default: {
+        throw new Error(`Unsupported shell: ${shell}`);
+      }
     }
 }
