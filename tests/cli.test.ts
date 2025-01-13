@@ -18,7 +18,7 @@ const cliTools = ["cac", "citty"];
 describe.each(cliTools)("cli completion tests for %s", (cliTool) => {
   const commandPrefix = `pnpm tsx demo.${cliTool}.ts complete --`;
 
-  // it("should complete vite commands", async () => {
+  // it("should complete positional commands", async () => {
   //   const output = await runCommand(commandPrefix);
   //   console.log(`[${cliTool}] Command Output:`, output);
   //   expect(output).toContain("src/");
@@ -102,16 +102,49 @@ describe.each(cliTools)("cli completion tests for %s", (cliTool) => {
       console.log(`[${cliTool}] No Completion Available Output:`, output);
       expect(output.trim()).toMatch(/^(:\d+)?$/);
     });
+  });
 
-    // pnpm tsx demo.citty.ts complete -- dev --port ""
-    // if the user done writing --port (ends with space) then it should suggest the ports (3000, ...)
-    // if the user not done writing (no end with space), then it should keep suggesting the --port option
-    // if the user wrote --port= (not end with space) then it should suggest the ports too (3000, ...)
+  describe("edge case completions for end with space", () => {
 
-    // add test cases for positionals
-    // like `vite src/` (single positional argument)
-    // or `vite src/ ./` (multiple positionals, see https://www.npmjs.com/package/cac#variadic-arguments)
-    // for all the tests we should use inline snapshots (https://vitest.dev/guide/snapshot.html#inline-snapshots) instead of regex or anything else
+    it("should suggest port values if user ends with space after `--port`", async () => {
+      const command = `${commandPrefix} dev --port ""`;
+      const output = await runCommand(command);
+      console.log(`[${cliTool}] End With Space (port) Output:`, output);
+      expect(output).toContain("3000");
+    });
 
+    it("should keep suggesting the --port option if user typed partial but didn't end with space", async () => {
+      const command = `${commandPrefix} dev --po`;
+      const output = await runCommand(command);
+      console.log(`[${cliTool}] Partial Option (no space) Output:`, output);
+      expect(output).toContain("--port");
+    });
+
+    it("should suggest port values if user typed `--port=` and hasn't typed a space or value yet", async () => {
+      const command = `${commandPrefix} dev --port ""`;
+      const output = await runCommand(command);
+      console.log(`[${cliTool}] --port= (no space) Output:`, output);
+      expect(output).toContain("3000");
+    });
+
+  });
+
+  describe("positional argument completions", () => {
+    it("should complete single positional argument when ending with space (vite src/)", async () => {
+      const command = `${commandPrefix} vite src/ ""`;
+      const output = await runCommand(command);
+      console.log(`[${cliTool}] Single Positional Output:`, output);
+
+      expect(output).toContain("src/");
+      expect(output).toContain("./");
+    });
+
+    it("should complete multiple positional arguments when ending with space (vite src/ ./)", async () => {
+      const command = `${commandPrefix} vite src/ ""`;
+      const output = await runCommand(command);
+      console.log(`[${cliTool}] Multiple Positional Output:`, output);
+
+      expect(output).toContain("./");
+    });
   });
 });
