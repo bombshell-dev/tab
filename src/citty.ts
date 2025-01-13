@@ -81,6 +81,8 @@ export default async function tab<T extends ArgsDef = ArgsDef>(instance: Command
 
   await handleSubCommands(completion, subCommands);
 
+  // console.log("LOOK HERE", subCommands)
+
   if (instance.args) {
     for (const [argName, argConfig] of Object.entries(instance.args)) {
       const conf = argConfig as PositionalArgDef;

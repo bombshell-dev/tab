@@ -85,9 +85,14 @@ export class Completion {
     commands = new Map<string, Command>();
 
     addCommand(name: string, description: string, handler: Handler, parent?: string) {
-        const key = parent ? `${parent} ${name}` : name
-        this.commands.set(key, { description, handler, options: new Map(), parent: parent ? this.commands.get(parent)! : this.commands.get('')! });
-        return key
+        const key = parent ? `${parent} ${name}` : name;
+        this.commands.set(key, {
+            description,
+            handler,
+            options: new Map(),
+            parent: parent ? this.commands.get(parent)! : undefined,
+        });
+        return key;
     }
 
     addOption(command: string, option: string, description: string, handler: Handler) {
@@ -96,7 +101,7 @@ export class Completion {
             throw new Error(`Command ${command} not found.`);
         }
         cmd.options.set(option, { description, handler });
-        return option
+        return option;
     }
 
     async parse(args: string[], potentialCommand: string) {
@@ -119,12 +124,12 @@ export class Completion {
                 if (handler) {
                     const flagSuggestions = await handler(previousArgs, toComplete, endsWithSpace);
                     completions.push(
-                        ...flagSuggestions.filter(comp => comp.value.startsWith(toComplete)).map(
-                            (comp) => `${comp.value}\t${comp.description ?? ""}`
-                        )
+                        ...flagSuggestions
+                            .filter(comp => comp.value.startsWith(toComplete))
+                            .map(comp => `${comp.value}\t${comp.description ?? ""}`)
                     );
                     directive = ShellCompDirective.ShellCompDirectiveNoFileComp;
-                    completions.forEach((comp) => console.log(comp));
+                    completions.forEach(comp => console.log(comp));
                     console.log(`:${directive}`);
                     return;
                 }
@@ -143,7 +148,7 @@ export class Completion {
                 if (handler) {
                     const suggestions = await handler(previousArgs, valueToComplete, endsWithSpace);
                     completions.push(...suggestions.map(
-                        (comp) => `${comp.value}\t${comp.description ?? ""}`
+                        comp => `${comp.value}\t${comp.description ?? ""}`
                     ));
                 }
             } else if (!endsWithSpace) {
@@ -168,7 +173,7 @@ export class Completion {
 
                 completions.push(
                     ...availableFlags.map(
-                        (flag) => `${flag}\t${options.get(flag)!.description ?? ""}`
+                        flag => `${flag}\t${options.get(flag)!.description ?? ""}`
                     )
                 );
             } else {
@@ -177,33 +182,27 @@ export class Completion {
                 if (handler) {
                     const suggestions = await handler(previousArgs, toComplete, endsWithSpace);
                     completions.push(...suggestions.map(
-                        (comp) => `${comp.value}\t${comp.description ?? ""}`
+                        comp => `${comp.value}\t${comp.description ?? ""}`
                     ));
                 }
-
             }
-        } else if (!toComplete && endsWithSpace) {
-            directive = ShellCompDirective.ShellCompDirectiveNoFileComp;
+        } else {
+            const availableSubcommands = [...this.commands.keys()]
+                .filter(cmd => cmd.startsWith(potentialCommand) && cmd !== potentialCommand)
+                .map(cmd => cmd.replace(`${potentialCommand} `, "").split(" ")[0])
+                .filter((subcmd, index, self) => self.indexOf(subcmd) === index) // Remove duplicates
+                .filter(subcmd => subcmd.startsWith(toComplete));
 
             completions.push(
-                ...Object.keys(this.commands)
-                    .filter((cmd) => cmd !== "complete")
-                    .map((cmd) => `${cmd}\t${this.commands[cmd].description}`)
+                ...availableSubcommands.map(
+                    subcmd => `${subcmd}\t${this.commands.get(`${potentialCommand} ${subcmd}`)?.description ?? ""}`
+                )
             );
 
-            const positionalCompletions = positionalMap.get(potentialCommand) || [];
-            for (const positional of positionalCompletions) {
-                const suggestions = await positional.completion(previousArgs, "");
-                completions.push(
-                    ...suggestions.map((comp) => `${comp.action}\t${comp.description ?? ""}`)
-                );
-                if (suggestions.length > 0) {
-                    directive = ShellCompDirective.ShellCompDirectiveNoFileComp;
-                }
-            }
+            directive = ShellCompDirective.ShellCompDirectiveNoFileComp;
         }
 
-        completions.forEach((comp) => console.log(comp));
+        completions.forEach(comp => console.log(comp));
         console.log(`:${directive}`);
     }
 }
