@@ -1,0 +1,75 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`cli completion tests for citty > cli option completion tests > should complete option for partial input '{ partial: '--p', expected: '--port' }' 1`] = `
+"--port	Specify port
+"
+`;
+
+exports[`cli completion tests for citty > cli option exclusion tests > should not suggest already specified option '{ specified: '--config', shouldNotContain: '--config' }' 1`] = `
+"--mode	Set env mode
+--logLevel	info | warn | error | silent
+:4
+"
+`;
+
+exports[`cli completion tests for citty > cli option exclusion tests > should not suggest already specified option '{ specified: '--port', shouldNotContain: '--port' }' 1`] = `
+"--mode	Set env mode
+--logLevel	info | warn | error | silent
+:4
+"
+`;
+
+exports[`cli completion tests for citty > cli option value handling > should handle conflicting options appropriately 1`] = `
+"--mode	Set env mode
+--logLevel	info | warn | error | silent
+:4
+"
+`;
+
+exports[`cli completion tests for citty > cli option value handling > should handle unknown options with no completions 1`] = `""`;
+
+exports[`cli completion tests for citty > cli option value handling > should resolve config option values correctly 1`] = `
+"vite.config.js
+vite.config.ts
+"
+`;
+
+exports[`cli completion tests for citty > cli option value handling > should resolve port value correctly 1`] = `
+"3000	Development server port
+"
+`;
+
+exports[`cli completion tests for citty > edge case completions for end with space > should keep suggesting the --port option if user typed partial but didn't end with space 1`] = `
+"--port	Specify port
+"
+`;
+
+exports[`cli completion tests for citty > edge case completions for end with space > should suggest port values if user ends with space after \`--port\` 1`] = `
+"3000	Development server port
+8080	Alternative port
+"
+`;
+
+exports[`cli completion tests for citty > edge case completions for end with space > should suggest port values if user typed \`--port=\` and hasn't typed a space or value yet 1`] = `
+"3000	Development server port
+8080	Alternative port
+:4
+"
+`;
+
+exports[`cli completion tests for citty > positional argument completions > should complete multiple positional arguments when ending with space (vite src/ ./) 1`] = `
+"./
+src/
+"
+`;
+
+exports[`cli completion tests for citty > positional argument completions > should complete single positional argument when ending with space (vite src/) 1`] = `
+"./
+"
+`;
+
+exports[`cli completion tests for citty > should complete cli options 1`] = `
+"dev	
+devbuild
+"
+`;
