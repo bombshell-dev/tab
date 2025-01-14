@@ -100,6 +100,24 @@ describe.each(cliTools)("cli completion tests for %s", (cliTool) => {
     });
   });
 
+  // single positional command: `lint [file]`
+  // vite ""
+  // -> src/
+  // -> ./
+
+  // vite src/ ""
+  // -> nothing
+  // should not suggest anything
+
+  // multiple postiionals command `lint [...files]`
+  // vite ""
+  // -> src/
+  // -> ./
+
+  // vite src/ ""
+  // -> src/
+  // -> ./
+
   describe("positional argument completions", () => {
     it("should complete single positional argument when ending with space (vite src/)", async () => {
       const command = `${commandPrefix} vite src/ ""`;

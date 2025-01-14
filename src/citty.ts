@@ -136,6 +136,7 @@ export default async function tab<T extends ArgsDef = ArgsDef>(instance: Command
           const parsed = parseArgs(extra, args);
           // TODO: this is not ideal at all
           const matchedCommand = parsed._.join(' ')
+          console.log(completion)
           return completion.parse(extra, matchedCommand);
         }
       }
