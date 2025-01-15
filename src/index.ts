@@ -75,6 +75,7 @@ type Option = {
 }
 
 type Command = {
+    name: string;
     description: string;
     handler: Handler;
     options: Map<string, Option>;
@@ -84,9 +85,12 @@ type Command = {
 export class Completion {
     commands = new Map<string, Command>();
 
-    addCommand(name: string, description: string, handler: Handler, parent?: string) {
+    // vite <entry> <another> [...files]
+    // args: [false, false, true], only the last argument can be variadic
+    addCommand(name: string, description: string, args: boolean[], handler: Handler, parent?: string) {
         const key = parent ? `${parent} ${name}` : name;
         this.commands.set(key, {
+            name: key,
             description,
             handler,
             options: new Map(),
@@ -95,6 +99,7 @@ export class Completion {
         return key;
     }
 
+    // --port
     addOption(command: string, option: string, description: string, handler: Handler) {
         const cmd = this.commands.get(command);
         if (!cmd) {
@@ -215,7 +220,6 @@ export class Completion {
                     }
                 }
             }
-            completions.push({ value: 'dhere1', description: '' })
 
             directive = ShellCompDirective.ShellCompDirectiveNoFileComp;
         }
@@ -227,7 +231,8 @@ export class Completion {
         // TODO: prettier (plus check in ci)
         // TODO: ci type check
 
-        // TODO: positionals (tomorrow night)
+        // TODO: positionals (tomorrow night), this is nearly there! 
+        
         // TODO: cac (tomorrow night)
         // TODO: check behaviour of the tests (tomorrow night)
         

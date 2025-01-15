@@ -4,7 +4,7 @@ import * as bash from "./bash";
 import * as fish from "./fish";
 import * as powershell from "./powershell";
 import { Completion } from ".";
-import type { ArgsDef, CommandDef, PositionalArgDef } from "citty";
+import type { ArgsDef, CommandDef, PositionalArgDef, SubCommandsDef } from "citty";
 
 function quoteIfNeeded(path) {
   return path.includes(" ") ? `'${path}'` : path;
@@ -17,32 +17,40 @@ const quotedProcessArgs = processArgs.map(quoteIfNeeded);
 const quotedProcessExecArgs = process.execArgv.map(quoteIfNeeded);
 const x = `${quotedExecPath} ${quotedProcessExecArgs.join(" ")} ${quotedProcessArgs[0]}`;
 
-async function handleSubCommands(
+function isConfigPositional<T extends ArgsDef>(config: CommandDef<T>) {
+  return config.args && Object.values(config.args).some(arg => arg.type === 'positional')
+}
+
+async function handleSubCommands<T extends ArgsDef = ArgsDef>(
   completion: Completion,
-  subCommands: Record<string, any>,
+  subCommands: SubCommandsDef,
   parentCmd?: string
 ) {
   for (const [cmd, resolvableConfig] of Object.entries(subCommands)) {
     const config = await resolve(resolvableConfig);
     const meta = await resolve(config.meta);
+    const subCommands = await resolve(config.subCommands)
 
     if (!meta || typeof meta?.description !== "string") {
       throw new Error("Invalid meta or missing description.");
     }
-
-    const name = completion.addCommand(cmd, meta.description, async (previousArgs, toComplete, endsWithSpace) => {
+    const isPositional = isConfigPositional(config)
+    const name = completion.addCommand(cmd, meta.description, isPositional ? [false] : [], async (previousArgs, toComplete, endsWithSpace) => {
       return []
     }, parentCmd);
 
     // Handle nested subcommands recursively
-    if (config.subCommands) {
-      await handleSubCommands(completion, config.subCommands, name);
+    if (subCommands) {
+      await handleSubCommands(completion, subCommands, name);
     }
 
     // Handle arguments
     if (config.args) {
       for (const [argName, argConfig] of Object.entries(config.args)) {
         const conf = argConfig as ArgDef;
+        if (conf.type === 'positional') {
+          continue
+        }
         completion.addOption(
           name,
           `--${argName}`,
@@ -75,7 +83,8 @@ export default async function tab<T extends ArgsDef = ArgsDef>(instance: Command
   }
 
   const root = ''
-  completion.addCommand(root, meta?.description ?? "", async (previousArgs, toComplete, endsWithSpace) => {
+  const isPositional = isConfigPositional(instance)
+  completion.addCommand(root, meta?.description ?? "", isPositional ? [false] : [], async (previousArgs, toComplete, endsWithSpace) => {
     return []
   });
 

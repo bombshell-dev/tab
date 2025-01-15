@@ -24,7 +24,9 @@ const devCommand = defineCommand({
         host: { type: "string", description: "Specify hostname" },
         port: { type: "string", description: "Specify port" },
     },
-    run({ args }) { },
+    run(ctx) { 
+        console.log('dev', ctx)
+    },
 });
 
 devCommand.subCommands = {
@@ -37,13 +39,39 @@ devCommand.subCommands = {
     })
 }
 
+const lintCommand = defineCommand({
+    meta: {
+        name: "lint",
+        description: "Lint project",
+    },
+    args: {
+        files: { type: "positional", description: "Files to lint" },
+    },
+    run(ctx) { 
+        console.log('lint', ctx.cmd.args)
+    },
+});
+
 main.subCommands = {
-    dev: devCommand
+    dev: devCommand,
+    lint: lintCommand
+
 } as Record<string, CommandDef<any>>;
 
 const completion = await tab(main)
 
 for (const command of completion.commands.values()) {
+    console.log(command)
+
+    if (command.name === 'lint') {
+        console.log('lint')
+        command.handler = () => {
+            return [
+                { value: "main.ts", description: "Main file" },
+                { value: "index.ts", description: "Index file" },
+            ]
+        }
+    }
 
     for (const [o, config] of command.options.entries()) {
         if (o === "--port") {
