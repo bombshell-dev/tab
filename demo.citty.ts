@@ -1,4 +1,4 @@
-import { defineCommand, createMain, CommandDef, CommandMeta, ArgDef, PositionalArgDef } from "citty";
+import { defineCommand, createMain, CommandDef } from "citty";
 import tab from "./src/citty";
 
 const main = defineCommand({
@@ -11,7 +11,7 @@ const main = defineCommand({
         mode: { type: "string", description: "Set env mode", alias: "m" },
         logLevel: { type: "string", description: "info | warn | error | silent", alias: "l" },
     },
-    run(ctx) {
+    run(_ctx) {
     }
 });
 
@@ -24,7 +24,7 @@ const devCommand = defineCommand({
         host: { type: "string", description: "Specify hostname" },
         port: { type: "string", description: "Specify port" },
     },
-    run(ctx) { 
+    run(ctx) {
         console.log('dev', ctx)
     },
 });
@@ -47,7 +47,7 @@ const lintCommand = defineCommand({
     args: {
         files: { type: "positional", description: "Files to lint" },
     },
-    run(ctx) { 
+    run(ctx) {
         console.log('lint', ctx.cmd.args)
     },
 });
@@ -118,86 +118,6 @@ for (const command of completion.commands.values()) {
         }
     }
 }
-
-// for (const command of [main as CommandDef<any>, ...Object.values(main.subCommands as Record<string, CommandDef<any>>)]) {
-//     const meta = command.meta as CommandMeta;
-//     const commandName = meta.name;
-
-//     for (const [argName, argConfig] of Object.entries(command.args || {}) as [string, ArgDef][]) {
-//         const optionKey = `--${argName}`;
-
-//         if (argName === "port") {
-//             flagMap.set(optionKey, async (_, toComplete) => {
-//                 const options = [
-//                     { action: "3000", description: "Development server port" },
-//                     { action: "8080", description: "Alternative port" },
-//                 ];
-//                 return toComplete
-//                     ? options.filter(comp => comp.action.startsWith(toComplete))
-//                     : options;
-//             });
-//         } else if (argName === "host") {
-//             flagMap.set(optionKey, async (_, toComplete) => {
-//                 const options = [
-//                     { action: "localhost", description: "Localhost" },
-//                     { action: "0.0.0.0", description: "All interfaces" },
-//                 ];
-//                 return toComplete
-//                     ? options.filter(comp => comp.action.startsWith(toComplete))
-//                     : options;
-//             });
-//         } else if (argName === "config") {
-//             flagMap.set(optionKey, async (_, toComplete) => {
-//                 const configFiles = ["vite.config.ts", "vite.config.js"].filter(
-//                     (file) => file.startsWith(toComplete)
-//                 );
-//                 return configFiles.map((file) => ({ action: file }));
-//             });
-//         } else if (argName === "mode") {
-//             flagMap.set(optionKey, async (_, toComplete) => {
-//                 const options = [
-//                     { action: "development", description: "Development mode" },
-//                     { action: "production", description: "Production mode" },
-//                 ];
-//                 return toComplete
-//                     ? options.filter(comp => comp.action.startsWith(toComplete))
-//                     : options;
-//             });
-//         } else {
-//             flagMap.set(optionKey, async (_, toComplete) => {
-//                 const flag = optionKey.startsWith("--") ? optionKey.slice(2) : optionKey;
-//                 if (!toComplete || optionKey.startsWith(toComplete)) {
-//                     return [{ action: optionKey, description: argConfig.description }];
-//                 }
-//                 return [];
-//             });
-//         }
-//     }
-
-//     if (command.args) {
-//         const positionals = Object.entries(command.args)
-//             .filter(([, config]) => (config as any).type === "positional")
-//             .map(([argName, argConfig]) => {
-//                 const conf = argConfig as PositionalArgDef;
-//                 return {
-//                     value: argName,
-//                     variadic: false,
-//                     required: !!conf.required,
-//                     completion: async (_, toComplete) => {
-//                         const options = [
-//                             { action: "src/", description: "Source directory" },
-//                             { action: "./", description: "Current directory" },
-//                         ];
-//                         return toComplete
-//                             ? options.filter(comp => comp.action.startsWith(toComplete))
-//                             : options;
-//                     },
-//                 };
-//             });
-//         positionalMap.set(commandName!, positionals);
-//     }
-// }
-
 
 const cli = createMain(main);
 

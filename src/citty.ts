@@ -6,7 +6,7 @@ import * as powershell from "./powershell";
 import { Completion } from ".";
 import type { ArgsDef, CommandDef, PositionalArgDef, SubCommandsDef } from "citty";
 
-function quoteIfNeeded(path) {
+function quoteIfNeeded(path: string) {
   return path.includes(" ") ? `'${path}'` : path;
 }
 
