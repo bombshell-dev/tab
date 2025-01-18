@@ -1,5 +1,5 @@
-import { exec } from "child_process";
-import { describe, it, expect, test } from "vitest";
+import { exec } from 'child_process';
+import { describe, it, expect, test } from 'vitest';
 
 function runCommand(command: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -13,20 +13,18 @@ function runCommand(command: string): Promise<string> {
   });
 }
 
-const cliTools = ["citty"];
+const cliTools = ['citty'];
 
-describe.each(cliTools)("cli completion tests for %s", (cliTool) => {
+describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
   const commandPrefix = `pnpm tsx demo.${cliTool}.ts complete --`;
 
-  it("should complete cli options", async () => {
+  it('should complete cli options', async () => {
     const output = await runCommand(`${commandPrefix}`);
     expect(output).toMatchSnapshot();
   });
 
-  describe("cli option completion tests", () => {
-    const optionTests = [
-      { partial: "--p", expected: "--port" },
-    ];
+  describe('cli option completion tests', () => {
+    const optionTests = [{ partial: '--p', expected: '--port' }];
 
     test.each(optionTests)(
       "should complete option for partial input '%s'",
@@ -38,9 +36,9 @@ describe.each(cliTools)("cli completion tests for %s", (cliTool) => {
     );
   });
 
-  describe("cli option exclusion tests", () => {
+  describe('cli option exclusion tests', () => {
     const alreadySpecifiedTests = [
-      { specified: "--config", shouldNotContain: "--config" },
+      { specified: '--config', shouldNotContain: '--config' },
     ];
 
     test.each(alreadySpecifiedTests)(
@@ -53,35 +51,35 @@ describe.each(cliTools)("cli completion tests for %s", (cliTool) => {
     );
   });
 
-  describe("cli option value handling", () => {
-    it("should resolve port value correctly", async () => {
+  describe('cli option value handling', () => {
+    it('should resolve port value correctly', async () => {
       const command = `${commandPrefix} dev --port=3`;
       const output = await runCommand(command);
       expect(output).toMatchSnapshot();
     });
 
-    it("should handle conflicting options appropriately", async () => {
+    it('should handle conflicting options appropriately', async () => {
       const command = `${commandPrefix} --config vite.config.js --`;
       const output = await runCommand(command);
       expect(output).toMatchSnapshot();
     });
 
-    it("should resolve config option values correctly", async () => {
+    it('should resolve config option values correctly', async () => {
       const command = `${commandPrefix} --config vite.config`;
       const output = await runCommand(command);
       expect(output).toMatchSnapshot();
     });
 
-    it("should handle unknown options with no completions", async () => {
+    it('should handle unknown options with no completions', async () => {
       const command = `${commandPrefix} --unknownoption`;
       const output = await runCommand(command);
       expect(output.trim()).toMatchSnapshot();
     });
   });
 
-  describe("edge case completions for end with space", () => {
+  describe('edge case completions for end with space', () => {
     //TOOD: remove this
-    it("should suggest port values if user ends with space after `--port`", async () => {
+    it('should suggest port values if user ends with space after `--port`', async () => {
       const command = `${commandPrefix} dev --port ""`;
       const output = await runCommand(command);
       expect(output).toMatchSnapshot();
@@ -118,14 +116,14 @@ describe.each(cliTools)("cli completion tests for %s", (cliTool) => {
   // -> src/
   // -> ./
 
-  describe("positional argument completions", () => {
-    it("should complete single positional argument when ending with space (vite src/)", async () => {
+  describe('positional argument completions', () => {
+    it('should complete single positional argument when ending with space (vite src/)', async () => {
       const command = `${commandPrefix} vite src/ ""`;
       const output = await runCommand(command);
       expect(output).toMatchSnapshot();
     });
 
-    it("should complete multiple positional arguments when ending with space (vite src/ ./)", async () => {
+    it('should complete multiple positional arguments when ending with space (vite src/ ./)', async () => {
       const command = `${commandPrefix} vite ""`;
       const output = await runCommand(command);
       expect(output).toMatchSnapshot();

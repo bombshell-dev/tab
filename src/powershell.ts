@@ -1,4 +1,4 @@
-import { ShellCompDirective } from "./";
+import { ShellCompDirective } from './';
 
 // TODO: issue with -- -- completions
 
@@ -8,7 +8,7 @@ export function generate(
   includeDesc = false
 ): string {
   // Replace '-' and ':' with '_' for variable names
-  const nameForVar = name.replace(/[-:]/g, "_");
+  const nameForVar = name.replace(/[-:]/g, '_');
 
   // Determine the completion command
   // const compCmd = includeDesc ? "complete" : "complete";

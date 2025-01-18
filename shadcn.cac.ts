@@ -85,7 +85,7 @@
 //       completion: async (previousArgs, toComplete) => {
 //         // if (arg.value === "root") {
 //           return componentChoices
-//             // TODO: a bug here that toComplete is equal to "add" which then makes filter not work, we should omit toComplete and add it to previous args if the endsWithSpace is true  
+//             // TODO: a bug here that toComplete is equal to "add" which then makes filter not work, we should omit toComplete and add it to previous args if the endsWithSpace is true
 //             // .filter((comp) => comp.startsWith(toComplete))
 //             .map((comp) => ({ action: comp, description: `Add ${comp} component` }));
 //         // }
@@ -101,4 +101,3 @@
 // tab(cli);
 
 // cli.parse();
-
