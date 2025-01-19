@@ -32,7 +32,6 @@ const devCommand = defineCommand({
     port: { type: 'string', description: 'Specify port' },
   },
   run(ctx) {
-    console.log('dev', ctx);
   },
 });
 
@@ -55,7 +54,6 @@ const lintCommand = defineCommand({
     files: { type: 'positional', description: 'Files to lint' },
   },
   run(ctx) {
-    console.log('lint', ctx.cmd.args);
   },
 });
 
@@ -67,10 +65,8 @@ main.subCommands = {
 const completion = await tab(main);
 
 for (const command of completion.commands.values()) {
-  console.log(command);
 
   if (command.name === 'lint') {
-    console.log('lint');
     command.handler = () => {
       return [
         { value: 'main.ts', description: 'Main file' },

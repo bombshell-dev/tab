@@ -139,7 +139,7 @@ export class Completion {
 
     if (previousArgs.length > 0) {
       const lastPrevArg = previousArgs[previousArgs.length - 1];
-      if (lastPrevArg.startsWith('--') && endsWithSpace) {
+      if (lastPrevArg.startsWith('--') && !endsWithSpace) {
         const { handler } = matchedCommand.options.get(lastPrevArg)!;
         if (handler) {
           const flagSuggestions = await handler(
@@ -153,14 +153,12 @@ export class Completion {
             )
           );
           directive = ShellCompDirective.ShellCompDirectiveNoFileComp;
-          completions.forEach((comp) => console.log(comp));
-          console.log(`:${directive}`);
-          return;
+          // completions.forEach((comp) => );
+          // console.log(`:${directive}`);
+          // return;
         }
       }
-    }
-
-    if (toComplete.startsWith('--')) {
+    } else if (toComplete.startsWith('--')) {
       directive = ShellCompDirective.ShellCompDirectiveNoFileComp;
       const equalsIndex = toComplete.indexOf('=');
 

@@ -111,8 +111,6 @@ export default async function tab<T extends ArgsDef = ArgsDef>(
 
   await handleSubCommands(completion, subCommands);
 
-  // console.log("LOOK HERE", subCommands)
-
   if (instance.args) {
     for (const [argName, argConfig] of Object.entries(instance.args)) {
       const conf = argConfig as PositionalArgDef;
@@ -166,7 +164,6 @@ export default async function tab<T extends ArgsDef = ArgsDef>(
           const parsed = parseArgs(extra, args);
           // TODO: this is not ideal at all
           const matchedCommand = parsed._.join(' ');
-          console.log(completion);
           return completion.parse(extra, matchedCommand);
         }
       }

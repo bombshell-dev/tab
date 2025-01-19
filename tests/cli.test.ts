@@ -1,5 +1,8 @@
 import { exec } from 'child_process';
 import { describe, it, expect, test } from 'vitest';
+import '../src/index.js'
+import '../src/citty.js'
+import '../src/cac.js'
 
 function runCommand(command: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -13,6 +16,7 @@ function runCommand(command: string): Promise<string> {
   });
 }
 
+// TODO: add cac
 const cliTools = ['citty'];
 
 describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
@@ -46,6 +50,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
       async ({ specified }) => {
         const command = `${commandPrefix} ${specified} --`;
         const output = await runCommand(command);
+        console.log(output)
         expect(output).toMatchSnapshot();
       }
     );
@@ -58,7 +63,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
       expect(output).toMatchSnapshot();
     });
 
-    it('should handle conflicting options appropriately', async () => {
+    it('should not show duplicate options', async () => {
       const command = `${commandPrefix} --config vite.config.js --`;
       const output = await runCommand(command);
       expect(output).toMatchSnapshot();
