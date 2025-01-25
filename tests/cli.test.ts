@@ -123,13 +123,13 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
 
   describe('positional argument completions', () => {
     it('should complete single positional argument when ending with space (vite src/)', async () => {
-      const command = `${commandPrefix} vite src/ ""`;
+      const command = `${commandPrefix} lint src/ ""`;
       const output = await runCommand(command);
       expect(output).toMatchSnapshot();
     });
 
     it('should complete multiple positional arguments when ending with space (vite src/ ./)', async () => {
-      const command = `${commandPrefix} vite ""`;
+      const command = `${commandPrefix} lint ""`;
       const output = await runCommand(command);
       expect(output).toMatchSnapshot();
     });

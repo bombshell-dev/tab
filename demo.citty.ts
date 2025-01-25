@@ -68,6 +68,7 @@ for (const command of completion.commands.values()) {
 
   if (command.name === 'lint') {
     command.handler = () => {
+      console.log('lint handler')
       return [
         { value: 'main.ts', description: 'Main file' },
         { value: 'index.ts', description: 'Index file' },

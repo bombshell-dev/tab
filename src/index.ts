@@ -80,6 +80,7 @@ type Option = {
 type Command = {
   name: string;
   description: string;
+  args: boolean[]
   handler: Handler;
   options: Map<string, Option>;
   parent?: Command;
@@ -101,6 +102,7 @@ export class Completion {
     this.commands.set(key, {
       name: key,
       description,
+      args,
       handler,
       options: new Map(),
       parent: parent ? this.commands.get(parent)! : undefined,
@@ -137,11 +139,10 @@ export class Completion {
     let toComplete = args[args.length - 1] || '';
     const previousArgs = args.slice(0, -1);
 
-    if (previousArgs.length > 0) {
-      const lastPrevArg = previousArgs[previousArgs.length - 1];
-      if (lastPrevArg.startsWith('--') && !endsWithSpace) {
-        const { handler } = matchedCommand.options.get(lastPrevArg)!;
-        if (handler) {
+    const lastPrevArg = previousArgs[previousArgs.length - 1];
+    if (lastPrevArg?.startsWith('--') && !endsWithSpace) {
+      const { handler } = matchedCommand.options.get(lastPrevArg)!;
+      if (handler) {
           const flagSuggestions = await handler(
             previousArgs,
             toComplete,
@@ -153,11 +154,7 @@ export class Completion {
             )
           );
           directive = ShellCompDirective.ShellCompDirectiveNoFileComp;
-          // completions.forEach((comp) => );
-          // console.log(`:${directive}`);
-          // return;
         }
-      }
     } else if (toComplete.startsWith('--')) {
       directive = ShellCompDirective.ShellCompDirectiveNoFileComp;
       const equalsIndex = toComplete.indexOf('=');
@@ -215,13 +212,15 @@ export class Completion {
       }
     } else {
       const potentialCommandParts = potentialCommand.split(' ');
+      console.log(potentialCommandParts)
       for (const [k, v] of this.commands) {
         // if the command is root, skip it
         if (k === '') {
           continue;
         }
 
-        const parts = k.split(' ');
+        const parts = [...k.split(' '), ...v.args];
+        console.log(parts)
         for (let i = 0; i < parts.length; i++) {
           const part = parts[i];
           const potentialPart = potentialCommandParts[i] || '';
@@ -233,13 +232,35 @@ export class Completion {
             break;
           }
 
+          async function callHandler() {
+            console.log(matchedCommand)
+            console.log('callHandler', previousArgs, toComplete, endsWithSpace)
+            completions.push(...await matchedCommand.handler?.(
+              previousArgs,
+              toComplete,
+              endsWithSpace
+            ))
+          }
+
           // If we're at the current word being completed
           if (i === potentialCommandParts.length - 1) {
-            // Only add if it matches the current partial input
-            if (part.startsWith(potentialPart)) {
-              completions.push({ value: part, description: v.description });
+            if (endsWithSpace) {
+              const nextPart = parts[i + 1]
+              if (typeof nextPart === 'boolean') {
+                await callHandler()
+              }
+            } else {
+              // Only add if it matches the current partial input
+              console.log('part', part, potentialPart)
+              if (typeof part === 'boolean') {
+                await callHandler()
+              } else if (part.startsWith(potentialPart)) {
+                completions.push({ value: part, description: v.description });
+              }
             }
             break;
+          } else if (i === parts.length - 1 && part === true) { // variadic
+            await callHandler()
           }
 
           // For previous parts, they must match exactly

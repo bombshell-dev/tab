@@ -163,7 +163,11 @@ export default async function tab<T extends ArgsDef = ArgsDef>(
           const args = (await resolve(instance.args))!;
           const parsed = parseArgs(extra, args);
           // TODO: this is not ideal at all
-          const matchedCommand = parsed._.join(' ');
+          const matchedCommand = parsed._.join(' ').trim();
+          // TODO: `command lint i` does not work because `lint` and `i` are potential commands
+          // instead the potential command should only be `lint`
+          // and `i` is the to be completed part
+          console.log('extra', parsed, ctx)
           return completion.parse(extra, matchedCommand);
         }
       }
