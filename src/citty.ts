@@ -167,7 +167,6 @@ export default async function tab<T extends ArgsDef = ArgsDef>(
           // TODO: `command lint i` does not work because `lint` and `i` are potential commands
           // instead the potential command should only be `lint`
           // and `i` is the to be completed part
-          console.log('extra', parsed, ctx)
           return completion.parse(extra, matchedCommand);
         }
       }

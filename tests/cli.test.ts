@@ -1,8 +1,5 @@
 import { exec } from 'child_process';
 import { describe, it, expect, test } from 'vitest';
-import '../src/index.js'
-import '../src/citty.js'
-import '../src/cac.js'
 
 function runCommand(command: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -16,8 +13,8 @@ function runCommand(command: string): Promise<string> {
   });
 }
 
-// TODO: add cac
-const cliTools = ['citty'];
+const cliTools = ['citty', 'cac'];
+// const cliTools = ['citty', 'cac'];
 
 describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
   const commandPrefix = `pnpm tsx demo.${cliTool}.ts complete --`;
@@ -122,14 +119,20 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
   // -> ./
 
   describe('positional argument completions', () => {
-    it('should complete single positional argument when ending with space (vite src/)', async () => {
-      const command = `${commandPrefix} lint src/ ""`;
+    it.runIf(cliTool !== 'citty')('should complete multiple positional arguments when ending with space', async () => {
+      const command = `${commandPrefix} lint ""`;
       const output = await runCommand(command);
       expect(output).toMatchSnapshot();
     });
 
-    it('should complete multiple positional arguments when ending with space (vite src/ ./)', async () => {
-      const command = `${commandPrefix} lint ""`;
+    it.runIf(cliTool !== 'citty')('should complete multiple positional arguments when ending with part of the value', async () => {
+      const command = `${commandPrefix} lint ind`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it.runIf(cliTool !== 'citty')('should complete single positional argument when ending with space', async () => {
+      const command = `${commandPrefix} lint main.ts ""`;
       const output = await runCommand(command);
       expect(output).toMatchSnapshot();
     });

@@ -88,6 +88,8 @@ type Command = {
 
 export class Completion {
   commands = new Map<string, Command>();
+  completions: Item[] = []
+  directive = ShellCompDirective.ShellCompDirectiveDefault;
 
   // vite <entry> <another> [...files]
   // args: [false, false, true], only the last argument can be variadic
@@ -125,13 +127,47 @@ export class Completion {
     return option;
   }
 
-  async parse(args: string[], potentialCommand: string) {
-    const matchedCommand =
-      this.commands.get(potentialCommand) ?? this.commands.get('')!;
-    let directive = ShellCompDirective.ShellCompDirectiveDefault;
-    const completions: Item[] = [];
+  // TODO: this should be aware of boolean args and stuff
+  private stripOptions(args: string[]): string[] {
+    const parts: string[] = []
+    let option = false;
+    for (const k of args) {
+      if (k.startsWith('-')) {
+        option = true;
+        continue
+      }
+      if (option) {
+        option = false;
+        continue
+      }
+      parts.push(k)
+    }
+    return parts
+  }
 
+  private matchCommand(args: string[]): [Command, string[]] {
+    args = this.stripOptions(args);
+    let parts: string[] = [];
+    let remaining: string[] = [];
+    let matched: Command = this.commands.get('')! 
+    for (let i = 0; i < args.length; i++) {
+      const k = args[i];
+      parts.push(k);
+      const potential = this.commands.get(parts.join(' '))
+      
+      if (potential) {
+        matched = potential;
+      } else {
+        remaining = args.slice(i, args.length);
+        break
+      }
+    }
+    return [matched, remaining];
+  }
+
+  async parse(args: string[]) {
     const endsWithSpace = args[args.length - 1] === '';
+
     if (endsWithSpace) {
       args.pop();
     }
@@ -139,156 +175,156 @@ export class Completion {
     let toComplete = args[args.length - 1] || '';
     const previousArgs = args.slice(0, -1);
 
-    const lastPrevArg = previousArgs[previousArgs.length - 1];
-    if (lastPrevArg?.startsWith('--') && !endsWithSpace) {
-      const { handler } = matchedCommand.options.get(lastPrevArg)!;
-      if (handler) {
-          const flagSuggestions = await handler(
-            previousArgs,
-            toComplete,
-            endsWithSpace
-          );
-          completions.push(
-            ...flagSuggestions.filter((comp) =>
-              comp.value.startsWith(toComplete)
-            )
-          );
-          directive = ShellCompDirective.ShellCompDirectiveNoFileComp;
-        }
-    } else if (toComplete.startsWith('--')) {
-      directive = ShellCompDirective.ShellCompDirectiveNoFileComp;
-      const equalsIndex = toComplete.indexOf('=');
-
-      if (equalsIndex !== -1) {
-        const flagName = toComplete.slice(2, equalsIndex);
-        const valueToComplete = toComplete.slice(equalsIndex + 1);
-        const { handler } = matchedCommand.options.get(`--${flagName}`)!;
-
-        if (handler) {
-          const suggestions = await handler(
-            previousArgs,
-            valueToComplete,
-            endsWithSpace
-          );
-          completions.push(...suggestions);
-        }
-      } else if (!endsWithSpace) {
-        const options = new Map(matchedCommand.options);
-
-        let currentCommand = matchedCommand;
-        while (currentCommand.parent) {
-          for (const [key, value] of currentCommand.parent.options) {
-            if (!options.has(key)) {
-              options.set(key, value);
-            }
-          }
-          currentCommand = currentCommand.parent;
-        }
-
-        const specifiedFlags = previousArgs
-          .filter((arg) => arg.startsWith('-'))
-          .filter((arg) => arg.startsWith('--'));
-        const availableFlags = [...options.keys()]
-          .filter((flag) => !specifiedFlags.includes(flag))
-          .filter((flag) => flag.startsWith(toComplete));
-
-        completions.push(
-          ...availableFlags.map((flag) => ({
-            value: flag,
-            description: options.get(flag)!.description ?? '',
-          }))
-        );
-      } else {
-        const { handler } = matchedCommand.options.get(toComplete)!;
-
-        if (handler) {
-          const suggestions = await handler(
-            previousArgs,
-            toComplete,
-            endsWithSpace
-          );
-          completions.push(...suggestions);
-        }
-      }
-    } else {
-      const potentialCommandParts = potentialCommand.split(' ');
-      console.log(potentialCommandParts)
-      for (const [k, v] of this.commands) {
-        // if the command is root, skip it
-        if (k === '') {
-          continue;
-        }
-
-        const parts = [...k.split(' '), ...v.args];
-        console.log(parts)
-        for (let i = 0; i < parts.length; i++) {
-          const part = parts[i];
-          const potentialPart = potentialCommandParts[i] || '';
-
-          // Skip if we've already added this suggestion
-          const alreadyExists =
-            completions.findIndex((item) => item.value === part) !== -1;
-          if (alreadyExists) {
-            break;
-          }
-
-          async function callHandler() {
-            console.log(matchedCommand)
-            console.log('callHandler', previousArgs, toComplete, endsWithSpace)
-            completions.push(...await matchedCommand.handler?.(
-              previousArgs,
-              toComplete,
-              endsWithSpace
-            ))
-          }
-
-          // If we're at the current word being completed
-          if (i === potentialCommandParts.length - 1) {
-            if (endsWithSpace) {
-              const nextPart = parts[i + 1]
-              if (typeof nextPart === 'boolean') {
-                await callHandler()
-              }
-            } else {
-              // Only add if it matches the current partial input
-              console.log('part', part, potentialPart)
-              if (typeof part === 'boolean') {
-                await callHandler()
-              } else if (part.startsWith(potentialPart)) {
-                completions.push({ value: part, description: v.description });
-              }
-            }
-            break;
-          } else if (i === parts.length - 1 && part === true) { // variadic
-            await callHandler()
-          }
-
-          // For previous parts, they must match exactly
-          if (part !== potentialPart) {
-            break;
-          }
-        }
-      }
-
-      directive = ShellCompDirective.ShellCompDirectiveNoFileComp;
+    if (endsWithSpace) {
+      previousArgs.push(toComplete);
+      toComplete = '';
     }
-    // vite [...items]
-    // vite dev
-    // vite lint [item]
-    // vite dev build
 
-    // TODO: prettier (plus check in ci)
-    // TODO: ci type check
+    const [matchedCommand, remaining] = this.matchCommand(previousArgs);
 
-    // TODO: positionals (tomorrow night), this is nearly there!
+    const lastPrevArg = previousArgs[previousArgs.length - 1];
 
-    // TODO: cac (tomorrow night)
-    // TODO: check behaviour of the tests (tomorrow night)
+    // 1. Handle flag/option completion
+    if (this.shouldCompleteFlags(lastPrevArg, toComplete, endsWithSpace)) {
+      await this.handleFlagCompletion(
+        matchedCommand,
+        previousArgs, 
+        toComplete,
+        endsWithSpace,
+        lastPrevArg,
+      );
+    }
+    else {
+      // 2. Handle command/subcommand completion
+      if (this.shouldCompleteCommands(toComplete, endsWithSpace)) {
+        await this.handleCommandCompletion(
+          previousArgs,
+          toComplete,
+        );
+      }
+      // 3. Handle positional arguments
+      if (matchedCommand && matchedCommand.args.length > 0) {
+        await this.handlePositionalCompletion(
+          matchedCommand,
+          previousArgs,
+          toComplete,
+          endsWithSpace,
+        );
+      }
+    }
+    this.complete(toComplete)
+  }
 
-    completions.forEach((comp) =>
-      console.log(`${comp.value}\t${comp.description ?? ''}`)
-    );
-    console.log(`:${directive}`);
+  private complete(toComplete: string) {
+    this.directive = ShellCompDirective.ShellCompDirectiveNoFileComp;
+
+    const seen = new Set<string>();
+    this.completions
+      .filter((comp) => {
+        if (seen.has(comp.value)) return false;
+        seen.add(comp.value);
+        return true;
+      })
+      .filter((comp) => comp.value.startsWith(toComplete))
+      .forEach((comp) => console.log(`${comp.value}\t${comp.description ?? ''}`));
+    console.log(`:${this.directive}`);
+  }
+
+  private shouldCompleteFlags(lastPrevArg: string | undefined, toComplete: string, endsWithSpace: boolean): boolean {
+    return (lastPrevArg?.startsWith('--')) || toComplete.startsWith('--');
+  }
+
+  private shouldCompleteCommands(toComplete: string, endsWithSpace: boolean): boolean {
+    return !toComplete.startsWith('-');
+  }
+
+  private async handleFlagCompletion(
+    command: Command,
+    previousArgs: string[], 
+    toComplete: string,
+    endsWithSpace: boolean,
+    lastPrevArg: string | undefined,
+  ) {
+    // Handle flag value completion
+    let flagName: string | undefined;
+    let valueToComplete = toComplete;
+
+    if (toComplete.includes('=')) {
+      // Handle --flag=value case
+      const parts = toComplete.split('=');
+      flagName = parts[0];
+      valueToComplete = parts[1] || '';
+    } else if (lastPrevArg?.startsWith('--')) {
+      // Handle --flag value case
+      flagName = lastPrevArg;
+    }
+
+    if (flagName) {
+      const option = command.options.get(flagName);
+      if (option) {
+        const suggestions = await option.handler(previousArgs, valueToComplete, endsWithSpace);
+        if (toComplete.includes('=')) {
+          // Reconstruct the full flag=value format
+          this.completions = suggestions.map(suggestion => ({
+            value: `${flagName}=${suggestion.value}`,
+            description: suggestion.description
+          }));
+        } else {
+          this.completions.push(...suggestions);
+        }
+      }
+      return;
+    }
+
+    // Handle flag name completion
+    if (toComplete.startsWith('--')) {
+      for (const [name, option] of command.options) {
+        if (name.startsWith(toComplete)) {
+          this.completions.push({
+            value: name,
+            description: option.description
+          });
+        }
+      }
+    }
+  }
+
+  private async handleCommandCompletion(
+    previousArgs: string[],
+    toComplete: string,
+  ) {
+    const commandParts = [...previousArgs];
+
+    for (const k of this.commands.keys()) {
+      if (k === '') continue;
+      const parts = k.split(' ');
+      let match = true;
+      
+      let i = 0;
+      while (i < commandParts.length) {
+        if (parts[i] !== commandParts[i]) {
+          match = false;
+          break
+        }
+        i++;
+      }
+      if (match && parts[i]?.startsWith(toComplete)) {
+        this.completions.push({
+          value: parts[i],
+          description: this.commands.get(k)!.description
+        });
+      }
+    }
+  }
+
+  private async handlePositionalCompletion(
+    command: Command,
+    previousArgs: string[],
+    toComplete: string,
+    endsWithSpace: boolean,
+  ) {
+    const suggestions = await command.handler(previousArgs, toComplete, endsWithSpace);
+    this.completions.push(...suggestions);
   }
 }
 
