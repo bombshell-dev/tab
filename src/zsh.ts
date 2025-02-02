@@ -1,4 +1,4 @@
-import { ShellCompDirective } from "./shared";
+import { ShellCompDirective } from './';
 
 export function generate(name: string, exec: string) {
   return `#compdef ${name}
@@ -212,4 +212,3 @@ if [ "\${funcstack[1]}" = "_${name}" ]; then
 fi
 `;
 }
-

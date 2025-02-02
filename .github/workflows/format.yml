@@ -1,8 +1,9 @@
-name: pkg.pr.new
+name: Prettier Check
+
 on: [push, pull_request]
 
 jobs:
-  build:
+  prettier:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,9 +18,10 @@ jobs:
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org/
-          cache: 'pnpm'
+          cache: pnpm
 
       - name: Install deps
         run: pnpm install
 
-      - run: pnpx pkg-pr-new publish
+      - name: Run Prettier Check
+        run: npm run format:check

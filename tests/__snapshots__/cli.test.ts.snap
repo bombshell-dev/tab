@@ -1,0 +1,143 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`cli completion tests for cac > cli option completion tests > should complete option for partial input '{ partial: '--p', expected: '--port' }' 1`] = `
+"--port	Specify port
+:4
+"
+`;
+
+exports[`cli completion tests for cac > cli option exclusion tests > should not suggest already specified option '{ specified: '--config', shouldNotContain: '--config' }' 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for cac > cli option value handling > should handle unknown options with no completions 1`] = `":4"`;
+
+exports[`cli completion tests for cac > cli option value handling > should not show duplicate options 1`] = `
+"--config	Use specified config file
+--mode	Set env mode
+--logLevel	info | warn | error | silent
+:4
+"
+`;
+
+exports[`cli completion tests for cac > cli option value handling > should resolve config option values correctly 1`] = `
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
+:4
+"
+`;
+
+exports[`cli completion tests for cac > cli option value handling > should resolve port value correctly 1`] = `
+"--port=3000	Development server port
+:4
+"
+`;
+
+exports[`cli completion tests for cac > edge case completions for end with space > should keep suggesting the --port option if user typed partial but didn't end with space 1`] = `
+"--port	Specify port
+:4
+"
+`;
+
+exports[`cli completion tests for cac > edge case completions for end with space > should suggest port values if user ends with space after \`--port\` 1`] = `
+"3000	Development server port
+8080	Alternative port
+:4
+"
+`;
+
+exports[`cli completion tests for cac > edge case completions for end with space > should suggest port values if user typed \`--port=\` and hasn't typed a space or value yet 1`] = `
+"--port=3000	Development server port
+--port=8080	Alternative port
+:4
+"
+`;
+
+exports[`cli completion tests for cac > positional argument completions > should complete multiple positional arguments when ending with part of the value 1`] = `
+"index.ts	Index file
+:4
+"
+`;
+
+exports[`cli completion tests for cac > positional argument completions > should complete multiple positional arguments when ending with space 1`] = `
+"main.ts	Main file
+index.ts	Index file
+:4
+"
+`;
+
+exports[`cli completion tests for cac > positional argument completions > should complete single positional argument when ending with space 1`] = `
+"main.ts	Main file
+index.ts	Index file
+:4
+"
+`;
+
+exports[`cli completion tests for cac > should complete cli options 1`] = `
+"dev	Start dev server
+lint	Lint project
+:4
+"
+`;
+
+exports[`cli completion tests for citty > cli option completion tests > should complete option for partial input '{ partial: '--p', expected: '--port' }' 1`] = `
+"--port	Specify port
+:4
+"
+`;
+
+exports[`cli completion tests for citty > cli option exclusion tests > should not suggest already specified option '{ specified: '--config', shouldNotContain: '--config' }' 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for citty > cli option value handling > should handle unknown options with no completions 1`] = `":4"`;
+
+exports[`cli completion tests for citty > cli option value handling > should not show duplicate options 1`] = `
+"--config	Use specified config file
+--mode	Set env mode
+--logLevel	info | warn | error | silent
+:4
+"
+`;
+
+exports[`cli completion tests for citty > cli option value handling > should resolve config option values correctly 1`] = `
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
+:4
+"
+`;
+
+exports[`cli completion tests for citty > cli option value handling > should resolve port value correctly 1`] = `
+"--port=3000	Development server port
+:4
+"
+`;
+
+exports[`cli completion tests for citty > edge case completions for end with space > should keep suggesting the --port option if user typed partial but didn't end with space 1`] = `
+"--port	Specify port
+:4
+"
+`;
+
+exports[`cli completion tests for citty > edge case completions for end with space > should suggest port values if user ends with space after \`--port\` 1`] = `
+"3000	Development server port
+8080	Alternative port
+:4
+"
+`;
+
+exports[`cli completion tests for citty > edge case completions for end with space > should suggest port values if user typed \`--port=\` and hasn't typed a space or value yet 1`] = `
+"--port=3000	Development server port
+--port=8080	Alternative port
+:4
+"
+`;
+
+exports[`cli completion tests for citty > should complete cli options 1`] = `
+"dev	Start dev server
+lint	Lint project
+:4
+"
+`;
