@@ -2,7 +2,8 @@
   "name": "tab",
   "version": "0.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "type": "module",
   "scripts": {
     "test": "vitest",
@@ -31,9 +32,21 @@
     "mri": "^1.2.0"
   },
   "exports": {
-    ".": "./dist/index.js",
-    "./citty": "./dist/citty.js",
-    "./cac": "./dist/cac.js"
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./citty": {
+      "import": "./dist/citty.js",
+      "require": "./dist/citty.cjs",
+      "types": "./dist/citty.d.ts"
+    },
+    "./cac": {
+      "import": "./dist/cac.js",
+      "require": "./dist/cac.cjs",
+      "types": "./dist/cac.d.ts"
+    }
   },
   "packageManager": "pnpm@9.15.0+sha512.76e2379760a4328ec4415815bcd6628dee727af3779aaa4c914e3944156c4299921a89f976381ee107d41f12cfa4b66681ca9c718f0668fa0831ed4c6d8ba56c"
 }
