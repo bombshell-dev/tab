@@ -47,7 +47,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
       async ({ specified }) => {
         const command = `${commandPrefix} ${specified} --`;
         const output = await runCommand(command);
-        console.log(output)
+        console.log(output);
         expect(output).toMatchSnapshot();
       }
     );
@@ -119,22 +119,31 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
   // -> ./
 
   describe('positional argument completions', () => {
-    it.runIf(cliTool !== 'citty')('should complete multiple positional arguments when ending with space', async () => {
-      const command = `${commandPrefix} lint ""`;
-      const output = await runCommand(command);
-      expect(output).toMatchSnapshot();
-    });
+    it.runIf(cliTool !== 'citty')(
+      'should complete multiple positional arguments when ending with space',
+      async () => {
+        const command = `${commandPrefix} lint ""`;
+        const output = await runCommand(command);
+        expect(output).toMatchSnapshot();
+      }
+    );
 
-    it.runIf(cliTool !== 'citty')('should complete multiple positional arguments when ending with part of the value', async () => {
-      const command = `${commandPrefix} lint ind`;
-      const output = await runCommand(command);
-      expect(output).toMatchSnapshot();
-    });
+    it.runIf(cliTool !== 'citty')(
+      'should complete multiple positional arguments when ending with part of the value',
+      async () => {
+        const command = `${commandPrefix} lint ind`;
+        const output = await runCommand(command);
+        expect(output).toMatchSnapshot();
+      }
+    );
 
-    it.runIf(cliTool !== 'citty')('should complete single positional argument when ending with space', async () => {
-      const command = `${commandPrefix} lint main.ts ""`;
-      const output = await runCommand(command);
-      expect(output).toMatchSnapshot();
-    });
+    it.runIf(cliTool !== 'citty')(
+      'should complete single positional argument when ending with space',
+      async () => {
+        const command = `${commandPrefix} lint main.ts ""`;
+        const output = await runCommand(command);
+        expect(output).toMatchSnapshot();
+      }
+    );
   });
 });
