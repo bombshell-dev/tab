@@ -5,8 +5,4 @@ export default defineConfig({
   format: ['esm'],
   dts: true,
   clean: true,
-  skipNodeModulesBundle: true,
-  esbuildOptions(options) {
-    options.loader = { '.ts': 'ts' };
-  },
 });
