@@ -8,7 +8,8 @@
     "test": "vitest",
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "build": "tsup"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +23,7 @@
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
     "prettier": "^3.4.2",
+    "tsup": "^8.3.6",
     "tsx": "^4.19.1",
     "vitest": "^2.1.3"
   },
