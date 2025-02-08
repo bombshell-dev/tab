@@ -1,9 +1,9 @@
-import * as zsh from "./zsh";
-import * as bash from "./bash";
-import * as fish from "./fish";
-import * as powershell from "./powershell";
-import type { CAC } from "cac";
-import { Completion } from "./";
+import * as zsh from './zsh';
+import * as bash from './bash';
+import * as fish from './fish';
+import * as powershell from './powershell';
+import type { CAC } from 'cac';
+import { Completion } from './';
 
 const execPath = process.execPath;
 const processArgs = process.argv.slice(1);
@@ -11,10 +11,10 @@ const quotedExecPath = quoteIfNeeded(execPath);
 const quotedProcessArgs = processArgs.map(quoteIfNeeded);
 const quotedProcessExecArgs = process.execArgv.map(quoteIfNeeded);
 
-const x = `${quotedExecPath} ${quotedProcessExecArgs.join(" ")} ${quotedProcessArgs[0]}`;
+const x = `${quotedExecPath} ${quotedProcessExecArgs.join(' ')} ${quotedProcessArgs[0]}`;
 
 function quoteIfNeeded(path: string): string {
-  return path.includes(" ") ? `'${path}'` : path;
+  return path.includes(' ') ? `'${path}'` : path;
 }
 
 // export default function tab(instance: CAC): void {
@@ -300,8 +300,9 @@ export default function tab(instance: CAC): Completion {
     if (cmd.name === 'complete') continue; // Skip completion command
 
     // Get positional args info from command usage
-    const args = (cmd.rawName.match(/\[.*?\]|\<.*?\>/g) || [])
-      .map(arg => arg.startsWith('['));  // true if optional (wrapped in [])
+    const args = (cmd.rawName.match(/\[.*?\]|\<.*?\>/g) || []).map((arg) =>
+      arg.startsWith('[')
+    ); // true if optional (wrapped in [])
 
     // Add command to completion
     const commandName = completion.addCommand(
@@ -322,30 +323,30 @@ export default function tab(instance: CAC): Completion {
     }
   }
 
-  instance.command("complete [shell]").action(async (shell, extra) => {
+  instance.command('complete [shell]').action(async (shell, extra) => {
     switch (shell) {
-      case "zsh": {
+      case 'zsh': {
         const script = zsh.generate(instance.name, x);
         console.log(script);
         break;
       }
-      case "bash": {
+      case 'bash': {
         const script = bash.generate(instance.name, x);
         console.log(script);
         break;
       }
-      case "fish": {
+      case 'fish': {
         const script = fish.generate(instance.name, x);
         console.log(script);
         break;
       }
-      case "powershell": {
+      case 'powershell': {
         const script = powershell.generate(instance.name, x);
         console.log(script);
         break;
       }
       default: {
-        const args: string[] = extra["--"];
+        const args: string[] = extra['--'];
         instance.showHelpOnExit = false;
 
         // Parse current command context

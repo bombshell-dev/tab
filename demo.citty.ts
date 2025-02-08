@@ -31,8 +31,7 @@ const devCommand = defineCommand({
     host: { type: 'string', description: 'Specify hostname' },
     port: { type: 'string', description: 'Specify port' },
   },
-  run(ctx) {
-  },
+  run(ctx) {},
 });
 
 devCommand.subCommands = {
@@ -53,8 +52,7 @@ const lintCommand = defineCommand({
   args: {
     files: { type: 'positional', description: 'Files to lint' },
   },
-  run(ctx) {
-  },
+  run(ctx) {},
 });
 
 main.subCommands = {
@@ -65,7 +63,6 @@ main.subCommands = {
 const completion = await tab(main);
 
 for (const command of completion.commands.values()) {
-
   if (command.name === 'lint') {
     command.handler = () => {
       return [

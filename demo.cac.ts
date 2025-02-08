@@ -1,26 +1,22 @@
-import cac from "cac";
-import tab from "./src/cac";
+import cac from 'cac';
+import tab from './src/cac';
 
-const cli = cac("vite");
-
-cli
-  .option("-c, --config <file>", `Use specified config file`)
-  .option("-m, --mode <mode>", `Set env mode`)
-  .option("-l, --logLevel <level>", `info | warn | error | silent`);
+const cli = cac('vite');
 
 cli
-  .command("dev", "Start dev server")
-  .option("--host [host]", `Specify hostname`)
-  .option("--port <port>", `Specify port`)
+  .option('-c, --config <file>', `Use specified config file`)
+  .option('-m, --mode <mode>', `Set env mode`)
+  .option('-l, --logLevel <level>', `info | warn | error | silent`);
+
+cli
+  .command('dev', 'Start dev server')
+  .option('--host [host]', `Specify hostname`)
+  .option('--port <port>', `Specify port`)
   .action((options) => {});
 
-cli
-  .command("dev build", "Build project")
-  .action((options) => {});
+cli.command('dev build', 'Build project').action((options) => {});
 
-cli
-  .command("lint [...files]", "Lint project")
-  .action((files, options) => {});
+cli.command('lint [...files]', 'Lint project').action((files, options) => {});
 
 const completion = await tab(cli);
 

@@ -80,7 +80,7 @@ type Option = {
 type Command = {
   name: string;
   description: string;
-  args: boolean[]
+  args: boolean[];
   handler: Handler;
   options: Map<string, Option>;
   parent?: Command;
@@ -88,7 +88,7 @@ type Command = {
 
 export class Completion {
   commands = new Map<string, Command>();
-  completions: Item[] = []
+  completions: Item[] = [];
   directive = ShellCompDirective.ShellCompDirectiveDefault;
 
   // vite <entry> <another> [...files]
@@ -129,37 +129,37 @@ export class Completion {
 
   // TODO: this should be aware of boolean args and stuff
   private stripOptions(args: string[]): string[] {
-    const parts: string[] = []
+    const parts: string[] = [];
     let option = false;
     for (const k of args) {
       if (k.startsWith('-')) {
         option = true;
-        continue
+        continue;
       }
       if (option) {
         option = false;
-        continue
+        continue;
       }
-      parts.push(k)
+      parts.push(k);
     }
-    return parts
+    return parts;
   }
 
   private matchCommand(args: string[]): [Command, string[]] {
     args = this.stripOptions(args);
     let parts: string[] = [];
     let remaining: string[] = [];
-    let matched: Command = this.commands.get('')! 
+    let matched: Command = this.commands.get('')!;
     for (let i = 0; i < args.length; i++) {
       const k = args[i];
       parts.push(k);
-      const potential = this.commands.get(parts.join(' '))
-      
+      const potential = this.commands.get(parts.join(' '));
+
       if (potential) {
         matched = potential;
       } else {
         remaining = args.slice(i, args.length);
-        break
+        break;
       }
     }
     return [matched, remaining];
@@ -180,7 +180,7 @@ export class Completion {
       toComplete = '';
     }
 
-    const [matchedCommand, remaining] = this.matchCommand(previousArgs);
+    const [matchedCommand] = this.matchCommand(previousArgs);
 
     const lastPrevArg = previousArgs[previousArgs.length - 1];
 
@@ -188,19 +188,15 @@ export class Completion {
     if (this.shouldCompleteFlags(lastPrevArg, toComplete, endsWithSpace)) {
       await this.handleFlagCompletion(
         matchedCommand,
-        previousArgs, 
+        previousArgs,
         toComplete,
         endsWithSpace,
-        lastPrevArg,
+        lastPrevArg
       );
-    }
-    else {
+    } else {
       // 2. Handle command/subcommand completion
       if (this.shouldCompleteCommands(toComplete, endsWithSpace)) {
-        await this.handleCommandCompletion(
-          previousArgs,
-          toComplete,
-        );
+        await this.handleCommandCompletion(previousArgs, toComplete);
       }
       // 3. Handle positional arguments
       if (matchedCommand && matchedCommand.args.length > 0) {
@@ -208,11 +204,11 @@ export class Completion {
           matchedCommand,
           previousArgs,
           toComplete,
-          endsWithSpace,
+          endsWithSpace
         );
       }
     }
-    this.complete(toComplete)
+    this.complete(toComplete);
   }
 
   private complete(toComplete: string) {
@@ -226,24 +222,33 @@ export class Completion {
         return true;
       })
       .filter((comp) => comp.value.startsWith(toComplete))
-      .forEach((comp) => console.log(`${comp.value}\t${comp.description ?? ''}`));
+      .forEach((comp) =>
+        console.log(`${comp.value}\t${comp.description ?? ''}`)
+      );
     console.log(`:${this.directive}`);
   }
 
-  private shouldCompleteFlags(lastPrevArg: string | undefined, toComplete: string, endsWithSpace: boolean): boolean {
-    return (lastPrevArg?.startsWith('--')) || toComplete.startsWith('--');
+  private shouldCompleteFlags(
+    lastPrevArg: string | undefined,
+    toComplete: string,
+    endsWithSpace: boolean
+  ): boolean {
+    return lastPrevArg?.startsWith('--') || toComplete.startsWith('--');
   }
 
-  private shouldCompleteCommands(toComplete: string, endsWithSpace: boolean): boolean {
+  private shouldCompleteCommands(
+    toComplete: string,
+    endsWithSpace: boolean
+  ): boolean {
     return !toComplete.startsWith('-');
   }
 
   private async handleFlagCompletion(
     command: Command,
-    previousArgs: string[], 
+    previousArgs: string[],
     toComplete: string,
     endsWithSpace: boolean,
-    lastPrevArg: string | undefined,
+    lastPrevArg: string | undefined
   ) {
     // Handle flag value completion
     let flagName: string | undefined;
@@ -262,12 +267,16 @@ export class Completion {
     if (flagName) {
       const option = command.options.get(flagName);
       if (option) {
-        const suggestions = await option.handler(previousArgs, valueToComplete, endsWithSpace);
+        const suggestions = await option.handler(
+          previousArgs,
+          valueToComplete,
+          endsWithSpace
+        );
         if (toComplete.includes('=')) {
           // Reconstruct the full flag=value format
-          this.completions = suggestions.map(suggestion => ({
+          this.completions = suggestions.map((suggestion) => ({
             value: `${flagName}=${suggestion.value}`,
-            description: suggestion.description
+            description: suggestion.description,
           }));
         } else {
           this.completions.push(...suggestions);
@@ -282,7 +291,7 @@ export class Completion {
         if (name.startsWith(toComplete)) {
           this.completions.push({
             value: name,
-            description: option.description
+            description: option.description,
           });
         }
       }
@@ -291,7 +300,7 @@ export class Completion {
 
   private async handleCommandCompletion(
     previousArgs: string[],
-    toComplete: string,
+    toComplete: string
   ) {
     const commandParts = [...previousArgs];
 
@@ -299,19 +308,19 @@ export class Completion {
       if (k === '') continue;
       const parts = k.split(' ');
       let match = true;
-      
+
       let i = 0;
       while (i < commandParts.length) {
         if (parts[i] !== commandParts[i]) {
           match = false;
-          break
+          break;
         }
         i++;
       }
       if (match && parts[i]?.startsWith(toComplete)) {
         this.completions.push({
           value: parts[i],
-          description: this.commands.get(k)!.description
+          description: this.commands.get(k)!.description,
         });
       }
     }
@@ -321,9 +330,13 @@ export class Completion {
     command: Command,
     previousArgs: string[],
     toComplete: string,
-    endsWithSpace: boolean,
+    endsWithSpace: boolean
   ) {
-    const suggestions = await command.handler(previousArgs, toComplete, endsWithSpace);
+    const suggestions = await command.handler(
+      previousArgs,
+      toComplete,
+      endsWithSpace
+    );
     this.completions.push(...suggestions);
   }
 }
