@@ -1,4 +1,4 @@
-import { ArgDef, defineCommand, parseArgs } from 'citty';
+import { ArgDef, defineCommand } from 'citty';
 import * as zsh from './zsh';
 import * as bash from './bash';
 import * as fish from './fish';
@@ -160,8 +160,8 @@ export default async function tab<T extends ArgsDef = ArgsDef>(
           break;
         }
         default: {
-          const args = (await resolve(instance.args))!;
-          const parsed = parseArgs(extra, args);
+          // const args = (await resolve(instance.args))!;
+          // const parsed = parseArgs(extra, args);
           // TODO: this is not ideal at all
           // const matchedCommand = parsed._.join(' ').trim(); //TODO: this was passed to parse line 170
           // TODO: `command lint i` does not work because `lint` and `i` are potential commands

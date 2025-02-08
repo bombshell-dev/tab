@@ -180,7 +180,7 @@ export class Completion {
       toComplete = '';
     }
 
-    const [matchedCommand, remaining] = this.matchCommand(previousArgs);
+    const [matchedCommand] = this.matchCommand(previousArgs);
 
     const lastPrevArg = previousArgs[previousArgs.length - 1];
 
