@@ -27,8 +27,8 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
   describe('cli option completion tests', () => {
     const optionTests = [
       { partial: '--p', expected: '--port' },
-      { partial: '-p', expected: '-p' },  // Test short flag completion
-      { partial: '-H', expected: '-H' },  // Test another short flag completion
+      { partial: '-p', expected: '-p' }, // Test short flag completion
+      { partial: '-H', expected: '-H' }, // Test another short flag completion
     ];
 
     test.each(optionTests)(

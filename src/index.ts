@@ -284,7 +284,7 @@ export class Completion {
           }
         }
       }
-      
+
       if (option) {
         const suggestions = await option.handler(
           previousArgs,
@@ -306,8 +306,9 @@ export class Completion {
 
     // Handle flag name completion
     if (toComplete.startsWith('-')) {
-      const isShortFlag = toComplete.startsWith('-') && !toComplete.startsWith('--');
-      
+      const isShortFlag =
+        toComplete.startsWith('-') && !toComplete.startsWith('--');
+
       for (const [name, option] of command.options) {
         // For short flags (-), only show aliases
         if (isShortFlag) {
