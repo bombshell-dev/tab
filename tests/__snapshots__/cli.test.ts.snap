@@ -6,6 +6,16 @@ exports[`cli completion tests for cac > cli option completion tests > should com
 "
 `;
 
+exports[`cli completion tests for cac > cli option completion tests > should complete option for partial input '{ partial: '-H', expected: '-H' }' 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for cac > cli option completion tests > should complete option for partial input '{ partial: '-p', expected: '-p' }' 1`] = `
+":4
+"
+`;
+
 exports[`cli completion tests for cac > cli option exclusion tests > should not suggest already specified option '{ specified: '--config', shouldNotContain: '--config' }' 1`] = `
 ":4
 "
@@ -74,6 +84,29 @@ index.ts	Index file
 "
 `;
 
+exports[`cli completion tests for cac > short flag handling > should handle global short flags 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for cac > short flag handling > should handle short flag value completion 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for cac > short flag handling > should handle short flag with equals sign 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for cac > short flag handling > should not show duplicate options when short flag is used 1`] = `
+"--config	Use specified config file
+--mode	Set env mode
+--logLevel	info | warn | error | silent
+:4
+"
+`;
+
 exports[`cli completion tests for cac > should complete cli options 1`] = `
 "dev	Start dev server
 lint	Lint project
@@ -84,6 +117,16 @@ lint	Lint project
 exports[`cli completion tests for citty > cli option completion tests > should complete option for partial input '{ partial: '--p', expected: '--port' }' 1`] = `
 "--port	Specify port
 :4
+"
+`;
+
+exports[`cli completion tests for citty > cli option completion tests > should complete option for partial input '{ partial: '-H', expected: '-H' }' 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for citty > cli option completion tests > should complete option for partial input '{ partial: '-p', expected: '-p' }' 1`] = `
+":4
 "
 `;
 
@@ -131,6 +174,29 @@ exports[`cli completion tests for citty > edge case completions for end with spa
 exports[`cli completion tests for citty > edge case completions for end with space > should suggest port values if user typed \`--port=\` and hasn't typed a space or value yet 1`] = `
 "--port=3000	Development server port
 --port=8080	Alternative port
+:4
+"
+`;
+
+exports[`cli completion tests for citty > short flag handling > should handle global short flags 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for citty > short flag handling > should handle short flag value completion 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for citty > short flag handling > should handle short flag with equals sign 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for citty > short flag handling > should not show duplicate options when short flag is used 1`] = `
+"--config	Use specified config file
+--mode	Set env mode
+--logLevel	info | warn | error | silent
 :4
 "
 `;
