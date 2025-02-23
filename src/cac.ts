@@ -39,11 +39,15 @@ export default function tab(instance: CAC): Completion {
 
     // Add command options
     for (const option of [...instance.globalCommand.options, ...cmd.options]) {
+      // Extract short flag from the name if it exists (e.g., "-c, --config" -> "c")
+      const shortFlag = option.name.match(/^-([a-zA-Z]), --/)?.[1];
+
       completion.addOption(
         commandName,
-        `--${option.name}`,
+        `--${option.name.replace(/^-[a-zA-Z], --/, '')}`, // Remove the short flag part if it exists
         option.description || '',
-        async () => []
+        async () => [],
+        shortFlag
       );
     }
   }

@@ -25,7 +25,11 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
   });
 
   describe('cli option completion tests', () => {
-    const optionTests = [{ partial: '--p', expected: '--port' }];
+    const optionTests = [
+      { partial: '--p', expected: '--port' },
+      { partial: '-p', expected: '-p' }, // Test short flag completion
+      { partial: '-H', expected: '-H' }, // Test another short flag completion
+    ];
 
     test.each(optionTests)(
       "should complete option for partial input '%s'",
@@ -95,6 +99,32 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
 
     it("should suggest port values if user typed `--port=` and hasn't typed a space or value yet", async () => {
       const command = `${commandPrefix} dev --port=`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+  });
+
+  describe('short flag handling', () => {
+    it('should handle short flag value completion', async () => {
+      const command = `${commandPrefix} dev -p `;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should handle short flag with equals sign', async () => {
+      const command = `${commandPrefix} dev -p=3`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should handle global short flags', async () => {
+      const command = `${commandPrefix} -c `;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should not show duplicate options when short flag is used', async () => {
+      const command = `${commandPrefix} -c vite.config.js --`;
       const output = await runCommand(command);
       expect(output).toMatchSnapshot();
     });

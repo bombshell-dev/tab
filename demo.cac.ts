@@ -10,8 +10,8 @@ cli
 
 cli
   .command('dev', 'Start dev server')
-  .option('--host [host]', `Specify hostname`)
-  .option('--port <port>', `Specify port`)
+  .option('-H, --host [host]', `Specify hostname`)
+  .option('-p, --port <port>', `Specify port`)
   .action((options) => {});
 
 cli.command('dev build', 'Build project').action((options) => {});

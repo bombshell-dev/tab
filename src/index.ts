@@ -75,6 +75,7 @@ type Handler = (
 type Option = {
   description: string;
   handler: Handler;
+  alias?: string;
 };
 
 type Command = {
@@ -117,13 +118,14 @@ export class Completion {
     command: string,
     option: string,
     description: string,
-    handler: Handler
+    handler: Handler,
+    alias?: string
   ) {
     const cmd = this.commands.get(command);
     if (!cmd) {
       throw new Error(`Command ${command} not found.`);
     }
-    cmd.options.set(option, { description, handler });
+    cmd.options.set(option, { description, handler, alias });
     return option;
   }
 
@@ -233,7 +235,12 @@ export class Completion {
     toComplete: string,
     endsWithSpace: boolean
   ): boolean {
-    return lastPrevArg?.startsWith('--') || toComplete.startsWith('--');
+    return (
+      lastPrevArg?.startsWith('--') ||
+      lastPrevArg?.startsWith('-') ||
+      toComplete.startsWith('--') ||
+      toComplete.startsWith('-')
+    );
   }
 
   private shouldCompleteCommands(
@@ -255,17 +262,29 @@ export class Completion {
     let valueToComplete = toComplete;
 
     if (toComplete.includes('=')) {
-      // Handle --flag=value case
+      // Handle --flag=value or -f=value case
       const parts = toComplete.split('=');
       flagName = parts[0];
       valueToComplete = parts[1] || '';
-    } else if (lastPrevArg?.startsWith('--')) {
-      // Handle --flag value case
+    } else if (lastPrevArg?.startsWith('-')) {
+      // Handle --flag value or -f value case
       flagName = lastPrevArg;
     }
 
     if (flagName) {
-      const option = command.options.get(flagName);
+      // Try to find the option by long name or alias
+      let option = command.options.get(flagName);
+      if (!option) {
+        // If not found by direct match, try to find by alias
+        for (const [name, opt] of command.options) {
+          if (opt.alias && `-${opt.alias}` === flagName) {
+            option = opt;
+            flagName = name; // Use the long name for completion
+            break;
+          }
+        }
+      }
+
       if (option) {
         const suggestions = await option.handler(
           previousArgs,
@@ -286,9 +305,22 @@ export class Completion {
     }
 
     // Handle flag name completion
-    if (toComplete.startsWith('--')) {
+    if (toComplete.startsWith('-')) {
+      const isShortFlag =
+        toComplete.startsWith('-') && !toComplete.startsWith('--');
+
       for (const [name, option] of command.options) {
-        if (name.startsWith(toComplete)) {
+        // For short flags (-), only show aliases
+        if (isShortFlag) {
+          if (option.alias && `-${option.alias}`.startsWith(toComplete)) {
+            this.completions.push({
+              value: `-${option.alias}`,
+              description: option.description,
+            });
+          }
+        }
+        // For long flags (--), show the full names
+        else if (name.startsWith(toComplete)) {
           this.completions.push({
             value: name,
             description: option.description,

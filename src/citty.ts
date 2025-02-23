@@ -65,13 +65,22 @@ async function handleSubCommands<T extends ArgsDef = ArgsDef>(
         if (conf.type === 'positional') {
           continue;
         }
+        // Extract alias from the config if it exists
+        const shortFlag =
+          typeof conf === 'object' && 'alias' in conf
+            ? Array.isArray(conf.alias)
+              ? conf.alias[0]
+              : conf.alias
+            : undefined;
+
         completion.addOption(
           name,
           `--${argName}`,
           conf.description ?? '',
           async (previousArgs, toComplete, endsWithSpace) => {
             return [];
-          }
+          },
+          shortFlag
         );
       }
     }
