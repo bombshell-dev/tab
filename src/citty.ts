@@ -10,6 +10,7 @@ import type {
   PositionalArgDef,
   SubCommandsDef,
 } from 'citty';
+import { generateFigSpec } from './fig';
 
 function quoteIfNeeded(path: string) {
   return path.includes(' ') ? `'${path}'` : path;
@@ -139,6 +140,13 @@ export default async function tab<T extends ArgsDef = ArgsDef>(
       name: 'complete',
       description: 'Generate shell completion scripts',
     },
+    args: {
+      shell: {
+        type: 'positional',
+        description: 'Shell type (zsh, bash, fish, powershell, fig)',
+        required: false,
+      },
+    },
     async run(ctx) {
       let shell: string | undefined = ctx.rawArgs[0];
       const extra = ctx.rawArgs.slice(ctx.rawArgs.indexOf('--') + 1);
@@ -166,6 +174,11 @@ export default async function tab<T extends ArgsDef = ArgsDef>(
         case 'powershell': {
           const script = powershell.generate(name, x);
           console.log(script);
+          break;
+        }
+        case 'fig': {
+          const spec = await generateFigSpec(instance);
+          console.log(spec);
           break;
         }
         default: {
