@@ -60,63 +60,68 @@ main.subCommands = {
   lint: lintCommand,
 } as Record<string, CommandDef<any>>;
 
-const completion = await tab(main);
-
-for (const command of completion.commands.values()) {
-  if (command.name === 'lint') {
-    command.handler = () => {
-      return [
-        { value: 'main.ts', description: 'Main file' },
-        { value: 'index.ts', description: 'Index file' },
-      ];
-    };
-  }
-
-  for (const [o, config] of command.options.entries()) {
-    if (o === '--port') {
-      config.handler = () => {
+const completion = await tab(main, {
+  subCommands: {
+    lint: {
+      handler() {
         return [
-          { value: '3000', description: 'Development server port' },
-          { value: '8080', description: 'Alternative port' },
+          { value: 'main.ts', description: 'Main file' },
+          { value: 'index.ts', description: 'Index file' },
         ];
-      };
-    }
-    if (o === '--host') {
-      config.handler = () => {
-        return [
-          { value: 'localhost', description: 'Localhost' },
-          { value: '0.0.0.0', description: 'All interfaces' },
-        ];
-      };
-    }
-    if (o === '--config') {
-      config.handler = () => {
+      },
+    },
+    dev: {
+      options: {
+        port: {
+          handler() {
+            return [
+              { value: '3000', description: 'Development server port' },
+              { value: '8080', description: 'Alternative port' },
+            ];
+          },
+        },
+        host: {
+          handler() {
+            return [
+              { value: 'localhost', description: 'Localhost' },
+              { value: '0.0.0.0', description: 'All interfaces' },
+            ];
+          },
+        },
+      },
+    },
+  },
+  options: {
+    config: {
+      handler() {
         return [
           { value: 'vite.config.ts', description: 'Vite config file' },
           { value: 'vite.config.js', description: 'Vite config file' },
         ];
-      };
-    }
-    if (o === '--mode') {
-      config.handler = () => {
+      },
+    },
+    mode: {
+      handler() {
         return [
           { value: 'development', description: 'Development mode' },
           { value: 'production', description: 'Production mode' },
         ];
-      };
-    }
-    if (o === '--logLevel') {
-      config.handler = () => {
+      },
+    },
+    logLevel: {
+      handler() {
         return [
           { value: 'info', description: 'Info level' },
           { value: 'warn', description: 'Warn level' },
           { value: 'error', description: 'Error level' },
           { value: 'silent', description: 'Silent level' },
         ];
-      };
-    }
-  }
-}
+      },
+    },
+  },
+});
+
+completion;
 
 const cli = createMain(main);
 
