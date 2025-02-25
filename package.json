@@ -37,19 +37,19 @@
   },
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.cjs"
     },
     "./citty": {
+      "types": "./dist/citty.d.ts",
       "import": "./dist/citty.js",
-      "require": "./dist/citty.cjs",
-      "types": "./dist/citty.d.ts"
+      "require": "./dist/citty.cjs"
     },
     "./cac": {
+      "types": "./dist/cac.d.ts",
       "import": "./dist/cac.js",
-      "require": "./dist/cac.cjs",
-      "types": "./dist/cac.d.ts"
+      "require": "./dist/cac.cjs"
     }
   },
   "packageManager": "pnpm@9.15.0+sha512.76e2379760a4328ec4415815bcd6628dee727af3779aaa4c914e3944156c4299921a89f976381ee107d41f12cfa4b66681ca9c718f0668fa0831ed4c6d8ba56c"
