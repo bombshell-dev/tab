@@ -108,7 +108,7 @@ export class Completion {
       args,
       handler,
       options: new Map(),
-      parent: parent ? this.commands.get(parent)! : undefined,
+      parent: parent ? this.commands.get(parent) : undefined,
     });
     return key;
   }
@@ -149,8 +149,11 @@ export class Completion {
 
   private matchCommand(args: string[]): [Command, string[]] {
     args = this.stripOptions(args);
-    let parts: string[] = [];
+    const parts: string[] = [];
     let remaining: string[] = [];
+    // TODO (43081j): we should probably remove this non-null assertion and
+    // throw if the `''` command doesn't exist
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     let matched: Command = this.commands.get('')!;
     for (let i = 0; i < args.length; i++) {
       const k = args[i];
@@ -336,7 +339,7 @@ export class Completion {
   ) {
     const commandParts = [...previousArgs];
 
-    for (const k of this.commands.keys()) {
+    for (const [k, command] of this.commands) {
       if (k === '') continue;
       const parts = k.split(' ');
       let match = true;
@@ -352,7 +355,7 @@ export class Completion {
       if (match && parts[i]?.startsWith(toComplete)) {
         this.completions.push({
           value: parts[i],
-          description: this.commands.get(k)!.description,
+          description: command.description,
         });
       }
     }

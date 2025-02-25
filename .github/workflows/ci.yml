@@ -37,7 +37,7 @@ jobs:
         run: pnpm test
 
   typecheck:
-    name: Type Check
+    name: Lint and Type Check
     runs-on: ubuntu-latest
 
     steps:
@@ -56,6 +56,9 @@ jobs:
 
       - name: Install deps
         run: pnpm install
+
+      - name: Lint
+        run: pnpm lint
 
       - name: Type-check
         run: pnpm type-check

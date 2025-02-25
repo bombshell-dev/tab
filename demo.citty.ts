@@ -1,4 +1,4 @@
-import { defineCommand, createMain, CommandDef } from 'citty';
+import { defineCommand, createMain, CommandDef, ArgsDef } from 'citty';
 import tab from './src/citty';
 
 const main = defineCommand({
@@ -58,7 +58,7 @@ const lintCommand = defineCommand({
 main.subCommands = {
   dev: devCommand,
   lint: lintCommand,
-} as Record<string, CommandDef<any>>;
+} as Record<string, CommandDef<ArgsDef>>;
 
 const completion = await tab(main);
 

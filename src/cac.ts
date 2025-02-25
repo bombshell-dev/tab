@@ -25,7 +25,7 @@ export default function tab(instance: CAC): Completion {
     if (cmd.name === 'complete') continue; // Skip completion command
 
     // Get positional args info from command usage
-    const args = (cmd.rawName.match(/\[.*?\]|\<.*?\>/g) || []).map((arg) =>
+    const args = (cmd.rawName.match(/\[.*?\]|<.*?>/g) || []).map((arg) =>
       arg.startsWith('[')
     ); // true if optional (wrapped in [])
 
