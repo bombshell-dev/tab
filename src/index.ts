@@ -66,7 +66,7 @@ type Item = {
   value: string;
 };
 
-type Handler = (
+export type Handler = (
   previousArgs: string[],
   toComplete: string,
   endsWithSpace: boolean
