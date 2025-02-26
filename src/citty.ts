@@ -3,13 +3,14 @@ import * as zsh from './zsh';
 import * as bash from './bash';
 import * as fish from './fish';
 import * as powershell from './powershell';
-import { Completion } from '.';
+import { Completion, type Handler } from '.';
 import type {
   ArgsDef,
   CommandDef,
   PositionalArgDef,
   SubCommandsDef,
 } from 'citty';
+import { generateFigSpec } from './fig';
 
 function quoteIfNeeded(path: string) {
   return path.includes(' ') ? `'${path}'` : path;
@@ -29,15 +30,34 @@ function isConfigPositional<T extends ArgsDef>(config: CommandDef<T>) {
   );
 }
 
-async function handleSubCommands<T extends ArgsDef = ArgsDef>(
+// TODO (43081j): use type inference some day, so we can type-check
+// that the sub commands exist, the options exist, etc.
+interface CompletionConfig {
+  handler?: Handler;
+  subCommands?: Record<string, CompletionConfig>;
+  options?: Record<
+    string,
+    {
+      handler: Handler;
+    }
+  >;
+}
+
+const noopHandler: Handler = () => {
+  return [];
+};
+
+async function handleSubCommands(
   completion: Completion,
   subCommands: SubCommandsDef,
-  parentCmd?: string
+  parentCmd?: string,
+  completionConfig?: Record<string, CompletionConfig>
 ) {
   for (const [cmd, resolvableConfig] of Object.entries(subCommands)) {
     const config = await resolve(resolvableConfig);
     const meta = await resolve(config.meta);
     const subCommands = await resolve(config.subCommands);
+    const subCompletionConfig = completionConfig?.[cmd];
 
     if (!meta || typeof meta?.description !== 'string') {
       throw new Error('Invalid meta or missing description.');
@@ -47,15 +67,18 @@ async function handleSubCommands<T extends ArgsDef = ArgsDef>(
       cmd,
       meta.description,
       isPositional ? [false] : [],
-      async (previousArgs, toComplete, endsWithSpace) => {
-        return [];
-      },
+      subCompletionConfig?.handler ?? noopHandler,
       parentCmd
     );
 
     // Handle nested subcommands recursively
     if (subCommands) {
-      await handleSubCommands(completion, subCommands, name);
+      await handleSubCommands(
+        completion,
+        subCommands,
+        name,
+        subCompletionConfig?.subCommands
+      );
     }
 
     // Handle arguments
@@ -77,9 +100,7 @@ async function handleSubCommands<T extends ArgsDef = ArgsDef>(
           name,
           `--${argName}`,
           conf.description ?? '',
-          async (previousArgs, toComplete, endsWithSpace) => {
-            return [];
-          },
+          subCompletionConfig?.options?.[argName]?.handler ?? noopHandler,
           shortFlag
         );
       }
@@ -87,8 +108,9 @@ async function handleSubCommands<T extends ArgsDef = ArgsDef>(
   }
 }
 
-export default async function tab<T extends ArgsDef = ArgsDef>(
-  instance: CommandDef<T>
+export default async function tab<TArgs extends ArgsDef>(
+  instance: CommandDef<TArgs>,
+  completionConfig?: CompletionConfig
 ) {
   const completion = new Completion();
 
@@ -113,12 +135,15 @@ export default async function tab<T extends ArgsDef = ArgsDef>(
     root,
     meta?.description ?? '',
     isPositional ? [false] : [],
-    async (previousArgs, toComplete, endsWithSpace) => {
-      return [];
-    }
+    completionConfig?.handler ?? noopHandler
   );
 
-  await handleSubCommands(completion, subCommands);
+  await handleSubCommands(
+    completion,
+    subCommands,
+    undefined,
+    completionConfig?.subCommands
+  );
 
   if (instance.args) {
     for (const [argName, argConfig] of Object.entries(instance.args)) {
@@ -127,9 +152,7 @@ export default async function tab<T extends ArgsDef = ArgsDef>(
         root,
         `--${argName}`,
         conf.description ?? '',
-        async (previousArgs, toComplete, endsWithSpace) => {
-          return [];
-        }
+        completionConfig?.options?.[argName]?.handler ?? noopHandler
       );
     }
   }
@@ -138,6 +161,13 @@ export default async function tab<T extends ArgsDef = ArgsDef>(
     meta: {
       name: 'complete',
       description: 'Generate shell completion scripts',
+    },
+    args: {
+      shell: {
+        type: 'positional',
+        description: 'Shell type (zsh, bash, fish, powershell, fig)',
+        required: false,
+      },
     },
     async run(ctx) {
       let shell: string | undefined = ctx.rawArgs[0];
@@ -166,6 +196,11 @@ export default async function tab<T extends ArgsDef = ArgsDef>(
         case 'powershell': {
           const script = powershell.generate(name, x);
           console.log(script);
+          break;
+        }
+        case 'fig': {
+          const spec = await generateFigSpec(instance);
+          console.log(spec);
           break;
         }
         default: {
