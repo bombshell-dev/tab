@@ -19,7 +19,7 @@ const main = defineCommand({
       alias: 'l',
     },
   },
-  run(_ctx) {},
+  run(_ctx) { },
 });
 
 const devCommand = defineCommand({
@@ -31,7 +31,7 @@ const devCommand = defineCommand({
     host: { type: 'string', description: 'Specify hostname' },
     port: { type: 'string', description: 'Specify port' },
   },
-  run(ctx) {},
+  run(ctx) { },
 });
 
 devCommand.subCommands = {
@@ -40,7 +40,7 @@ devCommand.subCommands = {
       name: 'build',
       description: 'Build project',
     },
-    run({ args }) {},
+    run({ args }) { },
   }),
 };
 
@@ -52,7 +52,7 @@ const lintCommand = defineCommand({
   args: {
     files: { type: 'positional', description: 'Files to lint' },
   },
-  run(ctx) {},
+  run(ctx) { },
 });
 
 main.subCommands = {
