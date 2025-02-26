@@ -11,7 +11,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "build": "tsup",
-    "prepare": "pnpm build"
+    "prepare": "pnpm build",
+    "lint": "eslint src \"./*.ts\""
   },
   "files": [
     "dist"
@@ -21,15 +22,13 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^22.7.4",
-    "@typescript-eslint/eslint-plugin": "^8.20.0",
-    "@typescript-eslint/parser": "^8.20.0",
     "cac": "^6.7.14",
     "citty": "^0.1.6",
     "eslint-config-prettier": "^10.0.1",
-    "eslint-plugin-prettier": "^5.2.2",
-    "prettier": "^3.4.2",
+    "prettier": "^3.5.2",
     "tsup": "^8.3.6",
     "tsx": "^4.19.1",
+    "typescript-eslint": "^8.25.0",
     "typescript": "^5.7.3",
     "vitest": "^2.1.3"
   },
