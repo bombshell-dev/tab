@@ -31,9 +31,7 @@ program
   });
 
 // Command with subcommands
-const deploy = program
-  .command('deploy')
-  .description('Deploy the application');
+const deploy = program.command('deploy').description('Deploy the application');
 
 deploy
   .command('staging')
@@ -113,7 +111,7 @@ for (const command of completion.commands.values()) {
 if (process.argv[2] === 'test-completion') {
   const args = process.argv.slice(3);
   console.log('Testing completion with args:', args);
-  
+
   // Special case for deploy command with a space at the end
   if (args.length === 1 && args[0] === 'deploy ') {
     console.log('staging  Deploy to staging environment');
@@ -127,4 +125,4 @@ if (process.argv[2] === 'test-completion') {
 } else {
   // Parse command line arguments
   program.parse();
-} 
+}
