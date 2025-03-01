@@ -3,7 +3,8 @@ import * as bash from './bash';
 import * as fish from './fish';
 import * as powershell from './powershell';
 import type { CAC } from 'cac';
-import { Completion } from './';
+import { Completion } from './index';
+import { CompletionConfig, noopHandler } from './shared';
 
 const execPath = process.execPath;
 const processArgs = process.argv.slice(1);
@@ -17,7 +18,10 @@ function quoteIfNeeded(path: string): string {
   return path.includes(' ') ? `'${path}'` : path;
 }
 
-export default function tab(instance: CAC): Completion {
+export default async function tab(
+  instance: CAC,
+  completionConfig?: CompletionConfig
+) {
   const completion = new Completion();
 
   // Add all commands and their options
@@ -29,24 +33,30 @@ export default function tab(instance: CAC): Completion {
       arg.startsWith('[')
     ); // true if optional (wrapped in [])
 
+    const isRootCommand = cmd.name === '@@global@@';
+    const commandCompletionConfig = isRootCommand
+      ? completionConfig
+      : completionConfig?.subCommands?.[cmd.name];
+
     // Add command to completion
     const commandName = completion.addCommand(
-      cmd.name === '@@global@@' ? '' : cmd.name,
+      isRootCommand ? '' : cmd.name,
       cmd.description || '',
       args,
-      async () => []
+      commandCompletionConfig?.handler ?? noopHandler
     );
 
     // Add command options
     for (const option of [...instance.globalCommand.options, ...cmd.options]) {
       // Extract short flag from the name if it exists (e.g., "-c, --config" -> "c")
       const shortFlag = option.name.match(/^-([a-zA-Z]), --/)?.[1];
+      const argName = option.name.replace(/^-[a-zA-Z], --/, '');
 
       completion.addOption(
         commandName,
-        `--${option.name.replace(/^-[a-zA-Z], --/, '')}`, // Remove the short flag part if it exists
+        `--${argName}`, // Remove the short flag part if it exists
         option.description || '',
-        async () => [],
+        commandCompletionConfig?.options?.[argName]?.handler ?? noopHandler,
         shortFlag
       );
     }
