@@ -3,7 +3,7 @@ import * as zsh from './zsh';
 import * as bash from './bash';
 import * as fish from './fish';
 import * as powershell from './powershell';
-import { Completion, type Handler } from '.';
+import { Completion } from './index';
 import type {
   ArgsDef,
   CommandDef,
@@ -11,6 +11,7 @@ import type {
   SubCommandsDef,
 } from 'citty';
 import { generateFigSpec } from './fig';
+import { CompletionConfig, noopHandler, TabFunction } from './shared';
 
 function quoteIfNeeded(path: string) {
   return path.includes(' ') ? `'${path}'` : path;
@@ -29,23 +30,6 @@ function isConfigPositional<T extends ArgsDef>(config: CommandDef<T>) {
     Object.values(config.args).some((arg) => arg.type === 'positional')
   );
 }
-
-// TODO (43081j): use type inference some day, so we can type-check
-// that the sub commands exist, the options exist, etc.
-interface CompletionConfig {
-  handler?: Handler;
-  subCommands?: Record<string, CompletionConfig>;
-  options?: Record<
-    string,
-    {
-      handler: Handler;
-    }
-  >;
-}
-
-const noopHandler: Handler = () => {
-  return [];
-};
 
 async function handleSubCommands(
   completion: Completion,
@@ -108,10 +92,10 @@ async function handleSubCommands(
   }
 }
 
-export default async function tab<TArgs extends ArgsDef>(
-  instance: CommandDef<TArgs>,
-  completionConfig?: CompletionConfig
-) {
+const tab: TabFunction<CommandDef<ArgsDef>> = async (
+  instance,
+  completionConfig
+) => {
   const completion = new Completion();
 
   const meta = await resolve(instance.meta);
@@ -220,7 +204,9 @@ export default async function tab<TArgs extends ArgsDef>(
   subCommands.complete = completeCommand;
 
   return completion;
-}
+};
+
+export default tab;
 
 type Resolvable<T> = T | Promise<T> | (() => T) | (() => Promise<T>);
 
