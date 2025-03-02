@@ -1,4 +1,4 @@
-import { Handler } from './index';
+import { Handler, Completion } from './index';
 
 export const noopHandler: Handler = () => {
   return [];
@@ -16,3 +16,8 @@ export interface CompletionConfig {
     }
   >;
 }
+
+export type TabFunction<T> = (
+  instance: T,
+  completionConfig?: CompletionConfig
+) => Promise<Completion>;

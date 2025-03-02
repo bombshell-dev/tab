@@ -11,7 +11,7 @@ import type {
   SubCommandsDef,
 } from 'citty';
 import { generateFigSpec } from './fig';
-import { CompletionConfig, noopHandler } from './shared';
+import { CompletionConfig, noopHandler, TabFunction } from './shared';
 
 function quoteIfNeeded(path: string) {
   return path.includes(' ') ? `'${path}'` : path;
@@ -92,10 +92,10 @@ async function handleSubCommands(
   }
 }
 
-export default async function tab<TArgs extends ArgsDef>(
-  instance: CommandDef<TArgs>,
-  completionConfig?: CompletionConfig
-) {
+const tab: TabFunction<CommandDef<ArgsDef>> = async (
+  instance,
+  completionConfig
+) => {
   const completion = new Completion();
 
   const meta = await resolve(instance.meta);
@@ -204,7 +204,9 @@ export default async function tab<TArgs extends ArgsDef>(
   subCommands.complete = completeCommand;
 
   return completion;
-}
+};
+
+export default tab;
 
 type Resolvable<T> = T | Promise<T> | (() => T) | (() => Promise<T>);
 

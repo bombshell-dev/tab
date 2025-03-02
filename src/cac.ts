@@ -4,7 +4,7 @@ import * as fish from './fish';
 import * as powershell from './powershell';
 import type { CAC } from 'cac';
 import { Completion } from './index';
-import { CompletionConfig, noopHandler } from './shared';
+import { noopHandler, TabFunction } from './shared';
 
 const execPath = process.execPath;
 const processArgs = process.argv.slice(1);
@@ -18,10 +18,7 @@ function quoteIfNeeded(path: string): string {
   return path.includes(' ') ? `'${path}'` : path;
 }
 
-export default async function tab(
-  instance: CAC,
-  completionConfig?: CompletionConfig
-) {
+const tab: TabFunction<CAC> = async (instance, completionConfig) => {
   const completion = new Completion();
 
   // Add all commands and their options
@@ -103,4 +100,6 @@ export default async function tab(
   });
 
   return completion;
-}
+};
+
+export default tab;
