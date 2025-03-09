@@ -17,12 +17,13 @@ const cliTools = ['citty', 'cac', 'commander'];
 
 describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
   // For Commander, we need to skip most of the tests since it handles completion differently
-  const shouldSkipTest = (cliTool === 'commander');
-  
+  const shouldSkipTest = cliTool === 'commander';
+
   // Commander uses a different command structure for completion
-  const commandPrefix = cliTool === 'commander' 
-    ? `pnpm tsx examples/demo.${cliTool}.ts complete`
-    : `pnpm tsx examples/demo.${cliTool}.ts complete --`;
+  const commandPrefix =
+    cliTool === 'commander'
+      ? `pnpm tsx examples/demo.${cliTool}.ts complete`
+      : `pnpm tsx examples/demo.${cliTool}.ts complete --`;
 
   it.runIf(!shouldSkipTest)('should complete cli options', async () => {
     const output = await runCommand(`${commandPrefix}`);
@@ -87,25 +88,28 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     });
   });
 
-  describe.runIf(!shouldSkipTest)('edge case completions for end with space', () => {
-    it('should suggest port values if user ends with space after `--port`', async () => {
-      const command = `${commandPrefix} serve --port ""`;
-      const output = await runCommand(command);
-      expect(output).toMatchSnapshot();
-    });
+  describe.runIf(!shouldSkipTest)(
+    'edge case completions for end with space',
+    () => {
+      it('should suggest port values if user ends with space after `--port`', async () => {
+        const command = `${commandPrefix} serve --port ""`;
+        const output = await runCommand(command);
+        expect(output).toMatchSnapshot();
+      });
 
-    it("should keep suggesting the --port option if user typed partial but didn't end with space", async () => {
-      const command = `${commandPrefix} serve --po`;
-      const output = await runCommand(command);
-      expect(output).toMatchSnapshot();
-    });
+      it("should keep suggesting the --port option if user typed partial but didn't end with space", async () => {
+        const command = `${commandPrefix} serve --po`;
+        const output = await runCommand(command);
+        expect(output).toMatchSnapshot();
+      });
 
-    it("should suggest port values if user typed `--port=` and hasn't typed a space or value yet", async () => {
-      const command = `${commandPrefix} serve --port=`;
-      const output = await runCommand(command);
-      expect(output).toMatchSnapshot();
-    });
-  });
+      it("should suggest port values if user typed `--port=` and hasn't typed a space or value yet", async () => {
+        const command = `${commandPrefix} serve --port=`;
+        const output = await runCommand(command);
+        expect(output).toMatchSnapshot();
+      });
+    }
+  );
 
   describe.runIf(!shouldSkipTest)('short flag handling', () => {
     it('should handle short flag value completion', async () => {
@@ -133,34 +137,28 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     });
   });
 
-  describe.runIf(!shouldSkipTest && cliTool !== 'citty')('positional argument completions', () => {
-    it(
-      'should complete multiple positional arguments when ending with space',
-      async () => {
+  describe.runIf(!shouldSkipTest && cliTool !== 'citty')(
+    'positional argument completions',
+    () => {
+      it('should complete multiple positional arguments when ending with space', async () => {
         const command = `${commandPrefix} lint ""`;
         const output = await runCommand(command);
         expect(output).toMatchSnapshot();
-      }
-    );
+      });
 
-    it(
-      'should complete multiple positional arguments when ending with part of the value',
-      async () => {
+      it('should complete multiple positional arguments when ending with part of the value', async () => {
         const command = `${commandPrefix} lint ind`;
         const output = await runCommand(command);
         expect(output).toMatchSnapshot();
-      }
-    );
+      });
 
-    it(
-      'should complete single positional argument when ending with space',
-      async () => {
+      it('should complete single positional argument when ending with space', async () => {
         const command = `${commandPrefix} lint main.ts ""`;
         const output = await runCommand(command);
         expect(output).toMatchSnapshot();
-      }
-    );
-  });
+      });
+    }
+  );
 });
 
 // Add specific tests for Commander
@@ -179,7 +177,7 @@ describe('commander specific tests', () => {
     const output1 = await runCommand(command1);
     expect(output1).toContain('deploy');
     expect(output1).toContain('Deploy the application');
-    
+
     // Then we need to check if the deploy command has subcommands
     // We can check this by running the deploy command with --help
     const command2 = `pnpm tsx examples/demo.commander.ts deploy --help`;
