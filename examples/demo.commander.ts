@@ -1,12 +1,6 @@
 import { Command } from 'commander';
 import tab from '../src/commander';
 
-// Define the Item type locally
-interface Item {
-  value: string;
-  description: string;
-}
-
 // Create a new Commander program
 const program = new Command('myapp');
 program.version('1.0.0');
