@@ -1,5 +1,11 @@
 import { Command } from 'commander';
-import tab from './src/commander';
+import tab from '../src/commander';
+
+// Define the Item type locally
+interface Item {
+  value: string;
+  description: string;
+}
 
 // Create a new Commander program
 const program = new Command('myapp');
@@ -111,17 +117,9 @@ for (const command of completion.commands.values()) {
 if (process.argv[2] === 'test-completion') {
   const args = process.argv.slice(3);
   console.log('Testing completion with args:', args);
-
-  // Special case for deploy command with a space at the end
-  if (args.length === 1 && args[0] === 'deploy ') {
-    console.log('staging  Deploy to staging environment');
-    console.log('production  Deploy to production environment');
-    console.log(':2');
-  } else {
-    completion.parse(args).then(() => {
-      // Done
-    });
-  }
+  completion.parse(args).then(() => {
+    // Done
+  });
 } else {
   // Parse command line arguments
   program.parse();

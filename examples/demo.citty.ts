@@ -1,24 +1,75 @@
-import cac from 'cac';
-import tab from './src/cac';
+import { defineCommand, createMain } from 'citty';
+import tab from '../src/citty';
 
-const cli = cac('vite');
+const main = defineCommand({
+  meta: {
+    name: 'vite',
+    version: '0.0.0',
+    description: 'Vite CLI',
+  },
+  args: {
+    config: {
+      type: 'string',
+      description: 'Use specified config file',
+      alias: 'c',
+    },
+    mode: {
+      type: 'string',
+      description: 'Set env mode',
+      alias: 'm',
+    },
+    logLevel: {
+      type: 'string',
+      description: 'info | warn | error | silent',
+      alias: 'l',
+    },
+  },
+  subCommands: {
+    dev: defineCommand({
+      meta: {
+        name: 'dev',
+        description: 'Start dev server',
+      },
+      args: {
+        host: {
+          type: 'string',
+          description: 'Specify hostname',
+          alias: 'H',
+        },
+        port: {
+          type: 'string',
+          description: 'Specify port',
+          alias: 'p',
+        },
+      },
+      run: () => {},
+    }),
+    build: defineCommand({
+      meta: {
+        name: 'build',
+        description: 'Build project',
+      },
+      run: () => {},
+    }),
+    lint: defineCommand({
+      meta: {
+        name: 'lint',
+        description: 'Lint project',
+      },
+      args: {
+        files: {
+          type: 'positional',
+          description: 'Files to lint',
+          required: false,
+        },
+      },
+      run: () => {},
+    }),
+  },
+  run: () => {},
+});
 
-cli
-  .option('-c, --config <file>', `Use specified config file`)
-  .option('-m, --mode <mode>', `Set env mode`)
-  .option('-l, --logLevel <level>', `info | warn | error | silent`);
-
-cli
-  .command('dev', 'Start dev server')
-  .option('-H, --host [host]', `Specify hostname`)
-  .option('-p, --port <port>', `Specify port`)
-  .action((options) => {});
-
-cli.command('dev build', 'Build project').action((options) => {});
-
-cli.command('lint [...files]', 'Lint project').action((files, options) => {});
-
-const completion = await tab(cli);
+const completion = await tab(main);
 
 for (const command of completion.commands.values()) {
   if (command.name === 'lint') {
@@ -76,4 +127,6 @@ for (const command of completion.commands.values()) {
   }
 }
 
-cli.parse();
+// Create the CLI and run it
+const cli = createMain(main);
+cli();
