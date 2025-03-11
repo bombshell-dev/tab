@@ -84,13 +84,13 @@ const completion = await tab(main, {
       handler: () => [
         { value: 'vite.config.ts', description: 'Vite config file' },
         { value: 'vite.config.js', description: 'Vite config file' },
-      ]
+      ],
     },
     mode: {
       handler: () => [
         { value: 'development', description: 'Development mode' },
         { value: 'production', description: 'Production mode' },
-      ]
+      ],
     },
     logLevel: {
       handler: () => [
@@ -98,8 +98,8 @@ const completion = await tab(main, {
         { value: 'warn', description: 'Warn level' },
         { value: 'error', description: 'Error level' },
         { value: 'silent', description: 'Silent level' },
-      ]
-    }
+      ],
+    },
   },
   // Subcommands and their options
   subCommands: {
@@ -107,7 +107,7 @@ const completion = await tab(main, {
       handler: () => [
         { value: 'main.ts', description: 'Main file' },
         { value: 'index.ts', description: 'Index file' },
-      ]
+      ],
     },
     dev: {
       options: {
@@ -115,17 +115,17 @@ const completion = await tab(main, {
           handler: () => [
             { value: '3000', description: 'Development server port' },
             { value: '8080', description: 'Alternative port' },
-          ]
+          ],
         },
         host: {
           handler: () => [
             { value: 'localhost', description: 'Localhost' },
             { value: '0.0.0.0', description: 'All interfaces' },
-          ]
-        }
-      }
-    }
-  }
+          ],
+        },
+      },
+    },
+  },
 });
 
 // Create the CLI and run it
