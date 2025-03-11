@@ -25,6 +25,9 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
       ? `pnpm tsx examples/demo.${cliTool}.ts complete`
       : `pnpm tsx examples/demo.${cliTool}.ts complete --`;
 
+  // Use 'dev' for citty and 'serve' for other tools
+  const commandName = cliTool === 'citty' ? 'dev' : 'serve';
+
   it.runIf(!shouldSkipTest)('should complete cli options', async () => {
     const output = await runCommand(`${commandPrefix}`);
     expect(output).toMatchSnapshot();
@@ -40,7 +43,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     test.each(optionTests)(
       "should complete option for partial input '%s'",
       async ({ partial }) => {
-        const command = `${commandPrefix} serve ${partial}`;
+        const command = `${commandPrefix} ${commandName} ${partial}`;
         const output = await runCommand(command);
         expect(output).toMatchSnapshot();
       }
@@ -64,7 +67,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
 
   describe.runIf(!shouldSkipTest)('cli option value handling', () => {
     it('should resolve port value correctly', async () => {
-      const command = `${commandPrefix} serve --port=3`;
+      const command = `${commandPrefix} ${commandName} --port=3`;
       const output = await runCommand(command);
       expect(output).toMatchSnapshot();
     });
@@ -92,19 +95,19 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     'edge case completions for end with space',
     () => {
       it('should suggest port values if user ends with space after `--port`', async () => {
-        const command = `${commandPrefix} serve --port ""`;
+        const command = `${commandPrefix} ${commandName} --port ""`;
         const output = await runCommand(command);
         expect(output).toMatchSnapshot();
       });
 
       it("should keep suggesting the --port option if user typed partial but didn't end with space", async () => {
-        const command = `${commandPrefix} serve --po`;
+        const command = `${commandPrefix} ${commandName} --po`;
         const output = await runCommand(command);
         expect(output).toMatchSnapshot();
       });
 
       it("should suggest port values if user typed `--port=` and hasn't typed a space or value yet", async () => {
-        const command = `${commandPrefix} serve --port=`;
+        const command = `${commandPrefix} ${commandName} --port=`;
         const output = await runCommand(command);
         expect(output).toMatchSnapshot();
       });
@@ -113,13 +116,13 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
 
   describe.runIf(!shouldSkipTest)('short flag handling', () => {
     it('should handle short flag value completion', async () => {
-      const command = `${commandPrefix} serve -p `;
+      const command = `${commandPrefix} ${commandName} -p `;
       const output = await runCommand(command);
       expect(output).toMatchSnapshot();
     });
 
     it('should handle short flag with equals sign', async () => {
-      const command = `${commandPrefix} serve -p=3`;
+      const command = `${commandPrefix} ${commandName} -p=3`;
       const output = await runCommand(command);
       expect(output).toMatchSnapshot();
     });

@@ -108,17 +108,20 @@ lint	Lint project
 `;
 
 exports[`cli completion tests for citty > cli option completion tests > should complete option for partial input '{ partial: '--p', expected: '--port' }' 1`] = `
-":4
+"--port	Specify port
+:4
 "
 `;
 
 exports[`cli completion tests for citty > cli option completion tests > should complete option for partial input '{ partial: '-H', expected: '-H' }' 1`] = `
-":4
+"-H	Specify hostname
+:4
 "
 `;
 
 exports[`cli completion tests for citty > cli option completion tests > should complete option for partial input '{ partial: '-p', expected: '-p' }' 1`] = `
-":4
+"-p	Specify port
+:4
 "
 `;
 
@@ -145,22 +148,28 @@ vite.config.js	Vite config file
 `;
 
 exports[`cli completion tests for citty > cli option value handling > should resolve port value correctly 1`] = `
-":4
+"--port=3000	Development server port
+:4
 "
 `;
 
 exports[`cli completion tests for citty > edge case completions for end with space > should keep suggesting the --port option if user typed partial but didn't end with space 1`] = `
-":4
+"--port	Specify port
+:4
 "
 `;
 
 exports[`cli completion tests for citty > edge case completions for end with space > should suggest port values if user ends with space after \`--port\` 1`] = `
-":4
+"3000	Development server port
+8080	Alternative port
+:4
 "
 `;
 
 exports[`cli completion tests for citty > edge case completions for end with space > should suggest port values if user typed \`--port=\` and hasn't typed a space or value yet 1`] = `
-":4
+"--port=3000	Development server port
+--port=8080	Alternative port
+:4
 "
 `;
 
@@ -170,7 +179,8 @@ exports[`cli completion tests for citty > short flag handling > should handle gl
 `;
 
 exports[`cli completion tests for citty > short flag handling > should handle short flag value completion 1`] = `
-":4
+"-p	Specify port
+:4
 "
 `;
 

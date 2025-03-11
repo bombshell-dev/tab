@@ -1,4 +1,4 @@
-import { defineCommand, createMain } from 'citty';
+import { defineCommand, createMain, CommandDef, ArgsDef } from 'citty';
 import tab from '../src/citty';
 
 const main = defineCommand({
@@ -24,108 +24,109 @@ const main = defineCommand({
       alias: 'l',
     },
   },
-  subCommands: {
-    dev: defineCommand({
-      meta: {
-        name: 'dev',
-        description: 'Start dev server',
-      },
-      args: {
-        host: {
-          type: 'string',
-          description: 'Specify hostname',
-          alias: 'H',
-        },
-        port: {
-          type: 'string',
-          description: 'Specify port',
-          alias: 'p',
-        },
-      },
-      run: () => {},
-    }),
-    build: defineCommand({
-      meta: {
-        name: 'build',
-        description: 'Build project',
-      },
-      run: () => {},
-    }),
-    lint: defineCommand({
-      meta: {
-        name: 'lint',
-        description: 'Lint project',
-      },
-      args: {
-        files: {
-          type: 'positional',
-          description: 'Files to lint',
-          required: false,
-        },
-      },
-      run: () => {},
-    }),
+  run: () => {},
+});
+
+const devCommand = defineCommand({
+  meta: {
+    name: 'dev',
+    description: 'Start dev server',
+  },
+  args: {
+    host: {
+      type: 'string',
+      description: 'Specify hostname',
+      alias: 'H',
+    },
+    port: {
+      type: 'string',
+      description: 'Specify port',
+      alias: 'p',
+    },
   },
   run: () => {},
 });
 
-const completion = await tab(main);
+const buildCommand = defineCommand({
+  meta: {
+    name: 'build',
+    description: 'Build project',
+  },
+  run: () => {},
+});
 
-for (const command of completion.commands.values()) {
-  if (command.name === 'lint') {
-    command.handler = () => {
-      return [
+const lintCommand = defineCommand({
+  meta: {
+    name: 'lint',
+    description: 'Lint project',
+  },
+  args: {
+    files: {
+      type: 'positional',
+      description: 'Files to lint',
+      required: false,
+    },
+  },
+  run: () => {},
+});
+
+main.subCommands = {
+  dev: devCommand,
+  build: buildCommand,
+  lint: lintCommand,
+} as Record<string, CommandDef<ArgsDef>>;
+
+// Use the config object approach for completions
+const completion = await tab(main, {
+  // Root level options
+  options: {
+    config: {
+      handler: () => [
+        { value: 'vite.config.ts', description: 'Vite config file' },
+        { value: 'vite.config.js', description: 'Vite config file' },
+      ]
+    },
+    mode: {
+      handler: () => [
+        { value: 'development', description: 'Development mode' },
+        { value: 'production', description: 'Production mode' },
+      ]
+    },
+    logLevel: {
+      handler: () => [
+        { value: 'info', description: 'Info level' },
+        { value: 'warn', description: 'Warn level' },
+        { value: 'error', description: 'Error level' },
+        { value: 'silent', description: 'Silent level' },
+      ]
+    }
+  },
+  // Subcommands and their options
+  subCommands: {
+    lint: {
+      handler: () => [
         { value: 'main.ts', description: 'Main file' },
         { value: 'index.ts', description: 'Index file' },
-      ];
-    };
-  }
-
-  for (const [o, config] of command.options.entries()) {
-    if (o === '--port') {
-      config.handler = () => {
-        return [
-          { value: '3000', description: 'Development server port' },
-          { value: '8080', description: 'Alternative port' },
-        ];
-      };
-    }
-    if (o === '--host') {
-      config.handler = () => {
-        return [
-          { value: 'localhost', description: 'Localhost' },
-          { value: '0.0.0.0', description: 'All interfaces' },
-        ];
-      };
-    }
-    if (o === '--config') {
-      config.handler = () => {
-        return [
-          { value: 'vite.config.ts', description: 'Vite config file' },
-          { value: 'vite.config.js', description: 'Vite config file' },
-        ];
-      };
-    }
-    if (o === '--mode') {
-      config.handler = () => {
-        return [
-          { value: 'development', description: 'Development mode' },
-          { value: 'production', description: 'Production mode' },
-        ];
-      };
-    }
-    if (o === '--logLevel') {
-      config.handler = () => {
-        return [
-          { value: 'info', description: 'Info level' },
-          { value: 'warn', description: 'Warn level' },
-          { value: 'error', description: 'Error level' },
-          { value: 'silent', description: 'Silent level' },
-        ];
-      };
+      ]
+    },
+    dev: {
+      options: {
+        port: {
+          handler: () => [
+            { value: '3000', description: 'Development server port' },
+            { value: '8080', description: 'Alternative port' },
+          ]
+        },
+        host: {
+          handler: () => [
+            { value: 'localhost', description: 'Localhost' },
+            { value: '0.0.0.0', description: 'All interfaces' },
+          ]
+        }
+      }
     }
   }
-}
+});
 
 // Create the CLI and run it
 const cli = createMain(main);
