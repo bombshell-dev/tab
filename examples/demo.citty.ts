@@ -24,7 +24,7 @@ const main = defineCommand({
       alias: 'l',
     },
   },
-  run: () => {},
+  run: (_ctx) => {},
 });
 
 const devCommand = defineCommand({
@@ -76,9 +76,7 @@ main.subCommands = {
   lint: lintCommand,
 } as Record<string, CommandDef<ArgsDef>>;
 
-// Use the config object approach for completions
 const completion = await tab(main, {
-  // Root level options
   options: {
     config: {
       handler: () => [
@@ -101,7 +99,7 @@ const completion = await tab(main, {
       ],
     },
   },
-  // Subcommands and their options
+
   subCommands: {
     lint: {
       handler: () => [
@@ -128,6 +126,7 @@ const completion = await tab(main, {
   },
 });
 
-// Create the CLI and run it
+void completion;
+
 const cli = createMain(main);
 cli();
