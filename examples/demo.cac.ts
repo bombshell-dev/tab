@@ -14,6 +14,12 @@ cli
   .option('-p, --port <port>', `Specify port`)
   .action((options) => {});
 
+cli
+  .command('serve', 'Start the server')
+  .option('-H, --host [host]', `Specify hostname`)
+  .option('-p, --port <port>', `Specify port`)
+  .action((options) => {});
+
 cli.command('dev build', 'Build project').action((options) => {});
 
 cli.command('lint [...files]', 'Lint project').action((files, options) => {});

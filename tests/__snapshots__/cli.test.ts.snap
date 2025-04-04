@@ -1,7 +1,8 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`cli completion tests for cac > cli option completion tests > should complete option for partial input '{ partial: '--p', expected: '--port' }' 1`] = `
-":4
+"--port	Specify port
+:4
 "
 `;
 
@@ -38,22 +39,28 @@ vite.config.js	Vite config file
 `;
 
 exports[`cli completion tests for cac > cli option value handling > should resolve port value correctly 1`] = `
-":4
+"--port=3000	Development server port
+:4
 "
 `;
 
 exports[`cli completion tests for cac > edge case completions for end with space > should keep suggesting the --port option if user typed partial but didn't end with space 1`] = `
-":4
+"--port	Specify port
+:4
 "
 `;
 
 exports[`cli completion tests for cac > edge case completions for end with space > should suggest port values if user ends with space after \`--port\` 1`] = `
-":4
+"3000	Development server port
+8080	Alternative port
+:4
 "
 `;
 
 exports[`cli completion tests for cac > edge case completions for end with space > should suggest port values if user typed \`--port=\` and hasn't typed a space or value yet 1`] = `
-":4
+"--port=3000	Development server port
+--port=8080	Alternative port
+:4
 "
 `;
 
@@ -102,6 +109,7 @@ exports[`cli completion tests for cac > short flag handling > should not show du
 
 exports[`cli completion tests for cac > should complete cli options 1`] = `
 "dev	Start dev server
+serve	Start the server
 lint	Lint project
 :4
 "
