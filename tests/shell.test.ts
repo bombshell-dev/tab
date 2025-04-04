@@ -15,69 +15,15 @@ describe('shell completion generators', () => {
     it('should generate a valid fish completion script', () => {
       const script = fish.generate(name, exec);
 
-      // Check that the script contains the shell name
-      expect(script).toContain(`# fish completion for ${name}`);
-
-      // Check that the script defines the directives
-      expect(script).toContain(
-        `set -l ShellCompDirectiveError ${ShellCompDirective.ShellCompDirectiveError}`
-      );
-      expect(script).toContain(
-        `set -l ShellCompDirectiveNoSpace ${ShellCompDirective.ShellCompDirectiveNoSpace}`
-      );
-      expect(script).toContain(
-        `set -l ShellCompDirectiveNoFileComp ${ShellCompDirective.ShellCompDirectiveNoFileComp}`
-      );
-      expect(script).toContain(
-        `set -l ShellCompDirectiveFilterFileExt ${ShellCompDirective.ShellCompDirectiveFilterFileExt}`
-      );
-      expect(script).toContain(
-        `set -l ShellCompDirectiveFilterDirs ${ShellCompDirective.ShellCompDirectiveFilterDirs}`
-      );
-      expect(script).toContain(
-        `set -l ShellCompDirectiveKeepOrder ${ShellCompDirective.ShellCompDirectiveKeepOrder}`
-      );
-
-      // Check that the script contains the debug function
-      expect(script).toContain(`function __${name}_debug`);
-
-      // Check that the script contains the completion function
-      expect(script).toContain(`function __${name}_perform_completion`);
-
-      // Check that the script contains the completion registration
-      expect(script).toContain(
-        `complete -c ${name} -f -a "(eval __${name}_perform_completion)"`
-      );
-
-      // Check that the script uses the provided exec path
-      expect(script).toContain(
-        `set -l requestComp "${exec} complete -- $args"`
-      );
-
-      // Check that the script handles directives correctly
-      expect(script).toContain(
-        `if test $directive_num -eq $ShellCompDirectiveError`
-      );
-      expect(script).toContain(
-        `if test $directive_num -eq $ShellCompDirectiveFilterFileExt`
-      );
-      expect(script).toContain(
-        `if test $directive_num -eq $ShellCompDirectiveFilterDirs`
-      );
-      expect(script).toContain(
-        `if test (math "$directive_num & $ShellCompDirectiveNoSpace") -ne 0`
-      );
+      // Use snapshot testing instead of individual assertions
+      expect(script).toMatchSnapshot();
     });
 
     it('should handle special characters in the name', () => {
       const script = fish.generate(specialName, exec);
 
-      // Check that the script properly escapes the name
-      expect(script).toContain(`function __${escapedName}_debug`);
-      expect(script).toContain(`function __${escapedName}_perform_completion`);
-      expect(script).toContain(
-        `complete -c ${specialName} -f -a "(eval __${escapedName}_perform_completion)"`
-      );
+      // Use snapshot testing instead of individual assertions
+      expect(script).toMatchSnapshot();
     });
   });
 
