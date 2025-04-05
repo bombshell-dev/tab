@@ -6,6 +6,16 @@ Shell autocompletions are largely missing in the javascript cli ecosystem. This 
 
 Tools like git and their autocompletion experience inspired us to build this tool and make the same ability available for any javascript cli project. Developers love hitting the tab key, hence why they prefer tabs over spaces.
 
+## Examples
+
+Check out the [examples directory](./examples) for complete examples of using Tab with different command-line frameworks:
+
+- [CAC](./examples/demo.cac.ts)
+- [Citty](./examples/demo.citty.ts)
+- [Commander.js](./examples/demo.commander.ts)
+
+## Usage
+
 ```ts
 import { Completion, script } from '@bombsh/tab';
 
@@ -146,6 +156,47 @@ const cli = createMain(main);
 cli();
 ```
 
+### `@bombsh/tab/commander`
+
+```ts
+import { Command } from 'commander';
+import tab from '@bombsh/tab/commander';
+
+const program = new Command('my-cli');
+program.version('1.0.0');
+
+// Add commands
+program
+  .command('serve')
+  .description('Start the server')
+  .option('-p, --port <number>', 'port to use', '3000')
+  .option('-H, --host <host>', 'host to use', 'localhost')
+  .action((options) => {
+    console.log('Starting server...');
+  });
+
+// Initialize tab completion
+const completion = tab(program);
+
+// Configure custom completions
+for (const command of completion.commands.values()) {
+  if (command.name === 'serve') {
+    for (const [option, config] of command.options.entries()) {
+      if (option === '--port') {
+        config.handler = () => {
+          return [
+            { value: '3000', description: 'Default port' },
+            { value: '8080', description: 'Alternative port' },
+          ];
+        };
+      }
+    }
+  }
+}
+
+program.parse();
+```
+
 ## Recipe
 
 `source <(my-cli complete zsh)` won't be enough since the user would have to run this command each time they spin up a new shell instance.
@@ -155,6 +206,20 @@ We suggest this approach for the end user that you as a maintainer might want to
 ```
 my-cli completion zsh > ~/completion-for-my-cli.zsh
 echo 'source ~/completion-for-my-cli.zsh' >> ~/.zshrc
+```
+
+For other shells:
+
+```bash
+# Bash
+my-cli complete bash > ~/.bash_completion.d/my-cli
+echo 'source ~/.bash_completion.d/my-cli' >> ~/.bashrc
+
+# Fish
+my-cli complete fish > ~/.config/fish/completions/my-cli.fish
+
+# PowerShell
+my-cli complete powershell > $PROFILE.CurrentUserAllHosts
 ```
 
 ## Autocompletion Server
@@ -181,8 +246,3 @@ Other package managers like `npm` and `yarn` can decide whether to support this 
 
 - git
 - [cobra](https://github.com/spf13/cobra/blob/main/shell_completions.go), without cobra, tab would have took 10x longer to build
-
-## TODO
-
-- [] fish
-- [] bash

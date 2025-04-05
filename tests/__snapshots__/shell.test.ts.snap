@@ -1,0 +1,307 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`shell completion generators > fish shell completion > should generate a valid fish completion script 1`] = `
+"# fish completion for testcli -*- shell-script -*-
+
+# Define shell completion directives
+set -l ShellCompDirectiveError 1
+set -l ShellCompDirectiveNoSpace 2
+set -l ShellCompDirectiveNoFileComp 4
+set -l ShellCompDirectiveFilterFileExt 8
+set -l ShellCompDirectiveFilterDirs 16
+set -l ShellCompDirectiveKeepOrder 32
+
+function __testcli_debug
+    set -l file "$BASH_COMP_DEBUG_FILE"
+    if test -n "$file"
+        echo "$argv" >> $file
+    end
+end
+
+function __testcli_perform_completion
+    __testcli_debug "Starting __testcli_perform_completion"
+
+    # Extract all args except the completion flag
+    set -l args (string match -v -- "--completion=" (commandline -opc))
+    
+    # Extract the current token being completed
+    set -l current_token (commandline -ct)
+    
+    # Check if current token starts with a dash
+    set -l flag_prefix ""
+    if string match -q -- "-*" $current_token
+        set flag_prefix "--flag="
+    end
+    
+    __testcli_debug "Current token: $current_token"
+    __testcli_debug "All args: $args"
+
+    # Call the completion program and get the results
+    set -l requestComp "/usr/bin/node /path/to/testcli complete -- $args"
+    __testcli_debug "Calling $requestComp"
+    set -l results (eval $requestComp 2> /dev/null)
+    
+    # Some programs may output extra empty lines after the directive.
+    # Let's ignore them or else it will break completion.
+    # Ref: https://github.com/spf13/cobra/issues/1279
+    for line in $results[-1..1]
+        if test (string sub -s 1 -l 1 -- $line) = ":"
+            # The directive
+            set -l directive (string sub -s 2 -- $line)
+            set -l directive_num (math $directive)
+            break
+        end
+    end
+    
+    # No directive specified, use default
+    if not set -q directive_num
+        set directive_num 0
+    end
+    
+    __testcli_debug "Directive: $directive_num"
+
+    # Process completions based on directive
+    if test $directive_num -eq $ShellCompDirectiveError
+        # Error code. No completion.
+        __testcli_debug "Received error directive: aborting."
+        return 1
+    end
+
+    # Filter out the directive (last line)
+    if test (count $results) -gt 0 -a (string sub -s 1 -l 1 -- $results[-1]) = ":"
+        set results $results[1..-2]
+    end
+
+    # No completions, let fish handle file completions unless forbidden
+    if test (count $results) -eq 0
+        if test $directive_num -ne $ShellCompDirectiveNoFileComp
+            __testcli_debug "No completions, performing file completion"
+            return 1
+        end
+        __testcli_debug "No completions, but file completion forbidden"
+        return 0
+    end
+
+    # Filter file extensions
+    if test $directive_num -eq $ShellCompDirectiveFilterFileExt
+        __testcli_debug "File extension filtering"
+        set -l file_extensions
+        for item in $results
+            if test -n "$item" -a (string sub -s 1 -l 1 -- $item) != "-"
+                set -a file_extensions "*$item"
+            end
+        end
+        __testcli_debug "File extensions: $file_extensions"
+        
+        # Use the file extensions as completions
+        set -l completions
+        for ext in $file_extensions
+            # Get all files matching the extension
+            set -a completions (string replace -r '^.*/' '' -- $ext)
+        end
+        
+        for item in $completions
+            echo -e "$item	"
+        end
+        return 0
+    end
+
+    # Filter directories
+    if test $directive_num -eq $ShellCompDirectiveFilterDirs
+        __testcli_debug "Directory filtering"
+        set -l dirs
+        for item in $results
+            if test -d "$item"
+                set -a dirs "$item/"
+            end
+        end
+        
+        for item in $dirs
+            echo -e "$item	"
+        end
+        return 0
+    end
+
+    # Process remaining completions
+    for item in $results
+        if test -n "$item"
+            # Check if the item has a description
+            if string match -q "*	*" -- "$item"
+                set -l completion_parts (string split 	 -- "$item")
+                set -l comp $completion_parts[1]
+                set -l desc $completion_parts[2]
+                
+                # Add the completion and description
+                echo -e "$comp	$desc"
+            else
+                # Add just the completion
+                echo -e "$item	"
+            end
+        end
+    end
+    
+    # If directive contains NoSpace, tell fish not to add a space after completion
+    if test (math "$directive_num & $ShellCompDirectiveNoSpace") -ne 0
+        return 2
+    end
+    
+    return 0
+end
+
+# Set up the completion for the testcli command
+complete -c testcli -f -a "(eval __testcli_perform_completion)"
+"
+`;
+
+exports[`shell completion generators > fish shell completion > should handle special characters in the name 1`] = `
+"# fish completion for test-cli:app -*- shell-script -*-
+
+# Define shell completion directives
+set -l ShellCompDirectiveError 1
+set -l ShellCompDirectiveNoSpace 2
+set -l ShellCompDirectiveNoFileComp 4
+set -l ShellCompDirectiveFilterFileExt 8
+set -l ShellCompDirectiveFilterDirs 16
+set -l ShellCompDirectiveKeepOrder 32
+
+function __test_cli_app_debug
+    set -l file "$BASH_COMP_DEBUG_FILE"
+    if test -n "$file"
+        echo "$argv" >> $file
+    end
+end
+
+function __test_cli_app_perform_completion
+    __test_cli_app_debug "Starting __test_cli_app_perform_completion"
+
+    # Extract all args except the completion flag
+    set -l args (string match -v -- "--completion=" (commandline -opc))
+    
+    # Extract the current token being completed
+    set -l current_token (commandline -ct)
+    
+    # Check if current token starts with a dash
+    set -l flag_prefix ""
+    if string match -q -- "-*" $current_token
+        set flag_prefix "--flag="
+    end
+    
+    __test_cli_app_debug "Current token: $current_token"
+    __test_cli_app_debug "All args: $args"
+
+    # Call the completion program and get the results
+    set -l requestComp "/usr/bin/node /path/to/testcli complete -- $args"
+    __test_cli_app_debug "Calling $requestComp"
+    set -l results (eval $requestComp 2> /dev/null)
+    
+    # Some programs may output extra empty lines after the directive.
+    # Let's ignore them or else it will break completion.
+    # Ref: https://github.com/spf13/cobra/issues/1279
+    for line in $results[-1..1]
+        if test (string sub -s 1 -l 1 -- $line) = ":"
+            # The directive
+            set -l directive (string sub -s 2 -- $line)
+            set -l directive_num (math $directive)
+            break
+        end
+    end
+    
+    # No directive specified, use default
+    if not set -q directive_num
+        set directive_num 0
+    end
+    
+    __test_cli_app_debug "Directive: $directive_num"
+
+    # Process completions based on directive
+    if test $directive_num -eq $ShellCompDirectiveError
+        # Error code. No completion.
+        __test_cli_app_debug "Received error directive: aborting."
+        return 1
+    end
+
+    # Filter out the directive (last line)
+    if test (count $results) -gt 0 -a (string sub -s 1 -l 1 -- $results[-1]) = ":"
+        set results $results[1..-2]
+    end
+
+    # No completions, let fish handle file completions unless forbidden
+    if test (count $results) -eq 0
+        if test $directive_num -ne $ShellCompDirectiveNoFileComp
+            __test_cli_app_debug "No completions, performing file completion"
+            return 1
+        end
+        __test_cli_app_debug "No completions, but file completion forbidden"
+        return 0
+    end
+
+    # Filter file extensions
+    if test $directive_num -eq $ShellCompDirectiveFilterFileExt
+        __test_cli_app_debug "File extension filtering"
+        set -l file_extensions
+        for item in $results
+            if test -n "$item" -a (string sub -s 1 -l 1 -- $item) != "-"
+                set -a file_extensions "*$item"
+            end
+        end
+        __test_cli_app_debug "File extensions: $file_extensions"
+        
+        # Use the file extensions as completions
+        set -l completions
+        for ext in $file_extensions
+            # Get all files matching the extension
+            set -a completions (string replace -r '^.*/' '' -- $ext)
+        end
+        
+        for item in $completions
+            echo -e "$item	"
+        end
+        return 0
+    end
+
+    # Filter directories
+    if test $directive_num -eq $ShellCompDirectiveFilterDirs
+        __test_cli_app_debug "Directory filtering"
+        set -l dirs
+        for item in $results
+            if test -d "$item"
+                set -a dirs "$item/"
+            end
+        end
+        
+        for item in $dirs
+            echo -e "$item	"
+        end
+        return 0
+    end
+
+    # Process remaining completions
+    for item in $results
+        if test -n "$item"
+            # Check if the item has a description
+            if string match -q "*	*" -- "$item"
+                set -l completion_parts (string split 	 -- "$item")
+                set -l comp $completion_parts[1]
+                set -l desc $completion_parts[2]
+                
+                # Add the completion and description
+                echo -e "$comp	$desc"
+            else
+                # Add just the completion
+                echo -e "$item	"
+            end
+        end
+    end
+    
+    # If directive contains NoSpace, tell fish not to add a space after completion
+    if test (math "$directive_num & $ShellCompDirectiveNoSpace") -ne 0
+        return 2
+    end
+    
+    return 0
+end
+
+# Set up the completion for the test-cli:app command
+complete -c test-cli:app -f -a "(eval __test_cli_app_perform_completion)"
+"
+`;
