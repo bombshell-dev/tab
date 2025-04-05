@@ -46,14 +46,20 @@ _${name}() {
         flagPrefix="-P \${BASH_REMATCH}"
     fi
 
-    # Prepare the command to obtain completions
-    requestComp="${exec} complete -- \${words[2,-1]}"
+    # Prepare the command to obtain completions, ensuring arguments are quoted for eval
+    local -a args_to_quote=("\${(@)words[2,-1]}")
     if [ "\${lastChar}" = "" ]; then
         # If the last parameter is complete (there is a space following it)
         # We add an extra empty parameter so we can indicate this to the go completion code.
         __${name}_debug "Adding extra empty parameter"
-        requestComp="\${requestComp} ''"
+        args_to_quote+=("")
     fi
+
+    # Use Zsh's (q) flag to quote each argument safely for eval
+    local quoted_args=("\${(@q)args_to_quote}")
+
+    # Join the main command and the quoted arguments into a single string for eval
+    requestComp="${exec} complete -- \${quoted_args[*]}"
 
     __${name}_debug "About to call: eval \${requestComp}"
 
