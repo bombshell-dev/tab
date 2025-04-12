@@ -109,6 +109,7 @@ exports[`cli completion tests for cac > short flag handling > should not show du
 
 exports[`cli completion tests for cac > should complete cli options 1`] = `
 "dev	Start dev server
+serve	Start the server
 lint	Lint project
 :4
 "
@@ -121,12 +122,14 @@ exports[`cli completion tests for citty > cli option completion tests > should c
 `;
 
 exports[`cli completion tests for citty > cli option completion tests > should complete option for partial input '{ partial: '-H', expected: '-H' }' 1`] = `
-":4
+"-H	Specify hostname
+:4
 "
 `;
 
 exports[`cli completion tests for citty > cli option completion tests > should complete option for partial input '{ partial: '-p', expected: '-p' }' 1`] = `
-":4
+"-p	Specify port
+:4
 "
 `;
 
@@ -184,7 +187,8 @@ exports[`cli completion tests for citty > short flag handling > should handle gl
 `;
 
 exports[`cli completion tests for citty > short flag handling > should handle short flag value completion 1`] = `
-":4
+"-p	Specify port
+:4
 "
 `;
 
@@ -203,7 +207,25 @@ exports[`cli completion tests for citty > short flag handling > should not show 
 
 exports[`cli completion tests for citty > should complete cli options 1`] = `
 "dev	Start dev server
+build	Build project
 lint	Lint project
+:4
+"
+`;
+
+exports[`cli completion tests for commander > cli option value handling > should handle unknown options with no completions 1`] = `":4"`;
+
+exports[`cli completion tests for commander > short flag handling > should handle global short flags 1`] = `
+"-c	specify config file
+:4
+"
+`;
+
+exports[`cli completion tests for commander > should complete cli options 1`] = `
+"serve	Start the server
+build	Build the project
+deploy	Deploy the application
+lint	Lint source files
 :4
 "
 `;

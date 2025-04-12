@@ -1,5 +1,5 @@
 import cac from 'cac';
-import tab from './src/cac';
+import tab from '../src/cac';
 
 const cli = cac('vite');
 
@@ -10,6 +10,12 @@ cli
 
 cli
   .command('dev', 'Start dev server')
+  .option('-H, --host [host]', `Specify hostname`)
+  .option('-p, --port <port>', `Specify port`)
+  .action((options) => {});
+
+cli
+  .command('serve', 'Start the server')
   .option('-H, --host [host]', `Specify hostname`)
   .option('-p, --port <port>', `Specify port`)
   .action((options) => {});
