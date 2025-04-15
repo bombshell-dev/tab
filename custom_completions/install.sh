@@ -1,3 +1,5 @@
+# deprecated!! new file is: generate.sh
+
 #!/bin/bash
 
 # Determine the ZSH completion directory

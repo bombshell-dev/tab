@@ -20,29 +20,26 @@ echo "-----------------------------------------------------------"
 echo "Testing the core completion detection and delegation logic"
 echo "-----------------------------------------------------------"
 
-# Extract and test just the core functions from the ZSH completion script
-# without trying to run the full ZSH completion system
-
 # Function to check if a command has Tab-powered completions
 has_tab_completion() {
     local cmd="$1"
     
-    # For the sake of the demo, we want to simulate a working vite command
+    # For our demo vite command
     if [[ "$cmd" == "vite" ]]; then
-        # Test that our detection would work by verifying our demo script
-        # produces Tab-style completions
-        local result
+        # For the demo, we need to use the tsx command directly
         result=$(pnpm tsx "$DEMO_SCRIPT" complete -- "" 2>/dev/null)
         
         # Check if the result ends with a directive like :4
-        if [[ "$result" =~ :[0-9]+$ ]]; then
-            echo "Detection method works: Found completion directive in output"
+        if echo "$result" | grep -q ':[0-9]\+$'; then
+            echo "Found completion directive in output"
             return 0
         fi
+        
+        echo "No completion directive found in output"
+        echo "Output was: $result"
     fi
     
-    # For other commands, simulate a real detection
-    echo "Would check if '$cmd' has Tab completions in a real environment"
+    # No completion found
     return 1
 }
 
@@ -51,17 +48,12 @@ get_tab_completions() {
     local cmd="$1"
     shift
     local args=("$@")
-    local result
     
+    # For our demo vite command
     if [[ "$cmd" == "vite" ]]; then
-        # For our demo vite command, use the demo script
-        result=$(pnpm tsx "$DEMO_SCRIPT" complete -- "${args[@]}" 2>/dev/null)
-        if [[ -n "$result" ]]; then
-            echo "$result"
-            return 0
-        fi
-    else
-        echo "Would get completions for '$cmd' with args: ${args[*]}"
+        # For the demo, we use the tsx directly
+        pnpm tsx "$DEMO_SCRIPT" complete -- "${args[@]}" 2>/dev/null
+        return $?
     fi
     
     return 1
@@ -70,9 +62,9 @@ get_tab_completions() {
 # Test if our vite command has Tab completions
 echo "Testing if 'vite' has Tab completions:"
 if has_tab_completion "vite"; then
-    echo "vite has Tab completions!!!"
+    echo "vite has Tab completions!"
 else
-    echo "vite does not have Tab completions!!!"
+    echo "vite does not have Tab completions!"
 fi
 
 echo ""

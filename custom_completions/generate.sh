@@ -1,3 +1,7 @@
+#!/usr/bin/env bash
+
+# Generate the enhanced pnpm completion script
+cat << 'EOF'
 #compdef pnpm
 
 if command -v pnpm-shell-completion &> /dev/null; then
@@ -151,3 +155,4 @@ _pnpm() {
 }
 
 compdef _pnpm pnpm
+EOF 
