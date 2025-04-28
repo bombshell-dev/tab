@@ -337,28 +337,13 @@ export class Completion {
     previousArgs: string[],
     toComplete: string
   ) {
-    const commandParts = [...previousArgs].filter(arg => arg !== '');
-
-    // When we have no real command parts (just empty or showing root commands)
-    const isRootCompletion = commandParts.length === 0;
+    const commandParts = [...previousArgs].filter(Boolean);
 
     for (const [k, command] of this.commands) {
       if (k === '') continue;
 
       const parts = k.split(' ');
 
-      // For root completion, just match the first part of each command
-      if (isRootCompletion) {
-        if (parts[0].startsWith(toComplete)) {
-          this.completions.push({
-            value: parts[0],
-            description: command.description,
-          });
-        }
-        continue;
-      }
-
-      // For subcommand completion, match the parts against commandParts
       let match = true;
       let i = 0;
 
