@@ -337,14 +337,16 @@ export class Completion {
     previousArgs: string[],
     toComplete: string
   ) {
-    const commandParts = [...previousArgs];
+    const commandParts = [...previousArgs].filter(Boolean);
 
     for (const [k, command] of this.commands) {
       if (k === '') continue;
-      const parts = k.split(' ');
-      let match = true;
 
+      const parts = k.split(' ');
+
+      let match = true;
       let i = 0;
+
       while (i < commandParts.length) {
         if (parts[i] !== commandParts[i]) {
           match = false;
@@ -352,6 +354,7 @@ export class Completion {
         }
         i++;
       }
+
       if (match && parts[i]?.startsWith(toComplete)) {
         this.completions.push({
           value: parts[i],
