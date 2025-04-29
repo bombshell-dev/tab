@@ -11,7 +11,11 @@ import type {
   SubCommandsDef,
 } from 'citty';
 import { generateFigSpec } from './fig';
-import { CompletionConfig, noopHandler, requireDashDashSeparator } from './shared';
+import {
+  CompletionConfig,
+  noopHandler,
+  requireDashDashSeparator,
+} from './shared';
 
 function quoteIfNeeded(path: string) {
   return path.includes(' ') ? `'${path}'` : path;
