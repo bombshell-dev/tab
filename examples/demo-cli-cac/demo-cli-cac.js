@@ -53,9 +53,12 @@ if (process.argv[2] === '__complete') {
     console.log('-p\tPort to use');
     console.log('--port\tPort to use');
     console.log('--help\tDisplay help');
-    
+
     // Port value completion if --port is the last arg
-    if (previousArgs[previousArgs.length - 1] === '--port' || previousArgs[previousArgs.length - 1] === '-p') {
+    if (
+      previousArgs[previousArgs.length - 1] === '--port' ||
+      previousArgs[previousArgs.length - 1] === '-p'
+    ) {
       console.log('3000\tDefault port');
       console.log('8080\tAlternative port');
     }
@@ -66,9 +69,12 @@ if (process.argv[2] === '__complete') {
     console.log('-m\tBuild mode');
     console.log('--mode\tBuild mode');
     console.log('--help\tDisplay help');
-    
+
     // Mode value completion if --mode is the last arg
-    if (previousArgs[previousArgs.length - 1] === '--mode' || previousArgs[previousArgs.length - 1] === '-m') {
+    if (
+      previousArgs[previousArgs.length - 1] === '--mode' ||
+      previousArgs[previousArgs.length - 1] === '-m'
+    ) {
       console.log('development\tDevelopment mode');
       console.log('production\tProduction mode');
       console.log('test\tTest mode');
@@ -80,4 +86,4 @@ if (process.argv[2] === '__complete') {
 } else {
   // Parse CLI args
   cli.parse();
-} 
+}

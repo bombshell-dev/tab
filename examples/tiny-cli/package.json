@@ -6,4 +6,4 @@
   "bin": {
     "tiny-cli": "./tiny-cli.js"
   }
-} 
+}

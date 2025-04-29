@@ -13,4 +13,4 @@ if (process.argv[2] === '__complete') {
   } else {
     console.log('Usage: tiny-cli [hello|world]');
   }
-} 
+}
