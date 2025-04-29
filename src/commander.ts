@@ -80,14 +80,10 @@ export default function tab(instance: CommanderCommand): Completion {
           break;
         }
         default: {
-          try {
-            assertDoubleDashes(programName);
+          assertDoubleDashes(programName);
 
-            // Parse current command context for autocompletion
-            return completion.parse(extra);
-          } catch (error) {
-            return;
-          }
+          // Parse current command context for autocompletion
+          return completion.parse(extra);
         }
       }
     });

@@ -187,21 +187,17 @@ export default async function tab<TArgs extends ArgsDef>(
           break;
         }
         default: {
-          try {
-            assertDoubleDashes(name);
+          assertDoubleDashes(name);
 
-            const extra = ctx.rawArgs.slice(ctx.rawArgs.indexOf('--') + 1);
-            // const args = (await resolve(instance.args))!;
-            // const parsed = parseArgs(extra, args);
-            // TODO: this is not ideal at all
-            // const matchedCommand = parsed._.join(' ').trim(); //TODO: this was passed to parse line 170
-            // TODO: `command lint i` does not work because `lint` and `i` are potential commands
-            // instead the potential command should only be `lint`
-            // and `i` is the to be completed part
-            return completion.parse(extra);
-          } catch (error) {
-            return;
-          }
+          const extra = ctx.rawArgs.slice(ctx.rawArgs.indexOf('--') + 1);
+          // const args = (await resolve(instance.args))!;
+          // const parsed = parseArgs(extra, args);
+          // TODO: this is not ideal at all
+          // const matchedCommand = parsed._.join(' ').trim(); //TODO: this was passed to parse line 170
+          // TODO: `command lint i` does not work because `lint` and `i` are potential commands
+          // instead the potential command should only be `lint`
+          // and `i` is the to be completed part
+          return completion.parse(extra);
         }
       }
     },

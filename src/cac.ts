@@ -85,25 +85,21 @@ export default async function tab(
         break;
       }
       default: {
-        try {
-          assertDoubleDashes(instance.name);
+        assertDoubleDashes(instance.name);
 
-          const args: string[] = extra['--'] || [];
-          instance.showHelpOnExit = false;
+        const args: string[] = extra['--'] || [];
+        instance.showHelpOnExit = false;
 
-          // Parse current command context
-          instance.unsetMatchedCommand();
-          instance.parse([execPath, processArgs[0], ...args], {
-            run: false,
-          });
+        // Parse current command context
+        instance.unsetMatchedCommand();
+        instance.parse([execPath, processArgs[0], ...args], {
+          run: false,
+        });
 
-          // const matchedCommand = instance.matchedCommand?.name || '';
-          // const potentialCommand = args.join(' ')
-          // console.log(potentialCommand)
-          return completion.parse(args);
-        } catch (error) {
-          return;
-        }
+        // const matchedCommand = instance.matchedCommand?.name || '';
+        // const potentialCommand = args.join(' ')
+        // console.log(potentialCommand)
+        return completion.parse(args);
       }
     }
   });

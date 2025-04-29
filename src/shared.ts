@@ -23,6 +23,6 @@ export function assertDoubleDashes(programName: string = 'cli'): void {
   if (dashDashIndex === -1) {
     const errorMessage = `Error: You need to use -- to separate completion arguments.\nExample: ${programName} complete -- <args>`;
     console.error(errorMessage);
-    throw new Error('Missing -- separator');
+    process.exit(1);
   }
 }
