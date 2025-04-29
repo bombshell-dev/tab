@@ -4,6 +4,7 @@ import * as fish from './fish';
 import * as powershell from './powershell';
 import type { Command as CommanderCommand } from 'commander';
 import { Completion } from './';
+import { requireDashDashSeparator } from './shared';
 
 const execPath = process.execPath;
 const processArgs = process.argv.slice(1);
@@ -20,10 +21,6 @@ function quoteIfNeeded(path: string): string {
 export default function tab(instance: CommanderCommand): Completion {
   const completion = new Completion();
   const programName = instance.name();
-
-  // a hidden flag to track if -- is there in the raw arguments? we might need a better way to do this?
-  const dashDashIndex = process.argv.indexOf('--');
-  const wasDashDashProvided = dashDashIndex !== -1;
 
   // Process the root command
   processRootCommand(completion, instance, programName);
@@ -83,11 +80,7 @@ export default function tab(instance: CommanderCommand): Completion {
           break;
         }
         default: {
-          // check if -- separator is provided
-          if (!wasDashDashProvided) {
-            console.error(
-              'Error: You need to use -- to separate completion arguments'
-            );
+          if (!requireDashDashSeparator(programName)) {
             return;
           }
 

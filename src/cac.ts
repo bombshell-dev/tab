@@ -4,7 +4,7 @@ import * as fish from './fish';
 import * as powershell from './powershell';
 import type { CAC } from 'cac';
 import { Completion } from './index';
-import { CompletionConfig, noopHandler } from './shared';
+import { CompletionConfig, noopHandler, requireDashDashSeparator } from './shared';
 
 const execPath = process.execPath;
 const processArgs = process.argv.slice(1);
@@ -23,10 +23,6 @@ export default async function tab(
   completionConfig?: CompletionConfig
 ) {
   const completion = new Completion();
-
-  // a hidden flag to track if -- is there in the raw arguments? we might need a better way to do this?
-  const dashDashIndex = process.argv.indexOf('--');
-  const wasDashDashProvided = dashDashIndex !== -1;
 
   // Add all commands and their options
   for (const cmd of [instance.globalCommand, ...instance.commands]) {
@@ -89,12 +85,10 @@ export default async function tab(
         break;
       }
       default: {
-        if (!wasDashDashProvided) {
-          console.error(
-            'Error: You need to use -- to separate completion arguments'
-          );
+        if (!requireDashDashSeparator(instance.name)) {
           return;
         }
+
         const args: string[] = extra['--'] || [];
         instance.showHelpOnExit = false;
 

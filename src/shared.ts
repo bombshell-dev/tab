@@ -16,3 +16,14 @@ export interface CompletionConfig {
     }
   >;
 }
+
+export function requireDashDashSeparator(programName: string): boolean {
+  const dashDashIndex = process.argv.indexOf('--');
+  const wasDashDashProvided = dashDashIndex !== -1;
+
+  if (!wasDashDashProvided) {
+    console.error('Error: You need to use -- to separate completion arguments');
+  }
+
+  return wasDashDashProvided;
+}

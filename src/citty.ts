@@ -11,7 +11,7 @@ import type {
   SubCommandsDef,
 } from 'citty';
 import { generateFigSpec } from './fig';
-import { CompletionConfig, noopHandler } from './shared';
+import { CompletionConfig, noopHandler, requireDashDashSeparator } from './shared';
 
 function quoteIfNeeded(path: string) {
   return path.includes(' ') ? `'${path}'` : path;
@@ -97,10 +97,6 @@ export default async function tab<TArgs extends ArgsDef>(
   completionConfig?: CompletionConfig
 ) {
   const completion = new Completion();
-
-  // a hidden flag to track if -- is there in the raw arguments? we might need a better way to do this?
-  const dashDashIndex = process.argv.indexOf('--');
-  const wasDashDashProvided = dashDashIndex !== -1;
 
   const meta = await resolve(instance.meta);
 
@@ -191,11 +187,7 @@ export default async function tab<TArgs extends ArgsDef>(
           break;
         }
         default: {
-          // check if -- separator was provided
-          if (!wasDashDashProvided) {
-            console.error(
-              'Error: You need to use -- to separate completion arguments'
-            );
+          if (!requireDashDashSeparator(name)) {
             return;
           }
 
