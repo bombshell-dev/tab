@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      examples:
+        specifier: link:./examples
+        version: link:examples
       mri:
         specifier: ^1.2.0
         version: 1.2.0
