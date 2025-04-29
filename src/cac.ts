@@ -7,7 +7,7 @@ import { Completion } from './index';
 import {
   CompletionConfig,
   noopHandler,
-  requireDashDashSeparator,
+  assertDoubleDashes,
 } from './shared';
 
 const execPath = process.execPath;
@@ -89,23 +89,25 @@ export default async function tab(
         break;
       }
       default: {
-        if (!requireDashDashSeparator(instance.name)) {
+        try {
+          assertDoubleDashes(instance.name);
+
+          const args: string[] = extra['--'] || [];
+          instance.showHelpOnExit = false;
+
+          // Parse current command context
+          instance.unsetMatchedCommand();
+          instance.parse([execPath, processArgs[0], ...args], {
+            run: false,
+          });
+
+          // const matchedCommand = instance.matchedCommand?.name || '';
+          // const potentialCommand = args.join(' ')
+          // console.log(potentialCommand)
+          return completion.parse(args);
+        } catch (error) {
           return;
         }
-
-        const args: string[] = extra['--'] || [];
-        instance.showHelpOnExit = false;
-
-        // Parse current command context
-        instance.unsetMatchedCommand();
-        instance.parse([execPath, processArgs[0], ...args], {
-          run: false,
-        });
-
-        // const matchedCommand = instance.matchedCommand?.name || '';
-        // const potentialCommand = args.join(' ')
-        // console.log(potentialCommand)
-        return completion.parse(args);
       }
     }
   });
