@@ -1,0 +1,9 @@
+{
+  "name": "tiny-cli",
+  "version": "1.0.0",
+  "description": "Minimal CLI for testing tab completions with pnpm",
+  "main": "tiny-cli.js",
+  "bin": {
+    "tiny-cli": "./tiny-cli.js"
+  }
+}
