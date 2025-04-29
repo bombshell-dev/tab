@@ -24,6 +24,10 @@ export default async function tab(
 ) {
   const completion = new Completion();
 
+  // a hidden flag to track if -- is there in the raw arguments? we might need a better way to do this?
+  const dashDashIndex = process.argv.indexOf('--');
+  const wasDashDashProvided = dashDashIndex !== -1;
+
   // Add all commands and their options
   for (const cmd of [instance.globalCommand, ...instance.commands]) {
     if (cmd.name === 'complete') continue; // Skip completion command
@@ -85,7 +89,13 @@ export default async function tab(
         break;
       }
       default: {
-        const args: string[] = extra['--'];
+        if (!wasDashDashProvided) {
+          console.error(
+            'Error: You need to use -- to separate completion arguments'
+          );
+          return;
+        }
+        const args: string[] = extra['--'] || [];
         instance.showHelpOnExit = false;
 
         // Parse current command context

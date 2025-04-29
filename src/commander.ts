@@ -21,6 +21,10 @@ export default function tab(instance: CommanderCommand): Completion {
   const completion = new Completion();
   const programName = instance.name();
 
+  // a hidden flag to track if -- is there in the raw arguments? we might need a better way to do this?
+  const dashDashIndex = process.argv.indexOf('--');
+  const wasDashDashProvided = dashDashIndex !== -1;
+
   // Process the root command
   processRootCommand(completion, instance, programName);
 
@@ -79,6 +83,14 @@ export default function tab(instance: CommanderCommand): Completion {
           break;
         }
         default: {
+          // check if -- separator is provided
+          if (!wasDashDashProvided) {
+            console.error(
+              'Error: You need to use -- to separate completion arguments'
+            );
+            return;
+          }
+
           // Parse current command context for autocompletion
           return completion.parse(extra);
         }

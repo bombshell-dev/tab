@@ -98,6 +98,10 @@ export default async function tab<TArgs extends ArgsDef>(
 ) {
   const completion = new Completion();
 
+  // a hidden flag to track if -- is there in the raw arguments? we might need a better way to do this?
+  const dashDashIndex = process.argv.indexOf('--');
+  const wasDashDashProvided = dashDashIndex !== -1;
+
   const meta = await resolve(instance.meta);
 
   if (!meta) {
@@ -155,7 +159,6 @@ export default async function tab<TArgs extends ArgsDef>(
     },
     async run(ctx) {
       let shell: string | undefined = ctx.rawArgs[0];
-      const extra = ctx.rawArgs.slice(ctx.rawArgs.indexOf('--') + 1);
 
       if (shell === '--') {
         shell = undefined;
@@ -188,6 +191,15 @@ export default async function tab<TArgs extends ArgsDef>(
           break;
         }
         default: {
+          // check if -- separator was provided
+          if (!wasDashDashProvided) {
+            console.error(
+              'Error: You need to use -- to separate completion arguments'
+            );
+            return;
+          }
+
+          const extra = ctx.rawArgs.slice(ctx.rawArgs.indexOf('--') + 1);
           // const args = (await resolve(instance.args))!;
           // const parsed = parseArgs(extra, args);
           // TODO: this is not ideal at all
