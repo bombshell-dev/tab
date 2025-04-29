@@ -4,11 +4,7 @@ import * as fish from './fish';
 import * as powershell from './powershell';
 import type { CAC } from 'cac';
 import { Completion } from './index';
-import {
-  CompletionConfig,
-  noopHandler,
-  assertDoubleDashes,
-} from './shared';
+import { CompletionConfig, noopHandler, assertDoubleDashes } from './shared';
 
 const execPath = process.execPath;
 const processArgs = process.argv.slice(1);
