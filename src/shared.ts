@@ -16,3 +16,13 @@ export interface CompletionConfig {
     }
   >;
 }
+
+export function assertDoubleDashes(programName: string = 'cli'): void {
+  const dashDashIndex = process.argv.indexOf('--');
+
+  if (dashDashIndex === -1) {
+    const errorMessage = `Error: You need to use -- to separate completion arguments.\nExample: ${programName} complete -- <args>`;
+    console.error(errorMessage);
+    process.exit(1);
+  }
+}

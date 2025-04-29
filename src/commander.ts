@@ -4,6 +4,7 @@ import * as fish from './fish';
 import * as powershell from './powershell';
 import type { Command as CommanderCommand } from 'commander';
 import { Completion } from './';
+import { assertDoubleDashes } from './shared';
 
 const execPath = process.execPath;
 const processArgs = process.argv.slice(1);
@@ -79,6 +80,8 @@ export default function tab(instance: CommanderCommand): Completion {
           break;
         }
         default: {
+          assertDoubleDashes(programName);
+
           // Parse current command context for autocompletion
           return completion.parse(extra);
         }

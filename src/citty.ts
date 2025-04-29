@@ -11,7 +11,7 @@ import type {
   SubCommandsDef,
 } from 'citty';
 import { generateFigSpec } from './fig';
-import { CompletionConfig, noopHandler } from './shared';
+import { CompletionConfig, noopHandler, assertDoubleDashes } from './shared';
 
 function quoteIfNeeded(path: string) {
   return path.includes(' ') ? `'${path}'` : path;
@@ -155,7 +155,6 @@ export default async function tab<TArgs extends ArgsDef>(
     },
     async run(ctx) {
       let shell: string | undefined = ctx.rawArgs[0];
-      const extra = ctx.rawArgs.slice(ctx.rawArgs.indexOf('--') + 1);
 
       if (shell === '--') {
         shell = undefined;
@@ -188,6 +187,9 @@ export default async function tab<TArgs extends ArgsDef>(
           break;
         }
         default: {
+          assertDoubleDashes(name);
+
+          const extra = ctx.rawArgs.slice(ctx.rawArgs.indexOf('--') + 1);
           // const args = (await resolve(instance.args))!;
           // const parsed = parseArgs(extra, args);
           // TODO: this is not ideal at all
