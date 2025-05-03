@@ -7,7 +7,6 @@ export default defineConfig({
     'src/cac.ts',
     'src/commander.ts',
     'bin/cli.ts',
-    'bin/completion-handlers.ts',
   ],
   format: ['esm'],
   dts: true,
