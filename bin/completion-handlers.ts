@@ -1,4 +1,61 @@
 import { Completion } from '../src/index.js';
+import { execSync } from 'child_process';
+
+const DEBUG = false; // for debugging purposes
+
+function debugLog(...args: any[]) {
+  if (DEBUG) {
+    console.error('[DEBUG]', ...args);
+  }
+}
+
+async function checkCliHasCompletions(
+  cliName: string,
+  packageManager: string
+): Promise<boolean> {
+  try {
+    debugLog(`Checking if ${cliName} has completions via ${packageManager}`);
+    const command = `${packageManager} ${cliName} __complete`;
+    const result = execSync(command, {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'ignore'],
+      timeout: 1000, // AMIR: we still havin issues with this, it still hangs if a cli doesn't have completions.
+    });
+    const hasCompletions = !!result.trim();
+    debugLog(`${cliName} supports completions: ${hasCompletions}`);
+    return hasCompletions;
+  } catch (error) {
+    debugLog(`Error checking completions for ${cliName}:`, error);
+    return false;
+  }
+}
+
+async function getCliCompletions(
+  cliName: string,
+  packageManager: string,
+  args: string[]
+): Promise<string[]> {
+  try {
+    const completeArgs = args.map((arg) =>
+      arg.includes(' ') ? `"${arg}"` : arg
+    );
+    const completeCommand = `${packageManager} ${cliName} __complete ${completeArgs.join(' ')}`;
+    debugLog(`Getting completions with command: ${completeCommand}`);
+
+    const result = execSync(completeCommand, {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'ignore'],
+      timeout: 1000,
+    });
+
+    const completions = result.trim().split('\n').filter(Boolean);
+    debugLog(`Got ${completions.length} completions from ${cliName}`);
+    return completions;
+  } catch (error) {
+    debugLog(`Error getting completions from ${cliName}:`, error);
+    return [];
+  }
+}
 
 export function setupCompletionForPackageManager(
   packageManager: string,
@@ -13,6 +70,70 @@ export function setupCompletionForPackageManager(
   } else if (packageManager === 'bun') {
     setupBunCompletions(completion);
   }
+
+  completion.onBeforeParse(async (args: string[]) => {
+    debugLog(`onBeforeParse: args =`, args);
+
+    if (args.length >= 1) {
+      const potentialCliName = args[0];
+      const knownCommands = [...completion.commands.keys()];
+
+      debugLog(
+        `Potential CLI: ${potentialCliName}, Known commands:`,
+        knownCommands
+      );
+
+      if (knownCommands.includes(potentialCliName)) {
+        debugLog(`${potentialCliName} is a known command, skipping CLI check`);
+        return;
+      }
+
+      const hasCompletions = await checkCliHasCompletions(
+        potentialCliName,
+        packageManager
+      );
+      if (hasCompletions) {
+        debugLog(
+          `${potentialCliName} supports completions, getting suggestions`
+        );
+
+        const cliArgs = args.slice(1);
+        const suggestions = await getCliCompletions(
+          potentialCliName,
+          packageManager,
+          cliArgs
+        );
+
+        if (suggestions.length > 0) {
+          debugLog(`Processing ${suggestions.length} suggestions`);
+
+          completion.result.suppressDefault = true;
+
+          for (const suggestion of suggestions) {
+            if (suggestion.startsWith(':')) {
+              debugLog(`Skipping directive: ${suggestion}`);
+              continue;
+            }
+
+            if (suggestion.includes('\t')) {
+              const [value, description] = suggestion.split('\t');
+              debugLog(
+                `Adding completion with description: ${value} -> ${description}`
+              );
+              completion.result.items.push({ value, description });
+            } else {
+              debugLog(`Adding completion without description: ${suggestion}`);
+              completion.result.items.push({ value: suggestion });
+            }
+          }
+        } else {
+          debugLog(`No suggestions found for ${potentialCliName}`);
+        }
+      } else {
+        debugLog(`${potentialCliName} does not support completions`);
+      }
+    }
+  });
 }
 
 export function setupPnpmCompletions(completion: Completion) {

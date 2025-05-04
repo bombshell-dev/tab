@@ -62,8 +62,13 @@ export type Positional = {
 };
 
 type Item = {
-  description: string;
+  description?: string;
   value: string;
+};
+
+type CompletionResult = {
+  items: Item[];
+  suppressDefault: boolean;
 };
 
 export type Handler = (
@@ -91,6 +96,12 @@ export class Completion {
   commands = new Map<string, Command>();
   completions: Item[] = [];
   directive = ShellCompDirective.ShellCompDirectiveDefault;
+  result: CompletionResult = { items: [], suppressDefault: false };
+  private beforeParseFn: ((args: string[]) => Promise<void>) | null = null;
+
+  onBeforeParse(fn: (args: string[]) => Promise<void>) {
+    this.beforeParseFn = fn;
+  }
 
   // vite <entry> <another> [...files]
   // args: [false, false, true], only the last argument can be variadic
@@ -171,6 +182,17 @@ export class Completion {
   }
 
   async parse(args: string[]) {
+    this.result = { items: [], suppressDefault: false };
+
+    if (this.beforeParseFn) {
+      await this.beforeParseFn(args);
+      if (this.result.suppressDefault && this.result.items.length > 0) {
+        this.completions = this.result.items;
+        this.complete('');
+        return;
+      }
+    }
+
     const endsWithSpace = args[args.length - 1] === '';
 
     if (endsWithSpace) {
