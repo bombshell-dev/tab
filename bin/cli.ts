@@ -9,14 +9,13 @@ import { setupCompletionForPackageManager } from './completion-handlers';
 const packageManagers = ['npm', 'pnpm', 'yarn', 'bun'];
 const shells = ['zsh', 'bash', 'fish', 'powershell'];
 
-const cli = cac('tab');
+async function main() {
+  const cli = cac('tab');
 
-cli
-  .command(
-    '<packageManager> complete',
-    'Process completion requests from shell'
-  )
-  .action(async (packageManager) => {
+  const args = process.argv.slice(2);
+  if (args.length >= 2 && args[1] === 'complete') {
+    const packageManager = args[0];
+
     if (!packageManagers.includes(packageManager)) {
       console.error(`Error: Unsupported package manager "${packageManager}"`);
       console.error(
@@ -39,52 +38,35 @@ cli
       );
       process.exit(1);
     }
-  });
+  }
 
-cli
-  .command(
-    '<packageManager> <shell>',
-    'Generate shell completion script for a package manager'
-  )
-  .action(async (packageManager, shell) => {
-    if (shell === 'complete') {
-      const dashIndex = process.argv.indexOf('--');
-      if (dashIndex !== -1) {
-        const completion = new Completion();
-        setupCompletionForPackageManager(packageManager, completion);
-        const toComplete = process.argv.slice(dashIndex + 1);
-        await completion.parse(toComplete);
-        process.exit(0);
-      } else {
-        console.error(`Error: Expected '--' followed by command to complete`);
+  cli
+    .command(
+      '<packageManager> <shell>',
+      'Generate shell completion script for a package manager'
+    )
+    .action(async (packageManager, shell) => {
+      if (!packageManagers.includes(packageManager)) {
+        console.error(`Error: Unsupported package manager "${packageManager}"`);
         console.error(
-          `Example: ${packageManager} exec @bombsh/tab ${packageManager} complete -- command-to-complete`
+          `Supported package managers: ${packageManagers.join(', ')}`
         );
         process.exit(1);
       }
-      return;
-    }
 
-    if (!packageManagers.includes(packageManager)) {
-      console.error(`Error: Unsupported package manager "${packageManager}"`);
-      console.error(
-        `Supported package managers: ${packageManagers.join(', ')}`
-      );
-      process.exit(1);
-    }
+      if (!shells.includes(shell)) {
+        console.error(`Error: Unsupported shell "${shell}"`);
+        console.error(`Supported shells: ${shells.join(', ')}`);
+        process.exit(1);
+      }
 
-    if (!shells.includes(shell)) {
-      console.error(`Error: Unsupported shell "${shell}"`);
-      console.error(`Supported shells: ${shells.join(', ')}`);
-      process.exit(1);
-    }
+      generateCompletionScript(packageManager, shell);
+    });
 
-    generateCompletionScript(packageManager, shell);
-  });
+  const completion = tab(cli);
 
-const completion = tab(cli);
-
-cli.parse();
+  cli.parse();
+}
 
 function generateCompletionScript(packageManager: string, shell: string) {
   const name = packageManager;
@@ -93,3 +75,5 @@ function generateCompletionScript(packageManager: string, shell: string) {
     : `node ${process.argv[1]} ${packageManager}`;
   script(shell as any, name, executable);
 }
+
+main().catch(console.error);
