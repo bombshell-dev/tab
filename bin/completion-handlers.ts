@@ -15,11 +15,11 @@ async function checkCliHasCompletions(
 ): Promise<boolean> {
   try {
     debugLog(`Checking if ${cliName} has completions via ${packageManager}`);
-    const command = `${packageManager} ${cliName} __complete`;
+    const command = `${packageManager} ${cliName} complete --`;
     const result = execSync(command, {
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'ignore'],
-      timeout: 1000, // AMIR: we still havin issues with this, it still hangs if a cli doesn't have completions.
+      timeout: 1000, // AMIR: we still havin issues with this, it still hangs if a cli doesn't have completions. longer timeout needed for shell completion system (shell → node → package manager → cli)
     });
     const hasCompletions = !!result.trim();
     debugLog(`${cliName} supports completions: ${hasCompletions}`);
@@ -39,13 +39,13 @@ async function getCliCompletions(
     const completeArgs = args.map((arg) =>
       arg.includes(' ') ? `"${arg}"` : arg
     );
-    const completeCommand = `${packageManager} ${cliName} __complete ${completeArgs.join(' ')}`;
+    const completeCommand = `${packageManager} ${cliName} complete -- ${completeArgs.join(' ')}`;
     debugLog(`Getting completions with command: ${completeCommand}`);
 
     const result = execSync(completeCommand, {
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'ignore'],
-      timeout: 1000,
+      timeout: 1000, // same: longer timeout needed for shell completion system (shell → node → package manager → cli)
     });
 
     const completions = result.trim().split('\n').filter(Boolean);
