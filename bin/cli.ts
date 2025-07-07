@@ -68,11 +68,18 @@ async function main() {
   cli.parse();
 }
 
+// function generateCompletionScript(packageManager: string, shell: string) {
+//   const name = packageManager;
+//   const executable = process.env.npm_execpath
+//     ? `${packageManager} exec @bombsh/tab ${packageManager}`
+//     : `node ${process.argv[1]} ${packageManager}`;
+//   script(shell as any, name, executable);
+// }
+
 function generateCompletionScript(packageManager: string, shell: string) {
   const name = packageManager;
-  const executable = process.env.npm_execpath
-    ? `${packageManager} exec @bombsh/tab ${packageManager}`
-    : `node ${process.argv[1]} ${packageManager}`;
+  // this always points at the actual file on disk (TESTING)
+  const executable = `node ${process.argv[1]} ${packageManager}`;
   script(shell as any, name, executable);
 }
 
