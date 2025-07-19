@@ -77,7 +77,12 @@ export function setupCompletionForPackageManager(
 export function setupPnpmCompletions(completion: Completion) {
   completion.addCommand('add', 'Install a package', [], async () => []);
   completion.addCommand('remove', 'Remove a package', [], async () => []);
-  completion.addCommand('install', 'Install all dependencies', [], async () => []);
+  completion.addCommand(
+    'install',
+    'Install all dependencies',
+    [],
+    async () => []
+  );
   completion.addCommand('update', 'Update packages', [], async () => []);
   completion.addCommand('exec', 'Execute a command', [], async () => []);
   completion.addCommand('run', 'Run a script', [], async () => []);
