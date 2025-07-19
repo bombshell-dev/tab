@@ -71,80 +71,13 @@ export function setupCompletionForPackageManager(
     setupBunCompletions(completion);
   }
 
-  completion.onBeforeParse(async (args: string[]) => {
-    debugLog(`onBeforeParse: args =`, args);
-
-    if (args.length >= 1) {
-      const potentialCliName = args[0];
-      const knownCommands = [...completion.commands.keys()];
-
-      debugLog(
-        `Potential CLI: ${potentialCliName}, Known commands:`,
-        knownCommands
-      );
-
-      if (knownCommands.includes(potentialCliName)) {
-        debugLog(`${potentialCliName} is a known command, skipping CLI check`);
-        return;
-      }
-
-      const hasCompletions = await checkCliHasCompletions(
-        potentialCliName,
-        packageManager
-      );
-      if (hasCompletions) {
-        debugLog(
-          `${potentialCliName} supports completions, getting suggestions`
-        );
-
-        const cliArgs = args.slice(1);
-        const suggestions = await getCliCompletions(
-          potentialCliName,
-          packageManager,
-          cliArgs
-        );
-
-        if (suggestions.length > 0) {
-          debugLog(`Processing ${suggestions.length} suggestions`);
-
-          completion.result.suppressDefault = true;
-
-          for (const suggestion of suggestions) {
-            if (suggestion.startsWith(':')) {
-              debugLog(`Skipping directive: ${suggestion}`);
-              continue;
-            }
-
-            if (suggestion.includes('\t')) {
-              const [value, description] = suggestion.split('\t');
-              debugLog(
-                `Adding completion with description: ${value} -> ${description}`
-              );
-              completion.result.items.push({ value, description });
-            } else {
-              debugLog(`Adding completion without description: ${suggestion}`);
-              completion.result.items.push({ value: suggestion });
-            }
-          }
-        } else {
-          debugLog(`No suggestions found for ${potentialCliName}`);
-        }
-      } else {
-        debugLog(`${potentialCliName} does not support completions`);
-      }
-    }
-  });
+  completion.setPackageManager(packageManager);
 }
 
 export function setupPnpmCompletions(completion: Completion) {
   completion.addCommand('add', 'Install a package', [], async () => []);
   completion.addCommand('remove', 'Remove a package', [], async () => []);
-  completion.addCommand(
-    'install',
-    'Install all dependencies',
-    [],
-    async () => []
-  );
+  completion.addCommand('install', 'Install all dependencies', [], async () => []);
   completion.addCommand('update', 'Update packages', [], async () => []);
   completion.addCommand('exec', 'Execute a command', [], async () => []);
   completion.addCommand('run', 'Run a script', [], async () => []);
