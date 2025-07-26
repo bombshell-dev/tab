@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Demo CLI using CAC for testing tab completions with pnpm",
   "main": "demo-cli-cac.js",
+  "type": "module",
   "bin": {
     "demo-cli-cac": "./demo-cli-cac.js"
   },

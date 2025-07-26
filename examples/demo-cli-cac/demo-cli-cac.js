@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
-const cac = require('cac');
+import cac from 'cac';
+import tab from '../../dist/src/cac.js';
+
 const cli = cac('demo-cli-cac');
 
 // Define version and help
@@ -29,61 +31,40 @@ cli
     console.log('Options:', options);
   });
 
-// Manual implementation of completion for CAC
-if (process.argv[2] === '__complete') {
-  const args = process.argv.slice(3);
-  const toComplete = args[args.length - 1] || '';
-  const previousArgs = args.slice(0, -1);
+// Set up completion using the cac adapter
+const completion = await tab(cli);
 
-  // Root command completion
-  if (previousArgs.length === 0) {
-    console.log('start\tStart the application');
-    console.log('build\tBuild the application');
-    console.log('--help\tDisplay help');
-    console.log('--version\tOutput the version number');
-    console.log('-c\tSpecify config file');
-    console.log('--config\tSpecify config file');
-    console.log('-d\tEnable debugging');
-    console.log('--debug\tEnable debugging');
-    process.exit(0);
-  }
-
-  // Subcommand completion
-  if (previousArgs[0] === 'start') {
-    console.log('-p\tPort to use');
-    console.log('--port\tPort to use');
-    console.log('--help\tDisplay help');
-
-    // Port value completion if --port is the last arg
-    if (
-      previousArgs[previousArgs.length - 1] === '--port' ||
-      previousArgs[previousArgs.length - 1] === '-p'
-    ) {
-      console.log('3000\tDefault port');
-      console.log('8080\tAlternative port');
+// custom config for options
+for (const command of completion.commands.values()) {
+  for (const [optionName, config] of command.options.entries()) {
+    if (optionName === '--port') {
+      config.handler = () => {
+        return [
+          { value: '3000', description: 'Default port' },
+          { value: '8080', description: 'Alternative port' },
+        ];
+      };
     }
-    process.exit(0);
-  }
 
-  if (previousArgs[0] === 'build') {
-    console.log('-m\tBuild mode');
-    console.log('--mode\tBuild mode');
-    console.log('--help\tDisplay help');
-
-    // Mode value completion if --mode is the last arg
-    if (
-      previousArgs[previousArgs.length - 1] === '--mode' ||
-      previousArgs[previousArgs.length - 1] === '-m'
-    ) {
-      console.log('development\tDevelopment mode');
-      console.log('production\tProduction mode');
-      console.log('test\tTest mode');
+    if (optionName === '--mode') {
+      config.handler = () => {
+        return [
+          { value: 'development', description: 'Development mode' },
+          { value: 'production', description: 'Production mode' },
+          { value: 'test', description: 'Test mode' },
+        ];
+      };
     }
-    process.exit(0);
-  }
 
-  process.exit(0);
-} else {
-  // Parse CLI args
-  cli.parse();
+    if (optionName === '--config') {
+      config.handler = () => {
+        return [
+          { value: 'config.json', description: 'JSON config file' },
+          { value: 'config.js', description: 'JavaScript config file' },
+        ];
+      };
+    }
+  }
 }
+
+cli.parse();
