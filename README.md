@@ -1,4 +1,3 @@
-[![tweet-1827921103093932490](https://github.com/user-attachments/assets/21521787-7936-44be-8d3c-8214cd2fcee9)](https://x.com/karpathy/status/1827921103093932490)
 
 # tab
 
