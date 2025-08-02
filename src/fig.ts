@@ -114,6 +114,7 @@ async function processCommand<T extends ArgsDef>(
   return spec;
 }
 
+// TODO: this should be an extension of t.setup function and not something like this. 
 export async function generateFigSpec<T extends ArgsDef>(
   command: CommandDef<T>
 ): Promise<string> {

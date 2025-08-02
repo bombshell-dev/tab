@@ -8,7 +8,7 @@
     "tab": "./dist/bin/cli.js"
   },
   "scripts": {
-    "test": "vitest",
+    "test": "vitest run",
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

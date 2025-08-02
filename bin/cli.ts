@@ -12,6 +12,7 @@ const shells = ['zsh', 'bash', 'fish', 'powershell'];
 async function main() {
   const cli = cac('tab');
 
+  // TODO: aren't these conditions are already handled by cac?
   const args = process.argv.slice(2);
   if (args.length >= 2 && args[1] === 'complete') {
     const packageManager = args[0];
@@ -26,6 +27,7 @@ async function main() {
 
     const dashIndex = process.argv.indexOf('--');
     if (dashIndex !== -1) {
+      // TOOD: there's no Completion anymore
       const completion = new Completion();
       setupCompletionForPackageManager(packageManager, completion);
       const toComplete = process.argv.slice(dashIndex + 1);
@@ -63,7 +65,7 @@ async function main() {
       generateCompletionScript(packageManager, shell);
     });
 
-  const completion = tab(cli);
+  tab(cli);
 
   cli.parse();
 }

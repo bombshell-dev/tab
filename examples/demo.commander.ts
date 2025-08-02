@@ -107,14 +107,5 @@ for (const command of completion.commands.values()) {
   }
 }
 
-// Test completion directly if the first argument is "test-completion"
-if (process.argv[2] === 'test-completion') {
-  const args = process.argv.slice(3);
-  console.log('Testing completion with args:', args);
-  completion.parse(args).then(() => {
-    // Done
-  });
-} else {
-  // Parse command line arguments
-  program.parse();
-}
+// Parse command line arguments
+program.parse();

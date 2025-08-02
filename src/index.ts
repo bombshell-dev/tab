@@ -3,6 +3,7 @@ import * as bash from './bash';
 import * as fish from './fish';
 import * as powershell from './powershell';
 import { execSync } from 'child_process';
+import { Completion as CompletionItem } from './t';
 
 const DEBUG = false;
 
@@ -118,13 +119,10 @@ export type Positional = {
   completion: Handler;
 };
 
-type Item = {
-  description?: string;
-  value: string;
-};
+
 
 type CompletionResult = {
-  items: Item[];
+  items: CompletionItem[];
   suppressDefault: boolean;
 };
 
@@ -132,7 +130,7 @@ export type Handler = (
   previousArgs: string[],
   toComplete: string,
   endsWithSpace: boolean
-) => Item[] | Promise<Item[]>;
+) => CompletionItem[] | Promise<CompletionItem[]>;
 
 type Option = {
   description: string;
@@ -151,7 +149,7 @@ type Command = {
 
 export class Completion {
   commands = new Map<string, Command>();
-  completions: Item[] = [];
+  completions: CompletionItem[] = [];
   directive = ShellCompDirective.ShellCompDirectiveDefault;
   result: CompletionResult = { items: [], suppressDefault: false };
   private packageManager: string | null = null;

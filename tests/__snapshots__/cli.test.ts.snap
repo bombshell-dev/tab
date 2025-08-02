@@ -1,5 +1,44 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`cli completion tests for cac > --config option tests > should complete --config option values 1`] = `
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
+:4
+"
+`;
+
+exports[`cli completion tests for cac > --config option tests > should complete --config option with equals sign 1`] = `
+"--config=vite.config.ts	Vite config file
+--config=vite.config.js	Vite config file
+:4
+"
+`;
+
+exports[`cli completion tests for cac > --config option tests > should complete --config option with partial input 1`] = `
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
+:4
+"
+`;
+
+exports[`cli completion tests for cac > --config option tests > should complete short flag -c option values 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for cac > --config option tests > should complete short flag -c option with partial input 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for cac > --config option tests > should not suggest --config after it has been used 1`] = `
+"--config	Use specified config file
+--mode	Set env mode
+--logLevel	info | warn | error | silent
+:4
+"
+`;
+
 exports[`cli completion tests for cac > cli option completion tests > should complete option for partial input '{ partial: '--p', expected: '--port' }' 1`] = `
 "--port	Specify port
 :4
@@ -44,6 +83,35 @@ exports[`cli completion tests for cac > cli option value handling > should resol
 "
 `;
 
+exports[`cli completion tests for cac > copy command argument handlers > should complete destination argument with build suggestions 1`] = `
+"build/	Build output
+release/	Release directory
+backup/	Backup location
+:4
+"
+`;
+
+exports[`cli completion tests for cac > copy command argument handlers > should complete source argument with directory suggestions 1`] = `
+"src/	Source directory
+dist/	Distribution directory
+public/	Public assets
+:4
+"
+`;
+
+exports[`cli completion tests for cac > copy command argument handlers > should filter destination suggestions when typing partial input 1`] = `
+"build/	Build output
+backup/	Backup location
+:4
+"
+`;
+
+exports[`cli completion tests for cac > copy command argument handlers > should filter source suggestions when typing partial input 1`] = `
+"src/	Source directory
+:4
+"
+`;
+
 exports[`cli completion tests for cac > edge case completions for end with space > should keep suggesting the --port option if user typed partial but didn't end with space 1`] = `
 "--port	Specify port
 :4
@@ -60,6 +128,32 @@ exports[`cli completion tests for cac > edge case completions for end with space
 exports[`cli completion tests for cac > edge case completions for end with space > should suggest port values if user typed \`--port=\` and hasn't typed a space or value yet 1`] = `
 "--port=3000	Development server port
 --port=8080	Alternative port
+:4
+"
+`;
+
+exports[`cli completion tests for cac > lint command argument handlers > should complete files argument with file suggestions 1`] = `
+"main.ts	Main file
+index.ts	Index file
+:4
+"
+`;
+
+exports[`cli completion tests for cac > lint command argument handlers > should continue completing variadic files argument after first file 1`] = `
+"main.ts	Main file
+index.ts	Index file
+:4
+"
+`;
+
+exports[`cli completion tests for cac > lint command argument handlers > should continue completing variadic suggestions after first file 1`] = `
+"index.ts	Index file
+:4
+"
+`;
+
+exports[`cli completion tests for cac > lint command argument handlers > should filter file suggestions when typing partial input 1`] = `
+"main.ts	Main file
 :4
 "
 `;
@@ -81,6 +175,82 @@ exports[`cli completion tests for cac > positional argument completions > should
 "main.ts	Main file
 index.ts	Index file
 :4
+"
+`;
+
+exports[`cli completion tests for cac > root command argument tests > should complete root command project argument 1`] = `
+"dev	Start dev server
+serve	Start the server
+copy	Copy files
+lint	Lint project
+:4
+"
+`;
+
+exports[`cli completion tests for cac > root command argument tests > should complete root command project argument after options 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for cac > root command argument tests > should complete root command project argument with options and partial input 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for cac > root command argument tests > should complete root command project argument with partial input 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for cac > root command option tests > should complete root command --logLevel option values 1`] = `
+"info	Info level
+warn	Warn level
+error	Error level
+silent	Silent level
+:4
+"
+`;
+
+exports[`cli completion tests for cac > root command option tests > should complete root command --logLevel option with partial input 1`] = `
+"info	Info level
+:4
+"
+`;
+
+exports[`cli completion tests for cac > root command option tests > should complete root command --mode option values 1`] = `
+"development	Development mode
+production	Production mode
+:4
+"
+`;
+
+exports[`cli completion tests for cac > root command option tests > should complete root command --mode option with partial input 1`] = `
+"development	Development mode
+:4
+"
+`;
+
+exports[`cli completion tests for cac > root command option tests > should complete root command options after project argument 1`] = `
+"--config	Use specified config file
+--mode	Set env mode
+--logLevel	info | warn | error | silent
+:4
+"
+`;
+
+exports[`cli completion tests for cac > root command option tests > should complete root command options with partial input after project argument 1`] = `
+"--mode	Set env mode
+:4
+"
+`;
+
+exports[`cli completion tests for cac > root command option tests > should complete root command short flag -l option values 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for cac > root command option tests > should complete root command short flag -m option values 1`] = `
+":4
 "
 `;
 
@@ -110,7 +280,48 @@ exports[`cli completion tests for cac > short flag handling > should not show du
 exports[`cli completion tests for cac > should complete cli options 1`] = `
 "dev	Start dev server
 serve	Start the server
+copy	Copy files
 lint	Lint project
+:4
+"
+`;
+
+exports[`cli completion tests for citty > --config option tests > should complete --config option values 1`] = `
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
+:4
+"
+`;
+
+exports[`cli completion tests for citty > --config option tests > should complete --config option with equals sign 1`] = `
+"--config=vite.config.ts	Vite config file
+--config=vite.config.js	Vite config file
+:4
+"
+`;
+
+exports[`cli completion tests for citty > --config option tests > should complete --config option with partial input 1`] = `
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
+:4
+"
+`;
+
+exports[`cli completion tests for citty > --config option tests > should complete short flag -c option values 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for citty > --config option tests > should complete short flag -c option with partial input 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for citty > --config option tests > should not suggest --config after it has been used 1`] = `
+"--project	Project name
+--config	Use specified config file
+--mode	Set env mode
+--logLevel	info | warn | error | silent
 :4
 "
 `;
@@ -141,7 +352,8 @@ exports[`cli completion tests for citty > cli option exclusion tests > should no
 exports[`cli completion tests for citty > cli option value handling > should handle unknown options with no completions 1`] = `":4"`;
 
 exports[`cli completion tests for citty > cli option value handling > should not show duplicate options 1`] = `
-"--config	Use specified config file
+"--project	Project name
+--config	Use specified config file
 --mode	Set env mode
 --logLevel	info | warn | error | silent
 :4
@@ -157,6 +369,35 @@ vite.config.js	Vite config file
 
 exports[`cli completion tests for citty > cli option value handling > should resolve port value correctly 1`] = `
 "--port=3000	Development server port
+:4
+"
+`;
+
+exports[`cli completion tests for citty > copy command argument handlers > should complete destination argument with build suggestions 1`] = `
+"build/	Build output
+release/	Release directory
+backup/	Backup location
+:4
+"
+`;
+
+exports[`cli completion tests for citty > copy command argument handlers > should complete source argument with directory suggestions 1`] = `
+"src/	Source directory
+dist/	Distribution directory
+public/	Public assets
+:4
+"
+`;
+
+exports[`cli completion tests for citty > copy command argument handlers > should filter destination suggestions when typing partial input 1`] = `
+"build/	Build output
+backup/	Backup location
+:4
+"
+`;
+
+exports[`cli completion tests for citty > copy command argument handlers > should filter source suggestions when typing partial input 1`] = `
+"src/	Source directory
 :4
 "
 `;
@@ -181,6 +422,135 @@ exports[`cli completion tests for citty > edge case completions for end with spa
 "
 `;
 
+exports[`cli completion tests for citty > lint command argument handlers > should complete files argument with file suggestions 1`] = `
+"main.ts	Main file
+index.ts	Index file
+:4
+"
+`;
+
+exports[`cli completion tests for citty > lint command argument handlers > should continue completing variadic files argument after first file 1`] = `
+"main.ts	Main file
+index.ts	Index file
+:4
+"
+`;
+
+exports[`cli completion tests for citty > lint command argument handlers > should continue completing variadic suggestions after first file 1`] = `
+"index.ts	Index file
+:4
+"
+`;
+
+exports[`cli completion tests for citty > lint command argument handlers > should filter file suggestions when typing partial input 1`] = `
+"main.ts	Main file
+:4
+"
+`;
+
+exports[`cli completion tests for citty > positional argument completions > should complete multiple positional arguments when ending with part of the value 1`] = `
+"index.ts	Index file
+:4
+"
+`;
+
+exports[`cli completion tests for citty > positional argument completions > should complete multiple positional arguments when ending with space 1`] = `
+"main.ts	Main file
+index.ts	Index file
+:4
+"
+`;
+
+exports[`cli completion tests for citty > positional argument completions > should complete single positional argument when ending with space 1`] = `
+"main.ts	Main file
+index.ts	Index file
+:4
+"
+`;
+
+exports[`cli completion tests for citty > root command argument tests > should complete root command project argument 1`] = `
+"dev	Start dev server
+build	Build project
+copy	Copy files
+lint	Lint project
+my-app	My application
+my-lib	My library
+my-tool	My tool
+:4
+"
+`;
+
+exports[`cli completion tests for citty > root command argument tests > should complete root command project argument after options 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for citty > root command argument tests > should complete root command project argument with options and partial input 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for citty > root command argument tests > should complete root command project argument with partial input 1`] = `
+"my-app	My application
+my-lib	My library
+my-tool	My tool
+:4
+"
+`;
+
+exports[`cli completion tests for citty > root command option tests > should complete root command --logLevel option values 1`] = `
+"info	Info level
+warn	Warn level
+error	Error level
+silent	Silent level
+:4
+"
+`;
+
+exports[`cli completion tests for citty > root command option tests > should complete root command --logLevel option with partial input 1`] = `
+"info	Info level
+:4
+"
+`;
+
+exports[`cli completion tests for citty > root command option tests > should complete root command --mode option values 1`] = `
+"development	Development mode
+production	Production mode
+:4
+"
+`;
+
+exports[`cli completion tests for citty > root command option tests > should complete root command --mode option with partial input 1`] = `
+"development	Development mode
+:4
+"
+`;
+
+exports[`cli completion tests for citty > root command option tests > should complete root command options after project argument 1`] = `
+"--project	Project name
+--config	Use specified config file
+--mode	Set env mode
+--logLevel	info | warn | error | silent
+:4
+"
+`;
+
+exports[`cli completion tests for citty > root command option tests > should complete root command options with partial input after project argument 1`] = `
+"--mode	Set env mode
+:4
+"
+`;
+
+exports[`cli completion tests for citty > root command option tests > should complete root command short flag -l option values 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for citty > root command option tests > should complete root command short flag -m option values 1`] = `
+":4
+"
+`;
+
 exports[`cli completion tests for citty > short flag handling > should handle global short flags 1`] = `
 ":4
 "
@@ -193,12 +563,14 @@ exports[`cli completion tests for citty > short flag handling > should handle sh
 `;
 
 exports[`cli completion tests for citty > short flag handling > should handle short flag with equals sign 1`] = `
-":4
+"-p=3000	Development server port
+:4
 "
 `;
 
 exports[`cli completion tests for citty > short flag handling > should not show duplicate options when short flag is used 1`] = `
-"--config	Use specified config file
+"--project	Project name
+--config	Use specified config file
 --mode	Set env mode
 --logLevel	info | warn | error | silent
 :4
@@ -208,7 +580,11 @@ exports[`cli completion tests for citty > short flag handling > should not show 
 exports[`cli completion tests for citty > should complete cli options 1`] = `
 "dev	Start dev server
 build	Build project
+copy	Copy files
 lint	Lint project
+my-app	My application
+my-lib	My library
+my-tool	My tool
 :4
 "
 `;
@@ -226,6 +602,324 @@ exports[`cli completion tests for commander > should complete cli options 1`] = 
 build	Build the project
 deploy	Deploy the application
 lint	Lint source files
+:4
+"
+`;
+
+exports[`cli completion tests for t > --config option tests > should complete --config option values 1`] = `
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
+:4
+"
+`;
+
+exports[`cli completion tests for t > --config option tests > should complete --config option with equals sign 1`] = `
+"--config=vite.config.ts	Vite config file
+--config=vite.config.js	Vite config file
+:4
+"
+`;
+
+exports[`cli completion tests for t > --config option tests > should complete --config option with partial input 1`] = `
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
+:4
+"
+`;
+
+exports[`cli completion tests for t > --config option tests > should complete short flag -c option values 1`] = `
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
+:4
+"
+`;
+
+exports[`cli completion tests for t > --config option tests > should complete short flag -c option with partial input 1`] = `
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
+:4
+"
+`;
+
+exports[`cli completion tests for t > --config option tests > should not suggest --config after it has been used 1`] = `
+"--config	Use specified config file
+--mode	Set env mode
+--logLevel	info | warn | error | silent
+:4
+"
+`;
+
+exports[`cli completion tests for t > cli option completion tests > should complete option for partial input '{ partial: '--p', expected: '--port' }' 1`] = `
+"--port	Specify port
+:4
+"
+`;
+
+exports[`cli completion tests for t > cli option completion tests > should complete option for partial input '{ partial: '-H', expected: '-H' }' 1`] = `
+"-H	Specify hostname
+:4
+"
+`;
+
+exports[`cli completion tests for t > cli option completion tests > should complete option for partial input '{ partial: '-p', expected: '-p' }' 1`] = `
+"-p	Specify port
+:4
+"
+`;
+
+exports[`cli completion tests for t > cli option exclusion tests > should not suggest already specified option '{ specified: '--config', shouldNotContain: '--config' }' 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for t > cli option value handling > should handle unknown options with no completions 1`] = `":4"`;
+
+exports[`cli completion tests for t > cli option value handling > should not show duplicate options 1`] = `
+"--config	Use specified config file
+--mode	Set env mode
+--logLevel	info | warn | error | silent
+:4
+"
+`;
+
+exports[`cli completion tests for t > cli option value handling > should resolve config option values correctly 1`] = `
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
+:4
+"
+`;
+
+exports[`cli completion tests for t > cli option value handling > should resolve port value correctly 1`] = `
+"--port=3000	Development server port
+:4
+"
+`;
+
+exports[`cli completion tests for t > copy command argument handlers > should complete destination argument with build suggestions 1`] = `
+"build/	Build output
+release/	Release directory
+backup/	Backup location
+:4
+"
+`;
+
+exports[`cli completion tests for t > copy command argument handlers > should complete source argument with directory suggestions 1`] = `
+"src/	Source directory
+dist/	Distribution directory
+public/	Public assets
+:4
+"
+`;
+
+exports[`cli completion tests for t > copy command argument handlers > should filter destination suggestions when typing partial input 1`] = `
+"build/	Build output
+backup/	Backup location
+:4
+"
+`;
+
+exports[`cli completion tests for t > copy command argument handlers > should filter source suggestions when typing partial input 1`] = `
+"src/	Source directory
+:4
+"
+`;
+
+exports[`cli completion tests for t > edge case completions for end with space > should keep suggesting the --port option if user typed partial but didn't end with space 1`] = `
+"--port	Specify port
+:4
+"
+`;
+
+exports[`cli completion tests for t > edge case completions for end with space > should suggest port values if user ends with space after \`--port\` 1`] = `
+"3000	Development server port
+8080	Alternative port
+:4
+"
+`;
+
+exports[`cli completion tests for t > edge case completions for end with space > should suggest port values if user typed \`--port=\` and hasn't typed a space or value yet 1`] = `
+"--port=3000	Development server port
+--port=8080	Alternative port
+:4
+"
+`;
+
+exports[`cli completion tests for t > lint command argument handlers > should complete files argument with file suggestions 1`] = `
+"main.ts	Main file
+index.ts	Index file
+src/	Source directory
+tests/	Tests directory
+:4
+"
+`;
+
+exports[`cli completion tests for t > lint command argument handlers > should continue completing variadic files argument after first file 1`] = `
+"main.ts	Main file
+index.ts	Index file
+src/	Source directory
+tests/	Tests directory
+:4
+"
+`;
+
+exports[`cli completion tests for t > lint command argument handlers > should continue completing variadic suggestions after first file 1`] = `
+"index.ts	Index file
+:4
+"
+`;
+
+exports[`cli completion tests for t > lint command argument handlers > should filter file suggestions when typing partial input 1`] = `
+"main.ts	Main file
+:4
+"
+`;
+
+exports[`cli completion tests for t > positional argument completions > should complete multiple positional arguments when ending with part of the value 1`] = `
+"index.ts	Index file
+:4
+"
+`;
+
+exports[`cli completion tests for t > positional argument completions > should complete multiple positional arguments when ending with space 1`] = `
+"main.ts	Main file
+index.ts	Index file
+src/	Source directory
+tests/	Tests directory
+:4
+"
+`;
+
+exports[`cli completion tests for t > positional argument completions > should complete single positional argument when ending with space 1`] = `
+"main.ts	Main file
+index.ts	Index file
+src/	Source directory
+tests/	Tests directory
+:4
+"
+`;
+
+exports[`cli completion tests for t > root command argument tests > should complete root command project argument 1`] = `
+"dev	Start dev server
+serve	Start the server
+copy	Copy files
+lint	Lint project
+my-app	My application
+my-lib	My library
+my-tool	My tool
+:4
+"
+`;
+
+exports[`cli completion tests for t > root command argument tests > should complete root command project argument after options 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for t > root command argument tests > should complete root command project argument with options and partial input 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for t > root command argument tests > should complete root command project argument with partial input 1`] = `
+"my-app	My application
+my-lib	My library
+my-tool	My tool
+:4
+"
+`;
+
+exports[`cli completion tests for t > root command option tests > should complete root command --logLevel option values 1`] = `
+"info	Info level
+warn	Warn level
+error	Error level
+silent	Silent level
+:4
+"
+`;
+
+exports[`cli completion tests for t > root command option tests > should complete root command --logLevel option with partial input 1`] = `
+"info	Info level
+:4
+"
+`;
+
+exports[`cli completion tests for t > root command option tests > should complete root command --mode option values 1`] = `
+"development	Development mode
+production	Production mode
+:4
+"
+`;
+
+exports[`cli completion tests for t > root command option tests > should complete root command --mode option with partial input 1`] = `
+"development	Development mode
+:4
+"
+`;
+
+exports[`cli completion tests for t > root command option tests > should complete root command options after project argument 1`] = `
+"--config	Use specified config file
+--mode	Set env mode
+--logLevel	info | warn | error | silent
+:4
+"
+`;
+
+exports[`cli completion tests for t > root command option tests > should complete root command options with partial input after project argument 1`] = `
+"--mode	Set env mode
+:4
+"
+`;
+
+exports[`cli completion tests for t > root command option tests > should complete root command short flag -l option values 1`] = `
+"info	Info level
+warn	Warn level
+error	Error level
+silent	Silent level
+:4
+"
+`;
+
+exports[`cli completion tests for t > root command option tests > should complete root command short flag -m option values 1`] = `
+"development	Development mode
+production	Production mode
+:4
+"
+`;
+
+exports[`cli completion tests for t > short flag handling > should handle global short flags 1`] = `
+"-c	Use specified config file
+:4
+"
+`;
+
+exports[`cli completion tests for t > short flag handling > should handle short flag value completion 1`] = `
+"-p	Specify port
+:4
+"
+`;
+
+exports[`cli completion tests for t > short flag handling > should handle short flag with equals sign 1`] = `
+"-p=3000	Development server port
+:4
+"
+`;
+
+exports[`cli completion tests for t > short flag handling > should not show duplicate options when short flag is used 1`] = `
+"--config	Use specified config file
+--mode	Set env mode
+--logLevel	info | warn | error | silent
+:4
+"
+`;
+
+exports[`cli completion tests for t > should complete cli options 1`] = `
+"dev	Start dev server
+serve	Start the server
+copy	Copy files
+lint	Lint project
+my-app	My application
+my-lib	My library
+my-tool	My tool
 :4
 "
 `;
