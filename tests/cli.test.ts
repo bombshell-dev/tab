@@ -13,20 +13,18 @@ function runCommand(command: string): Promise<string> {
   });
 }
 
-const cliTools = ['citty', 'cac', 'commander'];
+const cliTools = ['t', 'citty', 'cac', 'commander'];
 
 describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
   // For Commander, we need to skip most of the tests since it handles completion differently
   const shouldSkipTest = cliTool === 'commander';
 
   // Commander uses a different command structure for completion
+  // TODO: why commander does that? our convention is the -- part which should be always there.
   const commandPrefix =
     cliTool === 'commander'
       ? `pnpm tsx examples/demo.${cliTool}.ts complete`
       : `pnpm tsx examples/demo.${cliTool}.ts complete --`;
-
-  // Use 'dev' for citty and 'serve' for other tools
-  const commandName = cliTool === 'citty' ? 'dev' : 'serve';
 
   it.runIf(!shouldSkipTest)('should complete cli options', async () => {
     const output = await runCommand(`${commandPrefix}`);
@@ -43,7 +41,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     test.each(optionTests)(
       "should complete option for partial input '%s'",
       async ({ partial }) => {
-        const command = `${commandPrefix} ${commandName} ${partial}`;
+        const command = `${commandPrefix} dev ${partial}`;
         const output = await runCommand(command);
         expect(output).toMatchSnapshot();
       }
@@ -67,7 +65,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
 
   describe.runIf(!shouldSkipTest)('cli option value handling', () => {
     it('should resolve port value correctly', async () => {
-      const command = `${commandPrefix} ${commandName} --port=3`;
+      const command = `${commandPrefix} dev --port=3`;
       const output = await runCommand(command);
       expect(output).toMatchSnapshot();
     });
@@ -91,23 +89,137 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     });
   });
 
+  describe.runIf(!shouldSkipTest)('--config option tests', () => {
+    it('should complete --config option values', async () => {
+      const command = `${commandPrefix} --config ""`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should complete --config option with partial input', async () => {
+      const command = `${commandPrefix} --config vite.config`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should complete --config option with equals sign', async () => {
+      const command = `${commandPrefix} --config=vite.config`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should complete short flag -c option values', async () => {
+      const command = `${commandPrefix} -c ""`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should complete short flag -c option with partial input', async () => {
+      const command = `${commandPrefix} -c vite.config`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should not suggest --config after it has been used', async () => {
+      const command = `${commandPrefix} --config vite.config.ts --`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+  });
+
+  describe.runIf(!shouldSkipTest)('root command argument tests', () => {
+    it('should complete root command project argument', async () => {
+      const command = `${commandPrefix} ""`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should complete root command project argument with partial input', async () => {
+      const command = `${commandPrefix} my-`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should complete root command project argument after options', async () => {
+      const command = `${commandPrefix} --config vite.config.ts ""`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should complete root command project argument with options and partial input', async () => {
+      const command = `${commandPrefix} --mode development my-`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+  });
+
+  describe.runIf(!shouldSkipTest)('root command option tests', () => {
+    it('should complete root command --mode option values', async () => {
+      const command = `${commandPrefix} --mode ""`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should complete root command --mode option with partial input', async () => {
+      const command = `${commandPrefix} --mode dev`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should complete root command --logLevel option values', async () => {
+      const command = `${commandPrefix} --logLevel ""`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should complete root command --logLevel option with partial input', async () => {
+      const command = `${commandPrefix} --logLevel i`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should complete root command short flag -m option values', async () => {
+      const command = `${commandPrefix} -m ""`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should complete root command short flag -l option values', async () => {
+      const command = `${commandPrefix} -l ""`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should complete root command options after project argument', async () => {
+      const command = `${commandPrefix} my-app --`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should complete root command options with partial input after project argument', async () => {
+      const command = `${commandPrefix} my-app --m`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+  });
+
   describe.runIf(!shouldSkipTest)(
     'edge case completions for end with space',
     () => {
       it('should suggest port values if user ends with space after `--port`', async () => {
-        const command = `${commandPrefix} ${commandName} --port ""`;
+        const command = `${commandPrefix} dev --port ""`;
         const output = await runCommand(command);
         expect(output).toMatchSnapshot();
       });
 
       it("should keep suggesting the --port option if user typed partial but didn't end with space", async () => {
-        const command = `${commandPrefix} ${commandName} --po`;
+        const command = `${commandPrefix} dev --po`;
         const output = await runCommand(command);
         expect(output).toMatchSnapshot();
       });
 
       it("should suggest port values if user typed `--port=` and hasn't typed a space or value yet", async () => {
-        const command = `${commandPrefix} ${commandName} --port=`;
+        const command = `${commandPrefix} dev --port=`;
         const output = await runCommand(command);
         expect(output).toMatchSnapshot();
       });
@@ -116,13 +228,13 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
 
   describe.runIf(!shouldSkipTest)('short flag handling', () => {
     it('should handle short flag value completion', async () => {
-      const command = `${commandPrefix} ${commandName} -p `;
+      const command = `${commandPrefix} dev -p `;
       const output = await runCommand(command);
       expect(output).toMatchSnapshot();
     });
 
     it('should handle short flag with equals sign', async () => {
-      const command = `${commandPrefix} ${commandName} -p=3`;
+      const command = `${commandPrefix} dev -p=3`;
       const output = await runCommand(command);
       expect(output).toMatchSnapshot();
     });
@@ -140,28 +252,77 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     });
   });
 
-  describe.runIf(!shouldSkipTest && cliTool !== 'citty')(
-    'positional argument completions',
-    () => {
-      it('should complete multiple positional arguments when ending with space', async () => {
-        const command = `${commandPrefix} lint ""`;
-        const output = await runCommand(command);
-        expect(output).toMatchSnapshot();
-      });
+  describe.runIf(!shouldSkipTest)('positional argument completions', () => {
+    it('should complete multiple positional arguments when ending with space', async () => {
+      const command = `${commandPrefix} lint ""`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
 
-      it('should complete multiple positional arguments when ending with part of the value', async () => {
-        const command = `${commandPrefix} lint ind`;
-        const output = await runCommand(command);
-        expect(output).toMatchSnapshot();
-      });
+    it('should complete multiple positional arguments when ending with part of the value', async () => {
+      const command = `${commandPrefix} lint ind`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
 
-      it('should complete single positional argument when ending with space', async () => {
-        const command = `${commandPrefix} lint main.ts ""`;
-        const output = await runCommand(command);
-        expect(output).toMatchSnapshot();
-      });
-    }
-  );
+    it('should complete single positional argument when ending with space', async () => {
+      const command = `${commandPrefix} lint main.ts ""`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+  });
+
+  describe.runIf(!shouldSkipTest)('copy command argument handlers', () => {
+    it('should complete source argument with directory suggestions', async () => {
+      const command = `${commandPrefix} copy ""`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should complete destination argument with build suggestions', async () => {
+      const command = `${commandPrefix} copy src/ ""`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should filter source suggestions when typing partial input', async () => {
+      const command = `${commandPrefix} copy s`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should filter destination suggestions when typing partial input', async () => {
+      const command = `${commandPrefix} copy src/ b`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+  });
+
+  describe.runIf(!shouldSkipTest)('lint command argument handlers', () => {
+    it('should complete files argument with file suggestions', async () => {
+      const command = `${commandPrefix} lint ""`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should filter file suggestions when typing partial input', async () => {
+      const command = `${commandPrefix} lint m`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should continue completing variadic files argument after first file', async () => {
+      const command = `${commandPrefix} lint main.ts ""`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+
+    it('should continue completing variadic suggestions after first file', async () => {
+      const command = `${commandPrefix} lint main.ts i`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+  });
 });
 
 // Add specific tests for Commander

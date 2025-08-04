@@ -1,18 +1,21 @@
 {
-  "name": "tab",
+  "name": "@bombsh/tab",
   "version": "0.0.0",
-  "description": "",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "type": "module",
+  "bin": {
+    "tab": "./dist/bin/cli.js"
+  },
   "scripts": {
-    "test": "vitest",
+    "test": "vitest run",
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "build": "tsdown",
     "prepare": "pnpm build",
-    "lint": "eslint src \"./*.ts\""
+    "lint": "eslint src \"./*.ts\"",
+    "test-cli": "tsx bin/cli.ts"
   },
   "files": [
     "dist"

@@ -3,7 +3,6 @@ import * as zsh from './zsh';
 import * as bash from './bash';
 import * as fish from './fish';
 import * as powershell from './powershell';
-import { Completion } from './index';
 import type {
   ArgsDef,
   CommandDef,
@@ -11,7 +10,9 @@ import type {
   SubCommandsDef,
 } from 'citty';
 import { generateFigSpec } from './fig';
-import { CompletionConfig, noopHandler, assertDoubleDashes } from './shared';
+import { CompletionConfig, assertDoubleDashes } from './shared';
+import { OptionHandler, Command, Option, OptionsMap } from './t';
+import t from './t';
 
 function quoteIfNeeded(path: string) {
   return path.includes(' ') ? `'${path}'` : path;
@@ -31,8 +32,62 @@ function isConfigPositional<T extends ArgsDef>(config: CommandDef<T>) {
   );
 }
 
+// Convert Handler from index.ts to OptionHandler from t.ts
+function convertOptionHandler(handler: any): OptionHandler {
+  return function (
+    this: Option,
+    complete: (value: string, description: string) => void,
+    options: OptionsMap,
+    previousArgs?: string[],
+    toComplete?: string,
+    endsWithSpace?: boolean
+  ) {
+    // For short flags with equals sign and a value, don't complete (citty behavior)
+    // Check if this is a short flag option and if the toComplete looks like a value
+    if (
+      this.alias &&
+      toComplete &&
+      toComplete !== '' &&
+      !toComplete.startsWith('-')
+    ) {
+      // This might be a short flag with equals sign and a value
+      // Check if the previous args contain a short flag with equals sign
+      if (previousArgs && previousArgs.length > 0) {
+        const lastArg = previousArgs[previousArgs.length - 1];
+        if (lastArg.includes('=')) {
+          const [flag, value] = lastArg.split('=');
+          if (flag.startsWith('-') && !flag.startsWith('--') && value !== '') {
+            return; // Don't complete short flags with equals sign and value
+          }
+        }
+      }
+    }
+
+    // Call the old handler with the proper context
+    const result = handler(
+      previousArgs || [],
+      toComplete || '',
+      endsWithSpace || false
+    );
+
+    if (Array.isArray(result)) {
+      result.forEach((item: any) =>
+        complete(item.value, item.description || '')
+      );
+    } else if (result && typeof result.then === 'function') {
+      // Handle async handlers
+      result.then((items: any[]) => {
+        items.forEach((item: any) =>
+          complete(item.value, item.description || '')
+        );
+      });
+    }
+  };
+}
+
+const noopOptionHandler: OptionHandler = function () {};
+
 async function handleSubCommands(
-  completion: Completion,
   subCommands: SubCommandsDef,
   parentCmd?: string,
   completionConfig?: Record<string, CompletionConfig>
@@ -47,20 +102,34 @@ async function handleSubCommands(
       throw new Error('Invalid meta or missing description.');
     }
     const isPositional = isConfigPositional(config);
-    const name = completion.addCommand(
-      cmd,
-      meta.description,
-      isPositional ? [false] : [],
-      subCompletionConfig?.handler ?? noopHandler,
-      parentCmd
-    );
+
+    // Add command using t.ts API
+    const commandName = parentCmd ? `${parentCmd} ${cmd}` : cmd;
+    const command = t.command(cmd, meta.description);
+
+    // Set args for the command if it has positional arguments
+    if (isPositional && config.args) {
+      // Add arguments with completion handlers from subCompletionConfig args
+      for (const [argName, argConfig] of Object.entries(config.args)) {
+        const conf = argConfig as ArgDef;
+        if (conf.type === 'positional') {
+          // Check if this is a variadic argument (required: false for variadic in citty)
+          const isVariadic = conf.required === false;
+          const argHandler = subCompletionConfig?.args?.[argName];
+          if (argHandler) {
+            command.argument(argName, argHandler, isVariadic);
+          } else {
+            command.argument(argName, undefined, isVariadic);
+          }
+        }
+      }
+    }
 
     // Handle nested subcommands recursively
     if (subCommands) {
       await handleSubCommands(
-        completion,
         subCommands,
-        name,
+        commandName,
         subCompletionConfig?.subCommands
       );
     }
@@ -80,11 +149,11 @@ async function handleSubCommands(
               : conf.alias
             : undefined;
 
-        completion.addOption(
-          name,
-          `--${argName}`,
+        // Add option using t.ts API - store without -- prefix
+        command.option(
+          argName,
           conf.description ?? '',
-          subCompletionConfig?.options?.[argName]?.handler ?? noopHandler,
+          subCompletionConfig?.options?.[argName] ?? noopOptionHandler,
           shortFlag
         );
       }
@@ -95,9 +164,7 @@ async function handleSubCommands(
 export default async function tab<TArgs extends ArgsDef>(
   instance: CommandDef<TArgs>,
   completionConfig?: CompletionConfig
-) {
-  const completion = new Completion();
-
+): Promise<any> {
   const meta = await resolve(instance.meta);
 
   if (!meta) {
@@ -113,17 +180,25 @@ export default async function tab<TArgs extends ArgsDef>(
     throw new Error('Invalid or missing subCommands.');
   }
 
-  const root = '';
   const isPositional = isConfigPositional(instance);
-  completion.addCommand(
-    root,
-    meta?.description ?? '',
-    isPositional ? [false] : [],
-    completionConfig?.handler ?? noopHandler
-  );
+
+  // Set args for the root command if it has positional arguments
+  if (isPositional && instance.args) {
+    for (const [argName, argConfig] of Object.entries(instance.args)) {
+      const conf = argConfig as PositionalArgDef;
+      if (conf.type === 'positional') {
+        const isVariadic = conf.required === false;
+        const argHandler = completionConfig?.args?.[argName];
+        if (argHandler) {
+          t.argument(argName, argHandler, isVariadic);
+        } else {
+          t.argument(argName, undefined, isVariadic);
+        }
+      }
+    }
+  }
 
   await handleSubCommands(
-    completion,
     subCommands,
     undefined,
     completionConfig?.subCommands
@@ -132,11 +207,11 @@ export default async function tab<TArgs extends ArgsDef>(
   if (instance.args) {
     for (const [argName, argConfig] of Object.entries(instance.args)) {
       const conf = argConfig as PositionalArgDef;
-      completion.addOption(
-        root,
-        `--${argName}`,
+      // Add option using t.ts API - store without -- prefix
+      t.option(
+        argName,
         conf.description ?? '',
-        completionConfig?.options?.[argName]?.handler ?? noopHandler
+        completionConfig?.options?.[argName] ?? noopOptionHandler
       );
     }
   }
@@ -190,14 +265,8 @@ export default async function tab<TArgs extends ArgsDef>(
           assertDoubleDashes(name);
 
           const extra = ctx.rawArgs.slice(ctx.rawArgs.indexOf('--') + 1);
-          // const args = (await resolve(instance.args))!;
-          // const parsed = parseArgs(extra, args);
-          // TODO: this is not ideal at all
-          // const matchedCommand = parsed._.join(' ').trim(); //TODO: this was passed to parse line 170
-          // TODO: `command lint i` does not work because `lint` and `i` are potential commands
-          // instead the potential command should only be `lint`
-          // and `i` is the to be completed part
-          return completion.parse(extra);
+          // Use t.ts parse method instead of completion.parse
+          return t.parse(extra);
         }
       }
     },
@@ -205,7 +274,7 @@ export default async function tab<TArgs extends ArgsDef>(
 
   subCommands.complete = completeCommand;
 
-  return completion;
+  return t;
 }
 
 type Resolvable<T> = T | Promise<T> | (() => T) | (() => Promise<T>);

@@ -3,8 +3,12 @@ import * as bash from './bash';
 import * as fish from './fish';
 import * as powershell from './powershell';
 import type { CAC } from 'cac';
-import { Completion } from './index';
-import { CompletionConfig, noopHandler, assertDoubleDashes } from './shared';
+import { assertDoubleDashes } from './shared';
+import { OptionHandler } from './t';
+import { CompletionConfig } from './shared';
+import t from './t';
+
+const noopOptionHandler: OptionHandler = function () {};
 
 const execPath = process.execPath;
 const processArgs = process.argv.slice(1);
@@ -21,9 +25,7 @@ function quoteIfNeeded(path: string): string {
 export default async function tab(
   instance: CAC,
   completionConfig?: CompletionConfig
-) {
-  const completion = new Completion();
-
+): Promise<any> {
   // Add all commands and their options
   for (const cmd of [instance.globalCommand, ...instance.commands]) {
     if (cmd.name === 'complete') continue; // Skip completion command
@@ -38,13 +40,36 @@ export default async function tab(
       ? completionConfig
       : completionConfig?.subCommands?.[cmd.name];
 
-    // Add command to completion
-    const commandName = completion.addCommand(
-      isRootCommand ? '' : cmd.name,
-      cmd.description || '',
-      args,
-      commandCompletionConfig?.handler ?? noopHandler
-    );
+    // Add command to completion using t.ts API
+    const commandName = isRootCommand ? '' : cmd.name;
+    const command = isRootCommand
+      ? t
+      : t.command(commandName, cmd.description || '');
+
+    // Set args for the command
+    if (command) {
+      // Extract argument names from command usage
+      const argMatches =
+        cmd.rawName.match(/<([^>]+)>|\[\.\.\.([^\]]+)\]/g) || [];
+      const argNames = argMatches.map((match) => {
+        if (match.startsWith('<') && match.endsWith('>')) {
+          return match.slice(1, -1); // Remove < >
+        } else if (match.startsWith('[...') && match.endsWith(']')) {
+          return match.slice(4, -1); // Remove [... ]
+        }
+        return match;
+      });
+
+      args.forEach((variadic, index) => {
+        const argName = argNames[index] || `arg${index}`;
+        const argHandler = commandCompletionConfig?.args?.[argName];
+        if (argHandler) {
+          command.argument(argName, argHandler, variadic);
+        } else {
+          command.argument(argName, undefined, variadic);
+        }
+      });
+    }
 
     // Add command options
     for (const option of [...instance.globalCommand.options, ...cmd.options]) {
@@ -52,13 +77,16 @@ export default async function tab(
       const shortFlag = option.name.match(/^-([a-zA-Z]), --/)?.[1];
       const argName = option.name.replace(/^-[a-zA-Z], --/, '');
 
-      completion.addOption(
-        commandName,
-        `--${argName}`, // Remove the short flag part if it exists
-        option.description || '',
-        commandCompletionConfig?.options?.[argName]?.handler ?? noopHandler,
-        shortFlag
-      );
+      // Add option using t.ts API
+      const targetCommand = isRootCommand ? t : command;
+      if (targetCommand) {
+        targetCommand.option(
+          argName, // Store just the option name without -- prefix
+          option.description || '',
+          commandCompletionConfig?.options?.[argName] ?? noopOptionHandler,
+          shortFlag
+        );
+      }
     }
   }
 
@@ -96,13 +124,11 @@ export default async function tab(
           run: false,
         });
 
-        // const matchedCommand = instance.matchedCommand?.name || '';
-        // const potentialCommand = args.join(' ')
-        // console.log(potentialCommand)
-        return completion.parse(args);
+        // Use t.ts parse method instead of completion.parse
+        return t.parse(args);
       }
     }
   });
 
-  return completion;
+  return t;
 }

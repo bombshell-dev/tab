@@ -1,5 +1,6 @@
 import cac from 'cac';
 import tab from '../src/cac';
+import type { Command, Option, OptionsMap } from '../src/t';
 
 const cli = cac('vite');
 
@@ -22,64 +23,87 @@ cli
 
 cli.command('dev build', 'Build project').action((options) => {});
 
+cli
+  .command('copy <source> <destination>', 'Copy files')
+  .action((source, destination, options) => {});
+
 cli.command('lint [...files]', 'Lint project').action((files, options) => {});
 
-const completion = await tab(cli);
-
-for (const command of completion.commands.values()) {
-  if (command.name === 'lint') {
-    command.handler = () => {
-      return [
-        { value: 'main.ts', description: 'Main file' },
-        { value: 'index.ts', description: 'Index file' },
-      ];
-    };
-  }
-
-  for (const [o, config] of command.options.entries()) {
-    if (o === '--port') {
-      config.handler = () => {
-        return [
-          { value: '3000', description: 'Development server port' },
-          { value: '8080', description: 'Alternative port' },
-        ];
-      };
-    }
-    if (o === '--host') {
-      config.handler = () => {
-        return [
-          { value: 'localhost', description: 'Localhost' },
-          { value: '0.0.0.0', description: 'All interfaces' },
-        ];
-      };
-    }
-    if (o === '--config') {
-      config.handler = () => {
-        return [
-          { value: 'vite.config.ts', description: 'Vite config file' },
-          { value: 'vite.config.js', description: 'Vite config file' },
-        ];
-      };
-    }
-    if (o === '--mode') {
-      config.handler = () => {
-        return [
-          { value: 'development', description: 'Development mode' },
-          { value: 'production', description: 'Production mode' },
-        ];
-      };
-    }
-    if (o === '--logLevel') {
-      config.handler = () => {
-        return [
-          { value: 'info', description: 'Info level' },
-          { value: 'warn', description: 'Warn level' },
-          { value: 'error', description: 'Error level' },
-          { value: 'silent', description: 'Silent level' },
-        ];
-      };
-    }
-  }
-}
+// Note: With the new t.ts API, handlers are configured through the completionConfig parameter
+// rather than by modifying the returned completion object directly
+await tab(cli, {
+  subCommands: {
+    copy: {
+      args: {
+        source: function (complete) {
+          complete('src/', 'Source directory');
+          complete('dist/', 'Distribution directory');
+          complete('public/', 'Public assets');
+        },
+        destination: function (complete) {
+          complete('build/', 'Build output');
+          complete('release/', 'Release directory');
+          complete('backup/', 'Backup location');
+        },
+      },
+    },
+    lint: {
+      args: {
+        files: function (complete) {
+          complete('main.ts', 'Main file');
+          complete('index.ts', 'Index file');
+        },
+      },
+    },
+    dev: {
+      options: {
+        port: function (
+          this: Option,
+          complete: (value: string, description: string) => void,
+          options: OptionsMap
+        ) {
+          complete('3000', 'Development server port');
+          complete('8080', 'Alternative port');
+        },
+        host: function (
+          this: Option,
+          complete: (value: string, description: string) => void,
+          options: OptionsMap
+        ) {
+          complete('localhost', 'Localhost');
+          complete('0.0.0.0', 'All interfaces');
+        },
+      },
+    },
+  },
+  options: {
+    config: function (
+      this: Option,
+      complete: (value: string, description: string) => void,
+      options: OptionsMap
+    ) {
+      complete('vite.config.ts', 'Vite config file');
+      complete('vite.config.js', 'Vite config file');
+    },
+    mode: function (
+      this: Option,
+      complete: (value: string, description: string) => void,
+      options: OptionsMap
+    ) {
+      complete('development', 'Development mode');
+      complete('production', 'Production mode');
+    },
+    logLevel: function (
+      this: Option,
+      complete: (value: string, description: string) => void,
+      options: OptionsMap
+    ) {
+      complete('info', 'Info level');
+      complete('warn', 'Warn level');
+      complete('error', 'Error level');
+      complete('silent', 'Silent level');
+    },
+  },
+});
 
 cli.parse();

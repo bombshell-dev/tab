@@ -1,20 +1,15 @@
-import { Handler } from './index';
+import { OptionHandler, ArgumentHandler } from './t';
 
-export const noopHandler: Handler = () => {
-  return [];
+export const noopHandler: OptionHandler = function () {
+  // No-op handler for options
 };
 
 // TODO (43081j): use type inference some day, so we can type-check
 // that the sub commands exist, the options exist, etc.
 export interface CompletionConfig {
-  handler?: Handler;
   subCommands?: Record<string, CompletionConfig>;
-  options?: Record<
-    string,
-    {
-      handler: Handler;
-    }
-  >;
+  options?: Record<string, OptionHandler>;
+  args?: Record<string, ArgumentHandler>;
 }
 
 export function assertDoubleDashes(programName: string = 'cli'): void {
