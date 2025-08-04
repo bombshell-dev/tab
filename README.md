@@ -1,4 +1,3 @@
-
 # tab
 
 Shell autocompletions are largely missing in the javascript cli ecosystem. This tool is an attempt to make autocompletions come out of the box for any cli tool.

@@ -119,8 +119,6 @@ export type Positional = {
   completion: Handler;
 };
 
-
-
 type CompletionResult = {
   items: CompletionItem[];
   suppressDefault: boolean;
@@ -239,7 +237,7 @@ export class Completion {
   async parse(args: string[]) {
     this.result = { items: [], suppressDefault: false };
 
-    // TODO: i did not notice this, this should not be handled here at all. package manager completions are something on top of this. just like any other completion system that is going to be built on top of tab. 
+    // TODO: i did not notice this, this should not be handled here at all. package manager completions are something on top of this. just like any other completion system that is going to be built on top of tab.
     // Handle package manager completions first
     if (this.packageManager && args.length >= 1) {
       const potentialCliName = args[0];

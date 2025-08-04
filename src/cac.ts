@@ -8,9 +8,7 @@ import { OptionHandler } from './t';
 import { CompletionConfig } from './shared';
 import t from './t';
 
-
-
-const noopOptionHandler: OptionHandler = function() {};
+const noopOptionHandler: OptionHandler = function () {};
 
 const execPath = process.execPath;
 const processArgs = process.argv.slice(1);
@@ -23,8 +21,6 @@ const x = `${quotedExecPath} ${quotedProcessExecArgs.join(' ')} ${quotedProcessA
 function quoteIfNeeded(path: string): string {
   return path.includes(' ') ? `'${path}'` : path;
 }
-
-
 
 export default async function tab(
   instance: CAC,
@@ -46,15 +42,16 @@ export default async function tab(
 
     // Add command to completion using t.ts API
     const commandName = isRootCommand ? '' : cmd.name;
-    const command = isRootCommand 
-      ? t 
+    const command = isRootCommand
+      ? t
       : t.command(commandName, cmd.description || '');
 
     // Set args for the command
     if (command) {
       // Extract argument names from command usage
-      const argMatches = cmd.rawName.match(/<([^>]+)>|\[\.\.\.([^\]]+)\]/g) || [];
-      const argNames = argMatches.map(match => {
+      const argMatches =
+        cmd.rawName.match(/<([^>]+)>|\[\.\.\.([^\]]+)\]/g) || [];
+      const argNames = argMatches.map((match) => {
         if (match.startsWith('<') && match.endsWith('>')) {
           return match.slice(1, -1); // Remove < >
         } else if (match.startsWith('[...') && match.endsWith(']')) {

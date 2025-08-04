@@ -9,8 +9,6 @@ cli
   .option('-m, --mode <mode>', `Set env mode`)
   .option('-l, --logLevel <level>', `info | warn | error | silent`);
 
-
-
 cli
   .command('dev', 'Start dev server')
   .option('-H, --host [host]', `Specify hostname`)
@@ -25,7 +23,9 @@ cli
 
 cli.command('dev build', 'Build project').action((options) => {});
 
-cli.command('copy <source> <destination>', 'Copy files').action((source, destination, options) => {});
+cli
+  .command('copy <source> <destination>', 'Copy files')
+  .action((source, destination, options) => {});
 
 cli.command('lint [...files]', 'Lint project').action((files, options) => {});
 
@@ -35,12 +35,12 @@ await tab(cli, {
   subCommands: {
     copy: {
       args: {
-        source: function(complete) {
+        source: function (complete) {
           complete('src/', 'Source directory');
           complete('dist/', 'Distribution directory');
           complete('public/', 'Public assets');
         },
-        destination: function(complete) {
+        destination: function (complete) {
           complete('build/', 'Build output');
           complete('release/', 'Release directory');
           complete('backup/', 'Backup location');
@@ -49,7 +49,7 @@ await tab(cli, {
     },
     lint: {
       args: {
-        files: function(complete) {
+        files: function (complete) {
           complete('main.ts', 'Main file');
           complete('index.ts', 'Index file');
         },
@@ -57,11 +57,19 @@ await tab(cli, {
     },
     dev: {
       options: {
-        port: function(this: Option, complete: (value: string, description: string) => void, options: OptionsMap) {
+        port: function (
+          this: Option,
+          complete: (value: string, description: string) => void,
+          options: OptionsMap
+        ) {
           complete('3000', 'Development server port');
           complete('8080', 'Alternative port');
         },
-        host: function(this: Option, complete: (value: string, description: string) => void, options: OptionsMap) {
+        host: function (
+          this: Option,
+          complete: (value: string, description: string) => void,
+          options: OptionsMap
+        ) {
           complete('localhost', 'Localhost');
           complete('0.0.0.0', 'All interfaces');
         },
@@ -69,15 +77,27 @@ await tab(cli, {
     },
   },
   options: {
-    config: function(this: Option, complete: (value: string, description: string) => void, options: OptionsMap) {
+    config: function (
+      this: Option,
+      complete: (value: string, description: string) => void,
+      options: OptionsMap
+    ) {
       complete('vite.config.ts', 'Vite config file');
       complete('vite.config.js', 'Vite config file');
     },
-    mode: function(this: Option, complete: (value: string, description: string) => void, options: OptionsMap) {
+    mode: function (
+      this: Option,
+      complete: (value: string, description: string) => void,
+      options: OptionsMap
+    ) {
       complete('development', 'Development mode');
       complete('production', 'Production mode');
     },
-    logLevel: function(this: Option, complete: (value: string, description: string) => void, options: OptionsMap) {
+    logLevel: function (
+      this: Option,
+      complete: (value: string, description: string) => void,
+      options: OptionsMap
+    ) {
       complete('info', 'Info level');
       complete('warn', 'Warn level');
       complete('error', 'Error level');

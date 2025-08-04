@@ -32,14 +32,24 @@ function isConfigPositional<T extends ArgsDef>(config: CommandDef<T>) {
   );
 }
 
-
-
 // Convert Handler from index.ts to OptionHandler from t.ts
 function convertOptionHandler(handler: any): OptionHandler {
-  return function(this: Option, complete: (value: string, description: string) => void, options: OptionsMap, previousArgs?: string[], toComplete?: string, endsWithSpace?: boolean) {
+  return function (
+    this: Option,
+    complete: (value: string, description: string) => void,
+    options: OptionsMap,
+    previousArgs?: string[],
+    toComplete?: string,
+    endsWithSpace?: boolean
+  ) {
     // For short flags with equals sign and a value, don't complete (citty behavior)
     // Check if this is a short flag option and if the toComplete looks like a value
-    if (this.alias && toComplete && toComplete !== '' && !toComplete.startsWith('-')) {
+    if (
+      this.alias &&
+      toComplete &&
+      toComplete !== '' &&
+      !toComplete.startsWith('-')
+    ) {
       // This might be a short flag with equals sign and a value
       // Check if the previous args contain a short flag with equals sign
       if (previousArgs && previousArgs.length > 0) {
@@ -52,24 +62,30 @@ function convertOptionHandler(handler: any): OptionHandler {
         }
       }
     }
-    
+
     // Call the old handler with the proper context
-    const result = handler(previousArgs || [], toComplete || '', endsWithSpace || false);
-    
+    const result = handler(
+      previousArgs || [],
+      toComplete || '',
+      endsWithSpace || false
+    );
+
     if (Array.isArray(result)) {
-      result.forEach((item: any) => complete(item.value, item.description || ''));
+      result.forEach((item: any) =>
+        complete(item.value, item.description || '')
+      );
     } else if (result && typeof result.then === 'function') {
       // Handle async handlers
       result.then((items: any[]) => {
-        items.forEach((item: any) => complete(item.value, item.description || ''));
+        items.forEach((item: any) =>
+          complete(item.value, item.description || '')
+        );
       });
     }
   };
 }
 
-
-
-const noopOptionHandler: OptionHandler = function() {};
+const noopOptionHandler: OptionHandler = function () {};
 
 async function handleSubCommands(
   subCommands: SubCommandsDef,
@@ -86,7 +102,7 @@ async function handleSubCommands(
       throw new Error('Invalid meta or missing description.');
     }
     const isPositional = isConfigPositional(config);
-    
+
     // Add command using t.ts API
     const commandName = parentCmd ? `${parentCmd} ${cmd}` : cmd;
     const command = t.command(cmd, meta.description);
@@ -165,7 +181,7 @@ export default async function tab<TArgs extends ArgsDef>(
   }
 
   const isPositional = isConfigPositional(instance);
-  
+
   // Set args for the root command if it has positional arguments
   if (isPositional && instance.args) {
     for (const [argName, argConfig] of Object.entries(instance.args)) {

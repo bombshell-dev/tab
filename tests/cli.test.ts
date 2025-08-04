@@ -20,7 +20,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
   const shouldSkipTest = cliTool === 'commander';
 
   // Commander uses a different command structure for completion
-  // TODO: why commander does that? our convention is the -- part which should be always there. 
+  // TODO: why commander does that? our convention is the -- part which should be always there.
   const commandPrefix =
     cliTool === 'commander'
       ? `pnpm tsx examples/demo.${cliTool}.ts complete`
@@ -252,86 +252,77 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     });
   });
 
-  describe.runIf(!shouldSkipTest)(
-    'positional argument completions',
-    () => {
-      it('should complete multiple positional arguments when ending with space', async () => {
-        const command = `${commandPrefix} lint ""`;
-        const output = await runCommand(command);
-        expect(output).toMatchSnapshot();
-      });
+  describe.runIf(!shouldSkipTest)('positional argument completions', () => {
+    it('should complete multiple positional arguments when ending with space', async () => {
+      const command = `${commandPrefix} lint ""`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
 
-      it('should complete multiple positional arguments when ending with part of the value', async () => {
-        const command = `${commandPrefix} lint ind`;
-        const output = await runCommand(command);
-        expect(output).toMatchSnapshot();
-      });
+    it('should complete multiple positional arguments when ending with part of the value', async () => {
+      const command = `${commandPrefix} lint ind`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
 
-      it('should complete single positional argument when ending with space', async () => {
-        const command = `${commandPrefix} lint main.ts ""`;
-        const output = await runCommand(command);
-        expect(output).toMatchSnapshot();
-      });
-    }
-  );
+    it('should complete single positional argument when ending with space', async () => {
+      const command = `${commandPrefix} lint main.ts ""`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+  });
 
-  describe.runIf(!shouldSkipTest)(
-    'copy command argument handlers',
-    () => {
-      it('should complete source argument with directory suggestions', async () => {
-        const command = `${commandPrefix} copy ""`;
-        const output = await runCommand(command);
-        expect(output).toMatchSnapshot();
-      });
+  describe.runIf(!shouldSkipTest)('copy command argument handlers', () => {
+    it('should complete source argument with directory suggestions', async () => {
+      const command = `${commandPrefix} copy ""`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
 
-      it('should complete destination argument with build suggestions', async () => {
-        const command = `${commandPrefix} copy src/ ""`;
-        const output = await runCommand(command);
-        expect(output).toMatchSnapshot();
-      });
+    it('should complete destination argument with build suggestions', async () => {
+      const command = `${commandPrefix} copy src/ ""`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
 
-      it('should filter source suggestions when typing partial input', async () => {
-        const command = `${commandPrefix} copy s`;
-        const output = await runCommand(command);
-        expect(output).toMatchSnapshot();
-      });
+    it('should filter source suggestions when typing partial input', async () => {
+      const command = `${commandPrefix} copy s`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
 
-      it('should filter destination suggestions when typing partial input', async () => {
-        const command = `${commandPrefix} copy src/ b`;
-        const output = await runCommand(command);
-        expect(output).toMatchSnapshot();
-      });
-    }
-  );
+    it('should filter destination suggestions when typing partial input', async () => {
+      const command = `${commandPrefix} copy src/ b`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+  });
 
-  describe.runIf(!shouldSkipTest)(
-    'lint command argument handlers',
-    () => {
-      it('should complete files argument with file suggestions', async () => {
-        const command = `${commandPrefix} lint ""`;
-        const output = await runCommand(command);
-        expect(output).toMatchSnapshot();
-      });
+  describe.runIf(!shouldSkipTest)('lint command argument handlers', () => {
+    it('should complete files argument with file suggestions', async () => {
+      const command = `${commandPrefix} lint ""`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
 
-      it('should filter file suggestions when typing partial input', async () => {
-        const command = `${commandPrefix} lint m`;
-        const output = await runCommand(command);
-        expect(output).toMatchSnapshot();
-      });
+    it('should filter file suggestions when typing partial input', async () => {
+      const command = `${commandPrefix} lint m`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
 
-      it('should continue completing variadic files argument after first file', async () => {
-        const command = `${commandPrefix} lint main.ts ""`;
-        const output = await runCommand(command);
-        expect(output).toMatchSnapshot();
-      });
+    it('should continue completing variadic files argument after first file', async () => {
+      const command = `${commandPrefix} lint main.ts ""`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
 
-      it('should continue completing variadic suggestions after first file', async () => {
-        const command = `${commandPrefix} lint main.ts i`;
-        const output = await runCommand(command);
-        expect(output).toMatchSnapshot();
-      });
-    }
-  );
+    it('should continue completing variadic suggestions after first file', async () => {
+      const command = `${commandPrefix} lint main.ts i`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+  });
 });
 
 // Add specific tests for Commander

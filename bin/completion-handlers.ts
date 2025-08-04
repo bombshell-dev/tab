@@ -1,4 +1,4 @@
-// TODO: i do not see any completion functionality in this file. nothing is being provided for the defined commands of these package managers. this is a blocker for release. every each of them should be handled.  
+// TODO: i do not see any completion functionality in this file. nothing is being provided for the defined commands of these package managers. this is a blocker for release. every each of them should be handled.
 import { Completion } from '../src/index.js';
 import { execSync } from 'child_process';
 
@@ -72,7 +72,7 @@ export function setupCompletionForPackageManager(
     setupBunCompletions(completion);
   }
 
-  // TODO: the core functionality of tab should have nothing related to package managers. even though completion is not there anymore, but this is something to consider. 
+  // TODO: the core functionality of tab should have nothing related to package managers. even though completion is not there anymore, but this is something to consider.
   completion.setPackageManager(packageManager);
 }
 

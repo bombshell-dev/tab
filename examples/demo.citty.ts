@@ -1,4 +1,9 @@
-import { defineCommand, createMain, type CommandDef, type ArgsDef } from 'citty';
+import {
+  defineCommand,
+  createMain,
+  type CommandDef,
+  type ArgsDef,
+} from 'citty';
 import tab from '../src/citty';
 
 const main = defineCommand({
@@ -104,22 +109,22 @@ main.subCommands = {
 
 const completion = await tab(main, {
   args: {
-    project: function(complete) {
+    project: function (complete) {
       complete('my-app', 'My application');
       complete('my-lib', 'My library');
       complete('my-tool', 'My tool');
     },
   },
   options: {
-    config: function(this: any, complete) {
+    config: function (this: any, complete) {
       complete('vite.config.ts', 'Vite config file');
       complete('vite.config.js', 'Vite config file');
     },
-    mode: function(this: any, complete) {
+    mode: function (this: any, complete) {
       complete('development', 'Development mode');
       complete('production', 'Production mode');
     },
-    logLevel: function(this: any, complete) {
+    logLevel: function (this: any, complete) {
       complete('info', 'Info level');
       complete('warn', 'Warn level');
       complete('error', 'Error level');
@@ -130,12 +135,12 @@ const completion = await tab(main, {
   subCommands: {
     copy: {
       args: {
-        source: function(complete) {
+        source: function (complete) {
           complete('src/', 'Source directory');
           complete('dist/', 'Distribution directory');
           complete('public/', 'Public assets');
         },
-        destination: function(complete) {
+        destination: function (complete) {
           complete('build/', 'Build output');
           complete('release/', 'Release directory');
           complete('backup/', 'Backup location');
@@ -144,7 +149,7 @@ const completion = await tab(main, {
     },
     lint: {
       args: {
-        files: function(complete) {
+        files: function (complete) {
           complete('main.ts', 'Main file');
           complete('index.ts', 'Index file');
         },
@@ -152,11 +157,11 @@ const completion = await tab(main, {
     },
     dev: {
       options: {
-        port: function(this: any, complete) {
+        port: function (this: any, complete) {
           complete('3000', 'Development server port');
           complete('8080', 'Alternative port');
         },
-        host: function(this: any, complete) {
+        host: function (this: any, complete) {
           complete('localhost', 'Localhost');
           complete('0.0.0.0', 'All interfaces');
         },
