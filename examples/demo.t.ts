@@ -1,4 +1,4 @@
-import t, { noopHandler } from '../src/t';
+import t from '../src/t';
 
 // Global options
 t.option(
@@ -62,7 +62,7 @@ devCmd.option(
   'p'
 );
 
-devCmd.option('verbose', 'Enable verbose logging', noopHandler, 'v', true);
+devCmd.option('verbose', 'Enable verbose logging', 'v', true);
 
 // Serve command
 const serveCmd = t.command('serve', 'Start the server');

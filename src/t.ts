@@ -20,7 +20,8 @@ export type OptionHandler = (
   options: OptionsMap
 ) => void;
 
-export const noopHandler: OptionHandler = function () {};
+// Default no-op handler for options (internal)
+const noopHandler: OptionHandler = function () { };
 
 // Completion result types
 export type Completion = {
@@ -65,7 +66,7 @@ export class Option {
     command: Command,
     value: string,
     description: string,
-    handler: OptionHandler = noopHandler,
+    handler?: OptionHandler,
     alias?: string,
     isBoolean?: boolean
   ) {
@@ -90,20 +91,64 @@ export class Command {
     this.description = description;
   }
 
+  // Function overloads for better UX
+  option(value: string, description: string): Command;
+  option(value: string, description: string, alias: string): Command;
   option(
     value: string,
     description: string,
-    handler: OptionHandler = noopHandler,
-    alias?: string,
+    alias: string,
+    isBoolean: boolean
+  ): Command;
+  option(value: string, description: string, handler: OptionHandler): Command;
+  option(
+    value: string,
+    description: string,
+    handler: OptionHandler,
+    alias: string
+  ): Command;
+  option(
+    value: string,
+    description: string,
+    handler: OptionHandler,
+    alias: string,
+    isBoolean: boolean
+  ): Command;
+  option(
+    value: string,
+    description: string,
+    handlerOrAlias?: OptionHandler | string,
+    aliasOrIsBoolean?: string | boolean,
     isBoolean?: boolean
-  ) {
+  ): Command {
+    let handler: OptionHandler = noopHandler;
+    let alias: string | undefined;
+    let isBooleanFlag: boolean | undefined;
+
+    // Parse arguments based on types
+    if (typeof handlerOrAlias === 'function') {
+      // handler provided
+      handler = handlerOrAlias;
+      alias = aliasOrIsBoolean as string;
+      isBooleanFlag = isBoolean;
+    } else if (typeof handlerOrAlias === 'string') {
+      // alias provided (no handler)
+      alias = handlerOrAlias;
+      isBooleanFlag = aliasOrIsBoolean as boolean;
+    } else if (handlerOrAlias === undefined) {
+      // neither handler nor alias provided
+      if (typeof aliasOrIsBoolean === 'boolean') {
+        isBooleanFlag = aliasOrIsBoolean;
+      }
+    }
+
     const option = new Option(
       this,
       value,
       description,
       handler,
       alias,
-      isBoolean
+      isBooleanFlag
     );
     this.options.set(value, option);
     return this;
@@ -279,9 +324,9 @@ export class RootCommand extends Command {
 
         this.completions = toComplete.includes('=')
           ? suggestions.map((s) => ({
-              value: `${optionName}=${s.value}`,
-              description: s.description,
-            }))
+            value: `${optionName}=${s.value}`,
+            description: s.description,
+          }))
           : suggestions;
       }
       return;
@@ -492,9 +537,9 @@ export class RootCommand extends Command {
   setup(name: string, executable: string, shell: string) {
     assert(
       shell === 'zsh' ||
-        shell === 'bash' ||
-        shell === 'fish' ||
-        shell === 'powershell',
+      shell === 'bash' ||
+      shell === 'fish' ||
+      shell === 'powershell',
       'Unsupported shell'
     );
 
