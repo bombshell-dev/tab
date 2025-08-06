@@ -20,6 +20,8 @@ export type OptionHandler = (
   options: OptionsMap
 ) => void;
 
+export const noopHandler: OptionHandler = function () {};
+
 // Completion result types
 export type Completion = {
   description?: string;
@@ -63,7 +65,7 @@ export class Option {
     command: Command,
     value: string,
     description: string,
-    handler?: OptionHandler,
+    handler: OptionHandler = noopHandler,
     alias?: string,
     isBoolean?: boolean
   ) {
@@ -91,7 +93,7 @@ export class Command {
   option(
     value: string,
     description: string,
-    handler?: OptionHandler,
+    handler: OptionHandler = noopHandler,
     alias?: string,
     isBoolean?: boolean
   ) {
