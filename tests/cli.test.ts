@@ -89,6 +89,29 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     });
   });
 
+  describe.runIf(!shouldSkipTest)('boolean option handling', () => {
+    it('should not provide value completions for boolean options', async () => {
+      const command = `${commandPrefix} dev --verbose ""`;
+      const output = await runCommand(command);
+      // Boolean options should return just the directive, no completions
+      expect(output.trim()).toBe(':4');
+    });
+
+    it('should not provide value completions for short boolean options', async () => {
+      const command = `${commandPrefix} dev -v ""`;
+      const output = await runCommand(command);
+      // Boolean options should return just the directive, no completions
+      expect(output.trim()).toBe(':4');
+    });
+
+    it('should not interfere with command completion after boolean options', async () => {
+      const command = `${commandPrefix} dev --verbose s`;
+      const output = await runCommand(command);
+      // Should complete subcommands that start with 's' even after a boolean option
+      expect(output).toContain('start');
+    });
+  });
+
   describe.runIf(!shouldSkipTest)('--config option tests', () => {
     it('should complete --config option values', async () => {
       const command = `${commandPrefix} --config ""`;

@@ -57,20 +57,22 @@ export class Option {
   command: Command;
   handler?: OptionHandler;
   alias?: string;
-  // TODO: handle boolean options
+  isBoolean?: boolean;
 
   constructor(
     command: Command,
     value: string,
     description: string,
     handler?: OptionHandler,
-    alias?: string
+    alias?: string,
+    isBoolean?: boolean
   ) {
     this.command = command;
     this.value = value;
     this.description = description;
     this.handler = handler;
     this.alias = alias;
+    this.isBoolean = isBoolean;
   }
 }
 
@@ -90,9 +92,17 @@ export class Command {
     value: string,
     description: string,
     handler?: OptionHandler,
-    alias?: string
+    alias?: string,
+    isBoolean?: boolean
   ) {
-    const option = new Option(this, value, description, handler, alias);
+    const option = new Option(
+      this,
+      value,
+      description,
+      handler,
+      alias,
+      isBoolean
+    );
     this.options.set(value, option);
     return this;
   }
@@ -135,7 +145,28 @@ export class RootCommand extends Command {
 
       if (arg.startsWith('-')) {
         i++; // Skip the option
-        if (i < args.length && !args[i].startsWith('-')) {
+
+        // Check if this option expects a value (not boolean)
+        // We need to check across all commands since we don't know which command context we're in yet
+        let isBoolean = false;
+
+        // Check root command options
+        const rootOption = this.findOption(this, arg);
+        if (rootOption) {
+          isBoolean = rootOption.isBoolean ?? false;
+        } else {
+          // Check all subcommand options
+          for (const [, command] of this.commands) {
+            const option = this.findOption(command, arg);
+            if (option) {
+              isBoolean = option.isBoolean ?? false;
+              break;
+            }
+          }
+        }
+
+        // Only skip the next argument if this is not a boolean option and the next arg doesn't start with -
+        if (!isBoolean && i < args.length && !args[i].startsWith('-')) {
           i++; // Skip the option value
         }
       } else {
@@ -176,7 +207,33 @@ export class RootCommand extends Command {
     toComplete: string,
     endsWithSpace: boolean
   ): boolean {
-    return lastPrevArg?.startsWith('-') || toComplete.startsWith('-');
+    // Always complete if the current token starts with a dash
+    if (toComplete.startsWith('-')) {
+      return true;
+    }
+
+    // If the previous argument was an option, check if it expects a value
+    if (lastPrevArg?.startsWith('-')) {
+      // Find the option to check if it's boolean
+      let option = this.findOption(this, lastPrevArg);
+      if (!option) {
+        // Check all subcommand options
+        for (const [, command] of this.commands) {
+          option = this.findOption(command, lastPrevArg);
+          if (option) break;
+        }
+      }
+
+      // If it's a boolean option, don't try to complete its value
+      if (option && option.isBoolean) {
+        return false;
+      }
+
+      // Non-boolean options expect values
+      return true;
+    }
+
+    return false;
   }
 
   // Determine if we should complete commands
@@ -276,7 +333,7 @@ export class RootCommand extends Command {
 
   // Handle command completion
   private handleCommandCompletion(previousArgs: string[], toComplete: string) {
-    const commandParts = previousArgs.filter(Boolean);
+    const commandParts = this.stripOptions(previousArgs);
 
     for (const [k, command] of this.commands) {
       if (k === '') continue;
@@ -373,7 +430,9 @@ export class RootCommand extends Command {
     const previousArgs = args.slice(0, -1);
 
     if (endsWithSpace) {
-      previousArgs.push(toComplete);
+      if (toComplete !== '') {
+        previousArgs.push(toComplete);
+      }
       toComplete = '';
     }
 
@@ -390,11 +449,31 @@ export class RootCommand extends Command {
         lastPrevArg
       );
     } else {
+      // Check if we just finished a boolean option with no value expected
+      // In this case, don't complete anything
+      if (lastPrevArg?.startsWith('-') && toComplete === '' && endsWithSpace) {
+        let option = this.findOption(this, lastPrevArg);
+        if (!option) {
+          // Check all subcommand options
+          for (const [, command] of this.commands) {
+            option = this.findOption(command, lastPrevArg);
+            if (option) break;
+          }
+        }
+
+        // If it's a boolean option followed by empty space, don't complete anything
+        if (option && option.isBoolean) {
+          // Don't add any completions, just output the directive
+          this.complete(toComplete);
+          return;
+        }
+      }
+
       // 2. Handle command/subcommand completion
       if (this.shouldCompleteCommands(toComplete, endsWithSpace)) {
         this.handleCommandCompletion(previousArgs, toComplete);
       }
-      // 3. Handle positional arguments
+      // 3. Handle positional arguments - always check for root command arguments
       if (matchedCommand && matchedCommand.arguments.size > 0) {
         this.handlePositionalCompletion(
           matchedCommand,

@@ -77,6 +77,10 @@ export default async function tab(
       const shortFlag = option.name.match(/^-([a-zA-Z]), --/)?.[1];
       const argName = option.name.replace(/^-[a-zA-Z], --/, '');
 
+      // Detect if this is a boolean option by checking if it has <value> or [value] in the raw definition
+      const isBoolean =
+        !option.rawName.includes('<') && !option.rawName.includes('[');
+
       // Add option using t.ts API
       const targetCommand = isRootCommand ? t : command;
       if (targetCommand) {
@@ -84,7 +88,8 @@ export default async function tab(
           argName, // Store just the option name without -- prefix
           option.description || '',
           commandCompletionConfig?.options?.[argName] ?? noopOptionHandler,
-          shortFlag
+          shortFlag,
+          isBoolean
         );
       }
     }

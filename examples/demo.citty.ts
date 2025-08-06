@@ -53,6 +53,11 @@ const devCommand = defineCommand({
       description: 'Specify port',
       alias: 'p',
     },
+    verbose: {
+      type: 'boolean',
+      description: 'Enable verbose logging',
+      alias: 'v',
+    },
   },
   run: () => {},
 });
@@ -61,6 +66,14 @@ const buildCommand = defineCommand({
   meta: {
     name: 'build',
     description: 'Build project',
+  },
+  run: () => {},
+});
+
+const startCommand = defineCommand({
+  meta: {
+    name: 'start',
+    description: 'Start development server',
   },
   run: () => {},
 });
@@ -100,9 +113,13 @@ const lintCommand = defineCommand({
   run: () => {},
 });
 
+devCommand.subCommands = {
+  build: buildCommand,
+  start: startCommand,
+};
+
 main.subCommands = {
   dev: devCommand,
-  build: buildCommand,
   copy: copyCommand,
   lint: lintCommand,
 } as Record<string, CommandDef<ArgsDef>>;

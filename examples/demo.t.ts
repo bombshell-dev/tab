@@ -62,6 +62,8 @@ devCmd.option(
   'p'
 );
 
+devCmd.option('verbose', 'Enable verbose logging', undefined, 'v', true);
+
 // Serve command
 const serveCmd = t.command('serve', 'Start the server');
 serveCmd.option(
@@ -86,6 +88,9 @@ serveCmd.option(
 
 // Build command
 t.command('dev build', 'Build project');
+
+// Start command
+t.command('dev start', 'Start development server');
 
 // Copy command with multiple arguments
 const copyCmd = t

@@ -105,7 +105,7 @@ async function handleSubCommands(
 
     // Add command using t.ts API
     const commandName = parentCmd ? `${parentCmd} ${cmd}` : cmd;
-    const command = t.command(cmd, meta.description);
+    const command = t.command(commandName, meta.description);
 
     // Set args for the command if it has positional arguments
     if (isPositional && config.args) {
@@ -138,9 +138,6 @@ async function handleSubCommands(
     if (config.args) {
       for (const [argName, argConfig] of Object.entries(config.args)) {
         const conf = argConfig as ArgDef;
-        if (conf.type === 'positional') {
-          continue;
-        }
         // Extract alias from the config if it exists
         const shortFlag =
           typeof conf === 'object' && 'alias' in conf
@@ -150,11 +147,13 @@ async function handleSubCommands(
             : undefined;
 
         // Add option using t.ts API - store without -- prefix
+        const isBoolean = conf.type === 'boolean';
         command.option(
           argName,
           conf.description ?? '',
           subCompletionConfig?.options?.[argName] ?? noopOptionHandler,
-          shortFlag
+          shortFlag,
+          isBoolean
         );
       }
     }
@@ -206,12 +205,15 @@ export default async function tab<TArgs extends ArgsDef>(
 
   if (instance.args) {
     for (const [argName, argConfig] of Object.entries(instance.args)) {
-      const conf = argConfig as PositionalArgDef;
+      const conf = argConfig as ArgDef;
       // Add option using t.ts API - store without -- prefix
+      const isBoolean = conf.type === 'boolean';
       t.option(
         argName,
         conf.description ?? '',
-        completionConfig?.options?.[argName] ?? noopOptionHandler
+        completionConfig?.options?.[argName] ?? noopOptionHandler,
+        undefined,
+        isBoolean
       );
     }
   }

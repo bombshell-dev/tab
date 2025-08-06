@@ -13,6 +13,7 @@ cli
   .command('dev', 'Start dev server')
   .option('-H, --host [host]', `Specify hostname`)
   .option('-p, --port <port>', `Specify port`)
+  .option('-v, --verbose', `Enable verbose logging`)
   .action((options) => {});
 
 cli
@@ -22,6 +23,8 @@ cli
   .action((options) => {});
 
 cli.command('dev build', 'Build project').action((options) => {});
+
+cli.command('dev start', 'Start development server').action((options) => {});
 
 cli
   .command('copy <source> <destination>', 'Copy files')

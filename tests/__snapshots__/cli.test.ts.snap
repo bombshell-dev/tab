@@ -188,7 +188,11 @@ lint	Lint project
 `;
 
 exports[`cli completion tests for cac > root command argument tests > should complete root command project argument after options 1`] = `
-":4
+"dev	Start dev server
+serve	Start the server
+copy	Copy files
+lint	Lint project
+:4
 "
 `;
 
@@ -470,7 +474,6 @@ index.ts	Index file
 
 exports[`cli completion tests for citty > root command argument tests > should complete root command project argument 1`] = `
 "dev	Start dev server
-build	Build project
 copy	Copy files
 lint	Lint project
 my-app	My application
@@ -481,7 +484,10 @@ my-tool	My tool
 `;
 
 exports[`cli completion tests for citty > root command argument tests > should complete root command project argument after options 1`] = `
-":4
+"dev	Start dev server
+copy	Copy files
+lint	Lint project
+:4
 "
 `;
 
@@ -579,7 +585,6 @@ exports[`cli completion tests for citty > short flag handling > should not show 
 
 exports[`cli completion tests for citty > should complete cli options 1`] = `
 "dev	Start dev server
-build	Build project
 copy	Copy files
 lint	Lint project
 my-app	My application
@@ -811,7 +816,11 @@ my-tool	My tool
 `;
 
 exports[`cli completion tests for t > root command argument tests > should complete root command project argument after options 1`] = `
-":4
+"dev	Start dev server
+serve	Start the server
+copy	Copy files
+lint	Lint project
+:4
 "
 `;
 
