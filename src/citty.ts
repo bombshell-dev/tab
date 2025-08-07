@@ -11,7 +11,7 @@ import type {
 } from 'citty';
 import { generateFigSpec } from './fig';
 import { CompletionConfig, assertDoubleDashes } from './shared';
-import { OptionHandler, Command, Option, OptionsMap } from './t';
+import { OptionHandler, Command, Option, OptionsMap, noopHandler } from './t';
 import t from './t';
 
 function quoteIfNeeded(path: string) {
@@ -85,8 +85,6 @@ function convertOptionHandler(handler: any): OptionHandler {
   };
 }
 
-const noopOptionHandler: OptionHandler = function () {};
-
 async function handleSubCommands(
   subCommands: SubCommandsDef,
   parentCmd?: string,
@@ -146,15 +144,25 @@ async function handleSubCommands(
               : conf.alias
             : undefined;
 
-        // Add option using t.ts API - store without -- prefix
+        // Detect boolean options and use appropriate handler
         const isBoolean = conf.type === 'boolean';
-        command.option(
-          argName,
-          conf.description ?? '',
-          subCompletionConfig?.options?.[argName] ?? noopOptionHandler,
-          shortFlag,
-          isBoolean
-        );
+        const customHandler = subCompletionConfig?.options?.[argName];
+        const handler = isBoolean ? noopHandler : customHandler;
+
+        // Add option using t.ts API - auto-detection handles boolean vs value options
+        if (shortFlag) {
+          if (handler) {
+            command.option(argName, conf.description ?? '', handler, shortFlag);
+          } else {
+            command.option(argName, conf.description ?? '', shortFlag);
+          }
+        } else {
+          if (handler) {
+            command.option(argName, conf.description ?? '', handler);
+          } else {
+            command.option(argName, conf.description ?? '');
+          }
+        }
       }
     }
   }
@@ -206,15 +214,18 @@ export default async function tab<TArgs extends ArgsDef>(
   if (instance.args) {
     for (const [argName, argConfig] of Object.entries(instance.args)) {
       const conf = argConfig as ArgDef;
-      // Add option using t.ts API - store without -- prefix
+
+      // Detect boolean options and use appropriate handler
       const isBoolean = conf.type === 'boolean';
-      t.option(
-        argName,
-        conf.description ?? '',
-        completionConfig?.options?.[argName] ?? noopOptionHandler,
-        undefined,
-        isBoolean
-      );
+      const customHandler = completionConfig?.options?.[argName];
+      const handler = isBoolean ? noopHandler : customHandler;
+
+      // Add option using t.ts API - auto-detection handles boolean vs value options
+      if (handler) {
+        t.option(argName, conf.description ?? '', handler);
+      } else {
+        t.option(argName, conf.description ?? '');
+      }
     }
   }
 

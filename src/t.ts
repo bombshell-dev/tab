@@ -20,8 +20,8 @@ export type OptionHandler = (
   options: OptionsMap
 ) => void;
 
-// Default no-op handler for options (internal)
-const noopHandler: OptionHandler = function () { };
+// Default no-op handler for options (exported for integrations)
+export const noopHandler: OptionHandler = function () { };
 
 // Completion result types
 export type Completion = {
@@ -94,12 +94,6 @@ export class Command {
   // Function overloads for better UX
   option(value: string, description: string): Command;
   option(value: string, description: string, alias: string): Command;
-  option(
-    value: string,
-    description: string,
-    alias: string,
-    isBoolean: boolean
-  ): Command;
   option(value: string, description: string, handler: OptionHandler): Command;
   option(
     value: string,
@@ -110,45 +104,32 @@ export class Command {
   option(
     value: string,
     description: string,
-    handler: OptionHandler,
-    alias: string,
-    isBoolean: boolean
-  ): Command;
-  option(
-    value: string,
-    description: string,
     handlerOrAlias?: OptionHandler | string,
-    aliasOrIsBoolean?: string | boolean,
-    isBoolean?: boolean
+    alias?: string
   ): Command {
     let handler: OptionHandler = noopHandler;
-    let alias: string | undefined;
-    let isBooleanFlag: boolean | undefined;
+    let aliasValue: string | undefined;
 
     // Parse arguments based on types
     if (typeof handlerOrAlias === 'function') {
-      // handler provided
+      // handler provided, value option
       handler = handlerOrAlias;
-      alias = aliasOrIsBoolean as string;
-      isBooleanFlag = isBoolean;
+      aliasValue = alias;
     } else if (typeof handlerOrAlias === 'string') {
-      // alias provided (no handler)
-      alias = handlerOrAlias;
-      isBooleanFlag = aliasOrIsBoolean as boolean;
-    } else if (handlerOrAlias === undefined) {
-      // neither handler nor alias provided
-      if (typeof aliasOrIsBoolean === 'boolean') {
-        isBooleanFlag = aliasOrIsBoolean;
-      }
+      // alias provided, no handler, boolean flag
+      aliasValue = handlerOrAlias;
     }
+
+    // if no custom handler provided, it's a boolean flag
+    const isBoolean = handler === noopHandler;
 
     const option = new Option(
       this,
       value,
       description,
       handler,
-      alias,
-      isBooleanFlag
+      aliasValue,
+      isBoolean
     );
     this.options.set(value, option);
     return this;

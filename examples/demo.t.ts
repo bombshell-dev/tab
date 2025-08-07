@@ -62,7 +62,7 @@ devCmd.option(
   'p'
 );
 
-devCmd.option('verbose', 'Enable verbose logging', 'v', true);
+devCmd.option('verbose', 'Enable verbose logging', 'v');
 
 // Serve command
 const serveCmd = t.command('serve', 'Start the server');

@@ -4,11 +4,9 @@ import * as fish from './fish';
 import * as powershell from './powershell';
 import type { CAC } from 'cac';
 import { assertDoubleDashes } from './shared';
-import { OptionHandler } from './t';
+import { OptionHandler, noopHandler } from './t';
 import { CompletionConfig } from './shared';
 import t from './t';
-
-const noopOptionHandler: OptionHandler = function () {};
 
 const execPath = process.execPath;
 const processArgs = process.argv.slice(1);
@@ -84,13 +82,28 @@ export default async function tab(
       // Add option using t.ts API
       const targetCommand = isRootCommand ? t : command;
       if (targetCommand) {
-        targetCommand.option(
-          argName, // Store just the option name without -- prefix
-          option.description || '',
-          commandCompletionConfig?.options?.[argName] ?? noopOptionHandler,
-          shortFlag,
-          isBoolean
-        );
+        // Auto-detection handles boolean vs value options based on handler presence
+        const customHandler = commandCompletionConfig?.options?.[argName];
+        const handler = isBoolean ? noopHandler : customHandler;
+
+        if (shortFlag) {
+          if (handler) {
+            targetCommand.option(
+              argName,
+              option.description || '',
+              handler,
+              shortFlag
+            );
+          } else {
+            targetCommand.option(argName, option.description || '', shortFlag);
+          }
+        } else {
+          if (handler) {
+            targetCommand.option(argName, option.description || '', handler);
+          } else {
+            targetCommand.option(argName, option.description || '');
+          }
+        }
       }
     }
   }
