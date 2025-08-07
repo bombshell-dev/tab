@@ -21,7 +21,7 @@ export type OptionHandler = (
 ) => void;
 
 // Default no-op handler for options (exported for integrations)
-export const noopHandler: OptionHandler = function () { };
+export const noopHandler: OptionHandler = function () {};
 
 // Completion result types
 export type Completion = {
@@ -305,9 +305,9 @@ export class RootCommand extends Command {
 
         this.completions = toComplete.includes('=')
           ? suggestions.map((s) => ({
-            value: `${optionName}=${s.value}`,
-            description: s.description,
-          }))
+              value: `${optionName}=${s.value}`,
+              description: s.description,
+            }))
           : suggestions;
       }
       return;
@@ -518,9 +518,9 @@ export class RootCommand extends Command {
   setup(name: string, executable: string, shell: string) {
     assert(
       shell === 'zsh' ||
-      shell === 'bash' ||
-      shell === 'fish' ||
-      shell === 'powershell',
+        shell === 'bash' ||
+        shell === 'fish' ||
+        shell === 'powershell',
       'Unsupported shell'
     );
 
