@@ -11,7 +11,7 @@ import type {
 } from 'citty';
 import { generateFigSpec } from './fig';
 import { CompletionConfig, assertDoubleDashes } from './shared';
-import { OptionHandler, Command, Option, OptionsMap, noopHandler } from './t';
+import { OptionHandler, Command, Option, OptionsMap } from './t';
 import t from './t';
 
 function quoteIfNeeded(path: string) {
@@ -144,21 +144,19 @@ async function handleSubCommands(
               : conf.alias
             : undefined;
 
-        // Detect boolean options and use appropriate handler
-        const isBoolean = conf.type === 'boolean';
-        const customHandler = subCompletionConfig?.options?.[argName];
-        const handler = isBoolean ? noopHandler : customHandler;
-
-        // Add option using t.ts API - auto-detection handles boolean vs value options
-        if (shortFlag) {
-          if (handler) {
+        // Add option using t.ts API - store without -- prefix
+        const handler = subCompletionConfig?.options?.[argName];
+        if (handler) {
+          // Has custom handler → value option
+          if (shortFlag) {
             command.option(argName, conf.description ?? '', handler, shortFlag);
           } else {
-            command.option(argName, conf.description ?? '', shortFlag);
+            command.option(argName, conf.description ?? '', handler);
           }
         } else {
-          if (handler) {
-            command.option(argName, conf.description ?? '', handler);
+          // No custom handler → boolean flag
+          if (shortFlag) {
+            command.option(argName, conf.description ?? '', shortFlag);
           } else {
             command.option(argName, conf.description ?? '');
           }
@@ -215,16 +213,30 @@ export default async function tab<TArgs extends ArgsDef>(
     for (const [argName, argConfig] of Object.entries(instance.args)) {
       const conf = argConfig as ArgDef;
 
-      // Detect boolean options and use appropriate handler
-      const isBoolean = conf.type === 'boolean';
-      const customHandler = completionConfig?.options?.[argName];
-      const handler = isBoolean ? noopHandler : customHandler;
+      // Extract alias (same logic as subcommands)
+      const shortFlag =
+        typeof conf === 'object' && 'alias' in conf
+          ? Array.isArray(conf.alias)
+            ? conf.alias[0]
+            : conf.alias
+          : undefined;
 
-      // Add option using t.ts API - auto-detection handles boolean vs value options
+      // Add option using t.ts API - store without -- prefix
+      const handler = completionConfig?.options?.[argName];
       if (handler) {
-        t.option(argName, conf.description ?? '', handler);
+        // Has custom handler → value option
+        if (shortFlag) {
+          t.option(argName, conf.description ?? '', handler, shortFlag);
+        } else {
+          t.option(argName, conf.description ?? '', handler);
+        }
       } else {
-        t.option(argName, conf.description ?? '');
+        // No custom handler → boolean flag
+        if (shortFlag) {
+          t.option(argName, conf.description ?? '', shortFlag);
+        } else {
+          t.option(argName, conf.description ?? '');
+        }
       }
     }
   }

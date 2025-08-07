@@ -64,6 +64,9 @@ devCmd.option(
 
 devCmd.option('verbose', 'Enable verbose logging', 'v');
 
+// Add a simple quiet option to test basic option API (no handler, no alias)
+devCmd.option('quiet', 'Suppress output');
+
 // Serve command
 const serveCmd = t.command('serve', 'Start the server');
 serveCmd.option(

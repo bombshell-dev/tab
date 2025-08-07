@@ -14,6 +14,7 @@ cli
   .option('-H, --host [host]', `Specify hostname`)
   .option('-p, --port <port>', `Specify port`)
   .option('-v, --verbose', `Enable verbose logging`)
+  .option('--quiet', `Suppress output`)
   .action((options) => {});
 
 cli

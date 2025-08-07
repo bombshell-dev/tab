@@ -20,9 +20,6 @@ export type OptionHandler = (
   options: OptionsMap
 ) => void;
 
-// Default no-op handler for options (exported for integrations)
-export const noopHandler: OptionHandler = function () {};
-
 // Completion result types
 export type Completion = {
   description?: string;
@@ -107,28 +104,31 @@ export class Command {
     handlerOrAlias?: OptionHandler | string,
     alias?: string
   ): Command {
-    let handler: OptionHandler = noopHandler;
-    let aliasValue: string | undefined;
+    let handler: OptionHandler | undefined;
+    let aliasStr: string | undefined;
+    let isBoolean: boolean;
 
     // Parse arguments based on types
     if (typeof handlerOrAlias === 'function') {
-      // handler provided, value option
       handler = handlerOrAlias;
-      aliasValue = alias;
+      aliasStr = alias;
+      isBoolean = false;
     } else if (typeof handlerOrAlias === 'string') {
-      // alias provided, no handler, boolean flag
-      aliasValue = handlerOrAlias;
+      handler = undefined;
+      aliasStr = handlerOrAlias;
+      isBoolean = true;
+    } else {
+      handler = undefined;
+      aliasStr = undefined;
+      isBoolean = true;
     }
-
-    // if no custom handler provided, it's a boolean flag
-    const isBoolean = handler === noopHandler;
 
     const option = new Option(
       this,
       value,
       description,
       handler,
-      aliasValue,
+      aliasStr,
       isBoolean
     );
     this.options.set(value, option);

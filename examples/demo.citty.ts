@@ -58,6 +58,10 @@ const devCommand = defineCommand({
       description: 'Enable verbose logging',
       alias: 'v',
     },
+    quiet: {
+      type: 'boolean',
+      description: 'Suppress output',
+    },
   },
   run: () => {},
 });

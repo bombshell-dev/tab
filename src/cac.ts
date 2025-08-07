@@ -4,7 +4,6 @@ import * as fish from './fish';
 import * as powershell from './powershell';
 import type { CAC } from 'cac';
 import { assertDoubleDashes } from './shared';
-import { OptionHandler, noopHandler } from './t';
 import { CompletionConfig } from './shared';
 import t from './t';
 
@@ -71,23 +70,17 @@ export default async function tab(
 
     // Add command options
     for (const option of [...instance.globalCommand.options, ...cmd.options]) {
-      // Extract short flag from the name if it exists (e.g., "-c, --config" -> "c")
-      const shortFlag = option.name.match(/^-([a-zA-Z]), --/)?.[1];
-      const argName = option.name.replace(/^-[a-zA-Z], --/, '');
-
-      // Detect if this is a boolean option by checking if it has <value> or [value] in the raw definition
-      const isBoolean =
-        !option.rawName.includes('<') && !option.rawName.includes('[');
+      // Extract short flag from the rawName if it exists (e.g., "-c, --config" -> "c")
+      const shortFlag = option.rawName.match(/^-([a-zA-Z]), --/)?.[1];
+      const argName = option.name; // option.name is already clean (e.g., "config")
 
       // Add option using t.ts API
       const targetCommand = isRootCommand ? t : command;
       if (targetCommand) {
-        // Auto-detection handles boolean vs value options based on handler presence
-        const customHandler = commandCompletionConfig?.options?.[argName];
-        const handler = isBoolean ? noopHandler : customHandler;
-
-        if (shortFlag) {
-          if (handler) {
+        const handler = commandCompletionConfig?.options?.[argName];
+        if (handler) {
+          // Has custom handler → value option
+          if (shortFlag) {
             targetCommand.option(
               argName,
               option.description || '',
@@ -95,11 +88,12 @@ export default async function tab(
               shortFlag
             );
           } else {
-            targetCommand.option(argName, option.description || '', shortFlag);
+            targetCommand.option(argName, option.description || '', handler);
           }
         } else {
-          if (handler) {
-            targetCommand.option(argName, option.description || '', handler);
+          // No custom handler → boolean flag
+          if (shortFlag) {
+            targetCommand.option(argName, option.description || '', shortFlag);
           } else {
             targetCommand.option(argName, option.description || '');
           }

@@ -22,12 +22,16 @@ vite.config.js	Vite config file
 `;
 
 exports[`cli completion tests for cac > --config option tests > should complete short flag -c option values 1`] = `
-":4
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
+:4
 "
 `;
 
 exports[`cli completion tests for cac > --config option tests > should complete short flag -c option with partial input 1`] = `
-":4
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
+:4
 "
 `;
 
@@ -46,12 +50,14 @@ exports[`cli completion tests for cac > cli option completion tests > should com
 `;
 
 exports[`cli completion tests for cac > cli option completion tests > should complete option for partial input '{ partial: '-H', expected: '-H' }' 1`] = `
-":4
+"-H	Specify hostname
+:4
 "
 `;
 
 exports[`cli completion tests for cac > cli option completion tests > should complete option for partial input '{ partial: '-p', expected: '-p' }' 1`] = `
-":4
+"-p	Specify port
+:4
 "
 `;
 
@@ -249,27 +255,36 @@ exports[`cli completion tests for cac > root command option tests > should compl
 `;
 
 exports[`cli completion tests for cac > root command option tests > should complete root command short flag -l option values 1`] = `
-":4
+"info	Info level
+warn	Warn level
+error	Error level
+silent	Silent level
+:4
 "
 `;
 
 exports[`cli completion tests for cac > root command option tests > should complete root command short flag -m option values 1`] = `
-":4
+"development	Development mode
+production	Production mode
+:4
 "
 `;
 
 exports[`cli completion tests for cac > short flag handling > should handle global short flags 1`] = `
-":4
+"-c	Use specified config file
+:4
 "
 `;
 
 exports[`cli completion tests for cac > short flag handling > should handle short flag value completion 1`] = `
-":4
+"-p	Specify port
+:4
 "
 `;
 
 exports[`cli completion tests for cac > short flag handling > should handle short flag with equals sign 1`] = `
-":4
+"-p=3000	Development server port
+:4
 "
 `;
 
@@ -312,12 +327,16 @@ vite.config.js	Vite config file
 `;
 
 exports[`cli completion tests for citty > --config option tests > should complete short flag -c option values 1`] = `
-":4
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
+:4
 "
 `;
 
 exports[`cli completion tests for citty > --config option tests > should complete short flag -c option with partial input 1`] = `
-":4
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
+:4
 "
 `;
 
@@ -548,17 +567,24 @@ exports[`cli completion tests for citty > root command option tests > should com
 `;
 
 exports[`cli completion tests for citty > root command option tests > should complete root command short flag -l option values 1`] = `
-":4
+"info	Info level
+warn	Warn level
+error	Error level
+silent	Silent level
+:4
 "
 `;
 
 exports[`cli completion tests for citty > root command option tests > should complete root command short flag -m option values 1`] = `
-":4
+"development	Development mode
+production	Production mode
+:4
 "
 `;
 
 exports[`cli completion tests for citty > short flag handling > should handle global short flags 1`] = `
-":4
+"-c	Use specified config file
+:4
 "
 `;
 
