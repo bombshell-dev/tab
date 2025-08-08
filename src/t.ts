@@ -88,16 +88,7 @@ export class Command {
     this.description = description;
   }
 
-  // Function overloads for better UX
-  option(value: string, description: string): Command;
-  option(value: string, description: string, alias: string): Command;
-  option(value: string, description: string, handler: OptionHandler): Command;
-  option(
-    value: string,
-    description: string,
-    handler: OptionHandler,
-    alias: string
-  ): Command;
+  // Function overloads for better UX - combined into single signature with optional parameters
   option(
     value: string,
     description: string,
@@ -211,7 +202,7 @@ export class RootCommand extends Command {
     args = this.stripOptions(args);
     const parts: string[] = [];
     let remaining: string[] = [];
-    let matched: Command = this;
+    let matchedCommand: Command | null = null;
 
     for (let i = 0; i < args.length; i++) {
       const k = args[i];
@@ -219,14 +210,15 @@ export class RootCommand extends Command {
       const potential = this.commands.get(parts.join(' '));
 
       if (potential) {
-        matched = potential;
+        matchedCommand = potential;
       } else {
         remaining = args.slice(i, args.length);
         break;
       }
     }
 
-    return [matched, remaining];
+    // If no command was matched, use the root command (this)
+    return [matchedCommand || this, remaining];
   }
 
   // Determine if we should complete flags

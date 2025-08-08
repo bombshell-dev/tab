@@ -7,7 +7,7 @@ import { Completion as CompletionItem } from './t';
 
 const DEBUG = false;
 
-function debugLog(...args: any[]) {
+function debugLog(...args: unknown[]) {
   if (DEBUG) {
     console.error('[DEBUG]', ...args);
   }

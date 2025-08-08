@@ -11,8 +11,7 @@ import type {
 } from 'citty';
 import { generateFigSpec } from './fig';
 import { CompletionConfig, assertDoubleDashes } from './shared';
-import { OptionHandler, Command, Option, OptionsMap } from './t';
-import t from './t';
+import t, { RootCommand } from './t';
 
 function quoteIfNeeded(path: string) {
   return path.includes(' ') ? `'${path}'` : path;
@@ -30,59 +29,6 @@ function isConfigPositional<T extends ArgsDef>(config: CommandDef<T>) {
     config.args &&
     Object.values(config.args).some((arg) => arg.type === 'positional')
   );
-}
-
-// Convert Handler from index.ts to OptionHandler from t.ts
-function convertOptionHandler(handler: any): OptionHandler {
-  return function (
-    this: Option,
-    complete: (value: string, description: string) => void,
-    options: OptionsMap,
-    previousArgs?: string[],
-    toComplete?: string,
-    endsWithSpace?: boolean
-  ) {
-    // For short flags with equals sign and a value, don't complete (citty behavior)
-    // Check if this is a short flag option and if the toComplete looks like a value
-    if (
-      this.alias &&
-      toComplete &&
-      toComplete !== '' &&
-      !toComplete.startsWith('-')
-    ) {
-      // This might be a short flag with equals sign and a value
-      // Check if the previous args contain a short flag with equals sign
-      if (previousArgs && previousArgs.length > 0) {
-        const lastArg = previousArgs[previousArgs.length - 1];
-        if (lastArg.includes('=')) {
-          const [flag, value] = lastArg.split('=');
-          if (flag.startsWith('-') && !flag.startsWith('--') && value !== '') {
-            return; // Don't complete short flags with equals sign and value
-          }
-        }
-      }
-    }
-
-    // Call the old handler with the proper context
-    const result = handler(
-      previousArgs || [],
-      toComplete || '',
-      endsWithSpace || false
-    );
-
-    if (Array.isArray(result)) {
-      result.forEach((item: any) =>
-        complete(item.value, item.description || '')
-      );
-    } else if (result && typeof result.then === 'function') {
-      // Handle async handlers
-      result.then((items: any[]) => {
-        items.forEach((item: any) =>
-          complete(item.value, item.description || '')
-        );
-      });
-    }
-  };
 }
 
 async function handleSubCommands(
@@ -169,7 +115,7 @@ async function handleSubCommands(
 export default async function tab<TArgs extends ArgsDef>(
   instance: CommandDef<TArgs>,
   completionConfig?: CompletionConfig
-): Promise<any> {
+): Promise<RootCommand> {
   const meta = await resolve(instance.meta);
 
   if (!meta) {
