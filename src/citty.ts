@@ -85,8 +85,6 @@ function convertOptionHandler(handler: any): OptionHandler {
   };
 }
 
-const noopOptionHandler: OptionHandler = function () {};
-
 async function handleSubCommands(
   subCommands: SubCommandsDef,
   parentCmd?: string,
@@ -105,7 +103,7 @@ async function handleSubCommands(
 
     // Add command using t.ts API
     const commandName = parentCmd ? `${parentCmd} ${cmd}` : cmd;
-    const command = t.command(cmd, meta.description);
+    const command = t.command(commandName, meta.description);
 
     // Set args for the command if it has positional arguments
     if (isPositional && config.args) {
@@ -138,9 +136,6 @@ async function handleSubCommands(
     if (config.args) {
       for (const [argName, argConfig] of Object.entries(config.args)) {
         const conf = argConfig as ArgDef;
-        if (conf.type === 'positional') {
-          continue;
-        }
         // Extract alias from the config if it exists
         const shortFlag =
           typeof conf === 'object' && 'alias' in conf
@@ -150,12 +145,22 @@ async function handleSubCommands(
             : undefined;
 
         // Add option using t.ts API - store without -- prefix
-        command.option(
-          argName,
-          conf.description ?? '',
-          subCompletionConfig?.options?.[argName] ?? noopOptionHandler,
-          shortFlag
-        );
+        const handler = subCompletionConfig?.options?.[argName];
+        if (handler) {
+          // Has custom handler → value option
+          if (shortFlag) {
+            command.option(argName, conf.description ?? '', handler, shortFlag);
+          } else {
+            command.option(argName, conf.description ?? '', handler);
+          }
+        } else {
+          // No custom handler → boolean flag
+          if (shortFlag) {
+            command.option(argName, conf.description ?? '', shortFlag);
+          } else {
+            command.option(argName, conf.description ?? '');
+          }
+        }
       }
     }
   }
@@ -206,13 +211,33 @@ export default async function tab<TArgs extends ArgsDef>(
 
   if (instance.args) {
     for (const [argName, argConfig] of Object.entries(instance.args)) {
-      const conf = argConfig as PositionalArgDef;
+      const conf = argConfig as ArgDef;
+
+      // Extract alias (same logic as subcommands)
+      const shortFlag =
+        typeof conf === 'object' && 'alias' in conf
+          ? Array.isArray(conf.alias)
+            ? conf.alias[0]
+            : conf.alias
+          : undefined;
+
       // Add option using t.ts API - store without -- prefix
-      t.option(
-        argName,
-        conf.description ?? '',
-        completionConfig?.options?.[argName] ?? noopOptionHandler
-      );
+      const handler = completionConfig?.options?.[argName];
+      if (handler) {
+        // Has custom handler → value option
+        if (shortFlag) {
+          t.option(argName, conf.description ?? '', handler, shortFlag);
+        } else {
+          t.option(argName, conf.description ?? '', handler);
+        }
+      } else {
+        // No custom handler → boolean flag
+        if (shortFlag) {
+          t.option(argName, conf.description ?? '', shortFlag);
+        } else {
+          t.option(argName, conf.description ?? '');
+        }
+      }
     }
   }
 

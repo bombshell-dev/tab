@@ -89,6 +89,100 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     });
   });
 
+  describe.runIf(!shouldSkipTest)('boolean option handling', () => {
+    it('should not provide value completions for boolean options', async () => {
+      const command = `${commandPrefix} dev --verbose ""`;
+      const output = await runCommand(command);
+      // Boolean options should return just the directive, no completions
+      expect(output.trim()).toBe(':4');
+    });
+
+    it('should not provide value completions for short boolean options', async () => {
+      const command = `${commandPrefix} dev -v ""`;
+      const output = await runCommand(command);
+      // Boolean options should return just the directive, no completions
+      expect(output.trim()).toBe(':4');
+    });
+
+    it('should not interfere with command completion after boolean options', async () => {
+      const command = `${commandPrefix} dev --verbose s`;
+      const output = await runCommand(command);
+      // Should complete subcommands that start with 's' even after a boolean option
+      expect(output).toContain('start');
+    });
+  });
+
+  describe.runIf(!shouldSkipTest)('option API overload tests', () => {
+    it('should handle basic option (name + description only) as boolean flag', async () => {
+      // This tests the case: option('quiet', 'Suppress output')
+      const command = `${commandPrefix} dev --quiet ""`;
+      const output = await runCommand(command);
+      // Should be treated as boolean flag (no value completion)
+      expect(output.trim()).toBe(':4');
+    });
+
+    it('should handle option with alias only as boolean flag', async () => {
+      // This tests the case: option('verbose', 'Enable verbose', 'v')
+      const command = `${commandPrefix} dev --verbose ""`;
+      const output = await runCommand(command);
+      // Should be treated as boolean flag (no value completion)
+      expect(output.trim()).toBe(':4');
+    });
+
+    it('should handle option with alias only (short flag) as boolean flag', async () => {
+      // This tests the short flag version: -v instead of --verbose
+      const command = `${commandPrefix} dev -v ""`;
+      const output = await runCommand(command);
+      // Should be treated as boolean flag (no value completion)
+      expect(output.trim()).toBe(':4');
+    });
+
+    it('should handle option with handler only as value option', async () => {
+      // This tests the case: option('port', 'Port number', handlerFunction)
+      const command = `${commandPrefix} dev --port ""`;
+      const output = await runCommand(command);
+      // Should provide value completions because it has a handler
+      expect(output).toContain('3000');
+      expect(output).toContain('8080');
+    });
+
+    it('should handle option with both handler and alias as value option', async () => {
+      // This tests the case: option('config', 'Config file', handlerFunction, 'c')
+      const command = `${commandPrefix} --config ""`;
+      const output = await runCommand(command);
+      // Should provide value completions because it has a handler
+      expect(output).toContain('vite.config.ts');
+      expect(output).toContain('vite.config.js');
+    });
+
+    it('should handle option with both handler and alias (short flag) as value option', async () => {
+      // This tests the short flag version with handler: -c instead of --config
+      const command = `${commandPrefix} -c ""`;
+      const output = await runCommand(command);
+      // Should provide value completions because it has a handler
+      expect(output).toContain('vite.config.ts');
+      expect(output).toContain('vite.config.js');
+    });
+
+    it('should correctly detect boolean vs value options in mixed scenarios', async () => {
+      // Test that boolean options don't interfere with value options
+      const command = `${commandPrefix} dev --verbose --port ""`;
+      const output = await runCommand(command);
+      // Should complete port values, not be confused by preceding boolean flag
+      expect(output).toContain('3000');
+      expect(output).toContain('8080');
+    });
+
+    it('should correctly handle aliases for different option types', async () => {
+      // Mix of boolean flag with alias (-v) and value option with alias (-p)
+      const command = `${commandPrefix} dev -v -p ""`;
+      const output = await runCommand(command);
+      // Should complete port values via short flag
+      expect(output).toContain('3000');
+      expect(output).toContain('8080');
+    });
+  });
+
   describe.runIf(!shouldSkipTest)('--config option tests', () => {
     it('should complete --config option values', async () => {
       const command = `${commandPrefix} --config ""`;

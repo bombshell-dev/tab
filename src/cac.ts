@@ -4,11 +4,8 @@ import * as fish from './fish';
 import * as powershell from './powershell';
 import type { CAC } from 'cac';
 import { assertDoubleDashes } from './shared';
-import { OptionHandler } from './t';
 import { CompletionConfig } from './shared';
 import t from './t';
-
-const noopOptionHandler: OptionHandler = function () {};
 
 const execPath = process.execPath;
 const processArgs = process.argv.slice(1);
@@ -73,19 +70,34 @@ export default async function tab(
 
     // Add command options
     for (const option of [...instance.globalCommand.options, ...cmd.options]) {
-      // Extract short flag from the name if it exists (e.g., "-c, --config" -> "c")
-      const shortFlag = option.name.match(/^-([a-zA-Z]), --/)?.[1];
-      const argName = option.name.replace(/^-[a-zA-Z], --/, '');
+      // Extract short flag from the rawName if it exists (e.g., "-c, --config" -> "c")
+      const shortFlag = option.rawName.match(/^-([a-zA-Z]), --/)?.[1];
+      const argName = option.name; // option.name is already clean (e.g., "config")
 
       // Add option using t.ts API
       const targetCommand = isRootCommand ? t : command;
       if (targetCommand) {
-        targetCommand.option(
-          argName, // Store just the option name without -- prefix
-          option.description || '',
-          commandCompletionConfig?.options?.[argName] ?? noopOptionHandler,
-          shortFlag
-        );
+        const handler = commandCompletionConfig?.options?.[argName];
+        if (handler) {
+          // Has custom handler → value option
+          if (shortFlag) {
+            targetCommand.option(
+              argName,
+              option.description || '',
+              handler,
+              shortFlag
+            );
+          } else {
+            targetCommand.option(argName, option.description || '', handler);
+          }
+        } else {
+          // No custom handler → boolean flag
+          if (shortFlag) {
+            targetCommand.option(argName, option.description || '', shortFlag);
+          } else {
+            targetCommand.option(argName, option.description || '');
+          }
+        }
       }
     }
   }
