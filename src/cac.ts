@@ -5,7 +5,7 @@ import * as powershell from './powershell';
 import type { CAC } from 'cac';
 import { assertDoubleDashes } from './shared';
 import { CompletionConfig } from './shared';
-import t from './t';
+import t, { RootCommand } from './t';
 
 const execPath = process.execPath;
 const processArgs = process.argv.slice(1);
@@ -22,7 +22,7 @@ function quoteIfNeeded(path: string): string {
 export default async function tab(
   instance: CAC,
   completionConfig?: CompletionConfig
-): Promise<any> {
+): Promise<RootCommand> {
   // Add all commands and their options
   for (const cmd of [instance.globalCommand, ...instance.commands]) {
     if (cmd.name === 'complete') continue; // Skip completion command

@@ -1,6 +1,6 @@
 import cac from 'cac';
 import tab from '../src/cac';
-import type { Command, Option, OptionsMap } from '../src/t';
+import type { Option, OptionsMap } from '../src/t';
 
 const cli = cac('vite');
 

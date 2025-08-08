@@ -88,16 +88,7 @@ export class Command {
     this.description = description;
   }
 
-  // Function overloads for better UX
-  option(value: string, description: string): Command;
-  option(value: string, description: string, alias: string): Command;
-  option(value: string, description: string, handler: OptionHandler): Command;
-  option(
-    value: string,
-    description: string,
-    handler: OptionHandler,
-    alias: string
-  ): Command;
+  // Function overloads for better UX - combined into single signature with optional parameters
   option(
     value: string,
     description: string,
@@ -211,7 +202,7 @@ export class RootCommand extends Command {
     args = this.stripOptions(args);
     const parts: string[] = [];
     let remaining: string[] = [];
-    let matched: Command = this;
+    let matchedCommand: Command | null = null;
 
     for (let i = 0; i < args.length; i++) {
       const k = args[i];
@@ -219,14 +210,15 @@ export class RootCommand extends Command {
       const potential = this.commands.get(parts.join(' '));
 
       if (potential) {
-        matched = potential;
+        matchedCommand = potential;
       } else {
         remaining = args.slice(i, args.length);
         break;
       }
     }
 
-    return [matched, remaining];
+    // If no command was matched, use the root command (this)
+    return [matchedCommand || this, remaining];
   }
 
   // Determine if we should complete flags
@@ -282,12 +274,10 @@ export class RootCommand extends Command {
   ) {
     // Handle flag value completion
     let optionName: string | undefined;
-    let valueToComplete = toComplete;
 
     if (toComplete.includes('=')) {
-      const [flag, value] = toComplete.split('=');
+      const [flag] = toComplete.split('=');
       optionName = flag;
-      valueToComplete = value || '';
     } else if (lastPrevArg?.startsWith('-')) {
       optionName = lastPrevArg;
     }
@@ -350,7 +340,7 @@ export class RootCommand extends Command {
     if (option) return option;
 
     // Try by short alias
-    for (const [name, opt] of command.options) {
+    for (const [_name, opt] of command.options) {
       if (opt.alias && `-${opt.alias}` === optionName) {
         return opt;
       }
@@ -399,7 +389,7 @@ export class RootCommand extends Command {
 
       if (currentArgIndex < argumentEntries.length) {
         // We're within the defined arguments
-        const [argName, argument] = argumentEntries[currentArgIndex];
+        const [_argName, argument] = argumentEntries[currentArgIndex];
         targetArgument = argument;
       } else {
         // We're beyond the defined arguments, check if the last argument is variadic
