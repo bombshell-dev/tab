@@ -274,12 +274,10 @@ export class RootCommand extends Command {
   ) {
     // Handle flag value completion
     let optionName: string | undefined;
-    let valueToComplete = toComplete;
 
     if (toComplete.includes('=')) {
-      const [flag, value] = toComplete.split('=');
+      const [flag] = toComplete.split('=');
       optionName = flag;
-      valueToComplete = value || '';
     } else if (lastPrevArg?.startsWith('-')) {
       optionName = lastPrevArg;
     }
@@ -342,7 +340,7 @@ export class RootCommand extends Command {
     if (option) return option;
 
     // Try by short alias
-    for (const [name, opt] of command.options) {
+    for (const [_name, opt] of command.options) {
       if (opt.alias && `-${opt.alias}` === optionName) {
         return opt;
       }
@@ -391,7 +389,7 @@ export class RootCommand extends Command {
 
       if (currentArgIndex < argumentEntries.length) {
         // We're within the defined arguments
-        const [argName, argument] = argumentEntries[currentArgIndex];
+        const [_argName, argument] = argumentEntries[currentArgIndex];
         targetArgument = argument;
       } else {
         // We're beyond the defined arguments, check if the last argument is variadic

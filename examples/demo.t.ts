@@ -96,8 +96,7 @@ t.command('dev build', 'Build project');
 t.command('dev start', 'Start development server');
 
 // Copy command with multiple arguments
-const copyCmd = t
-  .command('copy', 'Copy files')
+t.command('copy', 'Copy files')
   .argument('source', function (complete) {
     complete('src/', 'Source directory');
     complete('dist/', 'Distribution directory');
@@ -110,7 +109,7 @@ const copyCmd = t
   });
 
 // Lint command with variadic arguments
-const lintCmd = t.command('lint', 'Lint project').argument(
+t.command('lint', 'Lint project').argument(
   'files',
   function (complete) {
     complete('main.ts', 'Main file');
