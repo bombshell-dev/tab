@@ -1,6 +1,8 @@
 // TODO: i do not see any completion functionality in this file. nothing is being provided for the defined commands of these package managers. this is a blocker for release. every each of them should be handled.
 import { Completion } from '../src/index.js';
 
+const noopCompletion = async () => [];
+
 export function setupCompletionForPackageManager(
   packageManager: string,
   completion: Completion
@@ -20,50 +22,49 @@ export function setupCompletionForPackageManager(
 }
 
 export function setupPnpmCompletions(completion: Completion) {
-  completion.addCommand('add', 'Install a package', [], async () => []);
-  completion.addCommand('remove', 'Remove a package', [], async () => []);
+  completion.addCommand('add', 'Install a package', [], noopCompletion);
+  completion.addCommand('remove', 'Remove a package', [], noopCompletion);
   completion.addCommand(
     'install',
     'Install all dependencies',
     [],
-    async () => []
+    noopCompletion
   );
-  // TODO: empty functions should be replaced with noop functions rather than creating that many empty functions
-  completion.addCommand('update', 'Update packages', [], async () => []);
-  completion.addCommand('exec', 'Execute a command', [], async () => []);
-  completion.addCommand('run', 'Run a script', [], async () => []);
-  completion.addCommand('publish', 'Publish package', [], async () => []);
-  completion.addCommand('test', 'Run tests', [], async () => []);
-  completion.addCommand('build', 'Build project', [], async () => []);
+  completion.addCommand('update', 'Update packages', [], noopCompletion);
+  completion.addCommand('exec', 'Execute a command', [], noopCompletion);
+  completion.addCommand('run', 'Run a script', [], noopCompletion);
+  completion.addCommand('publish', 'Publish package', [], noopCompletion);
+  completion.addCommand('test', 'Run tests', [], noopCompletion);
+  completion.addCommand('build', 'Build project', [], noopCompletion);
 }
 
 export function setupNpmCompletions(completion: Completion) {
-  completion.addCommand('install', 'Install a package', [], async () => []);
-  completion.addCommand('uninstall', 'Uninstall a package', [], async () => []);
-  completion.addCommand('run', 'Run a script', [], async () => []);
-  completion.addCommand('test', 'Run tests', [], async () => []);
-  completion.addCommand('publish', 'Publish package', [], async () => []);
-  completion.addCommand('update', 'Update packages', [], async () => []);
-  completion.addCommand('start', 'Start the application', [], async () => []);
-  completion.addCommand('build', 'Build project', [], async () => []);
+  completion.addCommand('install', 'Install a package', [], noopCompletion);
+  completion.addCommand('uninstall', 'Uninstall a package', [], noopCompletion);
+  completion.addCommand('run', 'Run a script', [], noopCompletion);
+  completion.addCommand('test', 'Run tests', [], noopCompletion);
+  completion.addCommand('publish', 'Publish package', [], noopCompletion);
+  completion.addCommand('update', 'Update packages', [], noopCompletion);
+  completion.addCommand('start', 'Start the application', [], noopCompletion);
+  completion.addCommand('build', 'Build project', [], noopCompletion);
 }
 
 export function setupYarnCompletions(completion: Completion) {
-  completion.addCommand('add', 'Add a package', [], async () => []);
-  completion.addCommand('remove', 'Remove a package', [], async () => []);
-  completion.addCommand('run', 'Run a script', [], async () => []);
-  completion.addCommand('test', 'Run tests', [], async () => []);
-  completion.addCommand('publish', 'Publish package', [], async () => []);
-  completion.addCommand('install', 'Install dependencies', [], async () => []);
-  completion.addCommand('build', 'Build project', [], async () => []);
+  completion.addCommand('add', 'Add a package', [], noopCompletion);
+  completion.addCommand('remove', 'Remove a package', [], noopCompletion);
+  completion.addCommand('run', 'Run a script', [], noopCompletion);
+  completion.addCommand('test', 'Run tests', [], noopCompletion);
+  completion.addCommand('publish', 'Publish package', [], noopCompletion);
+  completion.addCommand('install', 'Install dependencies', [], noopCompletion);
+  completion.addCommand('build', 'Build project', [], noopCompletion);
 }
 
 export function setupBunCompletions(completion: Completion) {
-  completion.addCommand('add', 'Add a package', [], async () => []);
-  completion.addCommand('remove', 'Remove a package', [], async () => []);
-  completion.addCommand('run', 'Run a script', [], async () => []);
-  completion.addCommand('test', 'Run tests', [], async () => []);
-  completion.addCommand('install', 'Install dependencies', [], async () => []);
-  completion.addCommand('update', 'Update packages', [], async () => []);
-  completion.addCommand('build', 'Build project', [], async () => []);
+  completion.addCommand('add', 'Add a package', [], noopCompletion);
+  completion.addCommand('remove', 'Remove a package', [], noopCompletion);
+  completion.addCommand('run', 'Run a script', [], noopCompletion);
+  completion.addCommand('test', 'Run tests', [], noopCompletion);
+  completion.addCommand('install', 'Install dependencies', [], noopCompletion);
+  completion.addCommand('update', 'Update packages', [], noopCompletion);
+  completion.addCommand('build', 'Build project', [], noopCompletion);
 }
