@@ -2,7 +2,7 @@ import * as zsh from './zsh';
 import * as bash from './bash';
 import * as fish from './fish';
 import * as powershell from './powershell';
-import type { Command as CommanderCommand } from 'commander';
+import type { Command as CommanderCommand, ParseOptions } from 'commander';
 import t, { RootCommand } from './t';
 import { assertDoubleDashes } from './shared';
 
@@ -75,7 +75,7 @@ export default function tab(instance: CommanderCommand): RootCommand {
 
   // Override the parse method to handle completion requests before normal parsing
   const originalParse = instance.parse.bind(instance);
-  instance.parse = function (argv?: readonly string[], options?: any) {
+  instance.parse = function (argv?: readonly string[], options?: ParseOptions) {
     const args = argv || process.argv;
     const completeIndex = args.findIndex((arg) => arg === 'complete');
     const dashDashIndex = args.findIndex((arg) => arg === '--');
