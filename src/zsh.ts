@@ -1,4 +1,4 @@
-import { ShellCompDirective } from './';
+import { ShellCompDirective } from './t';
 
 export function generate(name: string, exec: string) {
   return `#compdef ${name}

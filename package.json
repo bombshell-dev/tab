@@ -1,8 +1,8 @@
 {
   "name": "@bombsh/tab",
   "version": "0.0.0",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/t.js",
+  "types": "./dist/t.d.ts",
   "type": "module",
   "bin": {
     "tab": "./dist/bin/cli.js"
@@ -41,9 +41,9 @@
   },
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "types": "./dist/t.d.ts",
+      "import": "./dist/t.js",
+      "require": "./dist/t.cjs"
     },
     "./citty": {
       "types": "./dist/citty.d.ts",
