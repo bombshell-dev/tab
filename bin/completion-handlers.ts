@@ -1,11 +1,9 @@
 // TODO: i do not see any completion functionality in this file. nothing is being provided for the defined commands of these package managers. this is a blocker for release. every each of them should be handled.
-import { Completion } from '../src/index.js';
-
-const noopCompletion = async () => [];
+import { PackageManagerCompletion } from './package-manager-completion.js';
 
 export function setupCompletionForPackageManager(
   packageManager: string,
-  completion: Completion
+  completion: PackageManagerCompletion
 ) {
   if (packageManager === 'pnpm') {
     setupPnpmCompletions(completion);
@@ -17,54 +15,59 @@ export function setupCompletionForPackageManager(
     setupBunCompletions(completion);
   }
 
-  // TODO: the core functionality of tab should have nothing related to package managers. even though completion is not there anymore, but this is something to consider.
-  completion.setPackageManager(packageManager);
+  // Note: Package manager logic is now handled by PackageManagerCompletion wrapper
 }
 
-export function setupPnpmCompletions(completion: Completion) {
-  completion.addCommand('add', 'Install a package', [], noopCompletion);
-  completion.addCommand('remove', 'Remove a package', [], noopCompletion);
-  completion.addCommand(
-    'install',
-    'Install all dependencies',
-    [],
-    noopCompletion
-  );
-  completion.addCommand('update', 'Update packages', [], noopCompletion);
-  completion.addCommand('exec', 'Execute a command', [], noopCompletion);
-  completion.addCommand('run', 'Run a script', [], noopCompletion);
-  completion.addCommand('publish', 'Publish package', [], noopCompletion);
-  completion.addCommand('test', 'Run tests', [], noopCompletion);
-  completion.addCommand('build', 'Build project', [], noopCompletion);
+export function setupPnpmCompletions(completion: PackageManagerCompletion) {
+  completion.command('add', 'Install a package');
+  completion.command('remove', 'Remove a package');
+  completion.command('install', 'Install dependencies');
+  completion.command('update', 'Update dependencies');
+  completion.command('run', 'Run a script');
+  completion.command('exec', 'Execute a command');
+  completion.command('dlx', 'Run a package without installing');
+  completion.command('create', 'Create a new project');
+  completion.command('init', 'Initialize a new project');
+  completion.command('publish', 'Publish the package');
+  completion.command('pack', 'Create a tarball');
+  completion.command('link', 'Link a package');
+  completion.command('unlink', 'Unlink a package');
+  completion.command('outdated', 'Check for outdated packages');
+  completion.command('audit', 'Run security audit');
+  completion.command('list', 'List installed packages');
 }
 
-export function setupNpmCompletions(completion: Completion) {
-  completion.addCommand('install', 'Install a package', [], noopCompletion);
-  completion.addCommand('uninstall', 'Uninstall a package', [], noopCompletion);
-  completion.addCommand('run', 'Run a script', [], noopCompletion);
-  completion.addCommand('test', 'Run tests', [], noopCompletion);
-  completion.addCommand('publish', 'Publish package', [], noopCompletion);
-  completion.addCommand('update', 'Update packages', [], noopCompletion);
-  completion.addCommand('start', 'Start the application', [], noopCompletion);
-  completion.addCommand('build', 'Build project', [], noopCompletion);
+export function setupNpmCompletions(completion: PackageManagerCompletion) {
+  completion.command('install', 'Install a package');
+  completion.command('uninstall', 'Remove a package');
+  completion.command('update', 'Update dependencies');
+  completion.command('run', 'Run a script');
+  completion.command('exec', 'Execute a command');
+  completion.command('init', 'Initialize a new project');
+  completion.command('publish', 'Publish the package');
+  completion.command('pack', 'Create a tarball');
+  completion.command('link', 'Link a package');
+  completion.command('unlink', 'Unlink a package');
 }
 
-export function setupYarnCompletions(completion: Completion) {
-  completion.addCommand('add', 'Add a package', [], noopCompletion);
-  completion.addCommand('remove', 'Remove a package', [], noopCompletion);
-  completion.addCommand('run', 'Run a script', [], noopCompletion);
-  completion.addCommand('test', 'Run tests', [], noopCompletion);
-  completion.addCommand('publish', 'Publish package', [], noopCompletion);
-  completion.addCommand('install', 'Install dependencies', [], noopCompletion);
-  completion.addCommand('build', 'Build project', [], noopCompletion);
+export function setupYarnCompletions(completion: PackageManagerCompletion) {
+  completion.command('add', 'Install a package');
+  completion.command('remove', 'Remove a package');
+  completion.command('install', 'Install dependencies');
+  completion.command('upgrade', 'Update dependencies');
+  completion.command('run', 'Run a script');
+  completion.command('exec', 'Execute a command');
+  completion.command('create', 'Create a new project');
+  completion.command('init', 'Initialize a new project');
 }
 
-export function setupBunCompletions(completion: Completion) {
-  completion.addCommand('add', 'Add a package', [], noopCompletion);
-  completion.addCommand('remove', 'Remove a package', [], noopCompletion);
-  completion.addCommand('run', 'Run a script', [], noopCompletion);
-  completion.addCommand('test', 'Run tests', [], noopCompletion);
-  completion.addCommand('install', 'Install dependencies', [], noopCompletion);
-  completion.addCommand('update', 'Update packages', [], noopCompletion);
-  completion.addCommand('build', 'Build project', [], noopCompletion);
+export function setupBunCompletions(completion: PackageManagerCompletion) {
+  completion.command('add', 'Install a package');
+  completion.command('remove', 'Remove a package');
+  completion.command('install', 'Install dependencies');
+  completion.command('update', 'Update dependencies');
+  completion.command('run', 'Run a script');
+  completion.command('x', 'Execute a command');
+  completion.command('create', 'Create a new project');
+  completion.command('init', 'Initialize a new project');
 }

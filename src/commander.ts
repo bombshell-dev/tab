@@ -2,8 +2,8 @@ import * as zsh from './zsh';
 import * as bash from './bash';
 import * as fish from './fish';
 import * as powershell from './powershell';
-import type { Command as CommanderCommand } from 'commander';
-import { Completion } from './';
+import type { Command as CommanderCommand, ParseOptions } from 'commander';
+import t, { RootCommand } from './t';
 import { assertDoubleDashes } from './shared';
 
 const execPath = process.execPath;
@@ -18,34 +18,20 @@ function quoteIfNeeded(path: string): string {
   return path.includes(' ') ? `'${path}'` : path;
 }
 
-export default function tab(instance: CommanderCommand): Completion {
-  const completion = new Completion();
+export default function tab(instance: CommanderCommand): RootCommand {
   const programName = instance.name();
 
   // Process the root command
-  processRootCommand(completion, instance, programName);
+  processRootCommand(instance, programName);
 
   // Process all subcommands
-  processSubcommands(completion, instance, programName);
+  processSubcommands(instance, programName);
 
-  // Add the complete command
+  // Add the complete command for normal shell script generation
   instance
     .command('complete [shell]')
-    .allowUnknownOption(true)
     .description('Generate shell completion scripts')
-    .action(async (shell, options) => {
-      // Check if there are arguments after --
-      const dashDashIndex = process.argv.indexOf('--');
-      let extra: string[] = [];
-
-      if (dashDashIndex !== -1) {
-        extra = process.argv.slice(dashDashIndex + 1);
-        // If shell is actually part of the extra args, adjust accordingly
-        if (shell && extra.length > 0 && shell === '--') {
-          shell = undefined;
-        }
-      }
-
+    .action(async (shell) => {
       switch (shell) {
         case 'zsh': {
           const script = zsh.generate(programName, x);
@@ -80,26 +66,46 @@ export default function tab(instance: CommanderCommand): Completion {
           break;
         }
         default: {
-          assertDoubleDashes(programName);
-
-          // Parse current command context for autocompletion
-          return completion.parse(extra);
+          console.error(`Unknown shell: ${shell}`);
+          console.error('Supported shells: zsh, bash, fish, powershell');
+          process.exit(1);
         }
       }
     });
 
-  return completion;
+  // Override the parse method to handle completion requests before normal parsing
+  const originalParse = instance.parse.bind(instance);
+  instance.parse = function (argv?: readonly string[], options?: ParseOptions) {
+    const args = argv || process.argv;
+    const completeIndex = args.findIndex((arg) => arg === 'complete');
+    const dashDashIndex = args.findIndex((arg) => arg === '--');
+
+    if (
+      completeIndex !== -1 &&
+      dashDashIndex !== -1 &&
+      dashDashIndex > completeIndex
+    ) {
+      // This is a completion request, handle it directly
+      const extra = args.slice(dashDashIndex + 1);
+
+      // Handle the completion directly
+      assertDoubleDashes(programName);
+      t.parse(extra);
+      return instance;
+    }
+
+    // Normal parsing
+    return originalParse(argv, options);
+  };
+
+  return t;
 }
 
 function processRootCommand(
-  completion: Completion,
   command: CommanderCommand,
   programName: string
 ): void {
-  // Add the root command
-  completion.addCommand('', command.description() || '', [], async () => []);
-
-  // Add root command options
+  // Add root command options to the root t instance
   for (const option of command.options) {
     // Extract short flag from the name if it exists (e.g., "-c, --config" -> "c")
     const flags = option.flags;
@@ -107,19 +113,16 @@ function processRootCommand(
     const longFlag = flags.match(/--([a-zA-Z0-9-]+)/)?.[1];
 
     if (longFlag) {
-      completion.addOption(
-        '',
-        `--${longFlag}`,
-        option.description || '',
-        async () => [],
-        shortFlag
-      );
+      if (shortFlag) {
+        t.option(longFlag, option.description || '', shortFlag);
+      } else {
+        t.option(longFlag, option.description || '');
+      }
     }
   }
 }
 
 function processSubcommands(
-  completion: Completion,
   rootCommand: CommanderCommand,
   programName: string
 ): void {
@@ -133,14 +136,8 @@ function processSubcommands(
   for (const [path, cmd] of commandMap.entries()) {
     if (path === '') continue; // Skip root command, already processed
 
-    // Extract positional arguments from usage
-    const usage = cmd.usage();
-    const args = (usage?.match(/\[.*?\]|<.*?>/g) || []).map((arg) =>
-      arg.startsWith('[')
-    ); // true if optional (wrapped in [])
-
-    // Add command to completion
-    completion.addCommand(path, cmd.description() || '', args, async () => []);
+    // Add command using t.ts API
+    const command = t.command(path, cmd.description() || '');
 
     // Add command options
     for (const option of cmd.options) {
@@ -150,29 +147,10 @@ function processSubcommands(
       const longFlag = flags.match(/--([a-zA-Z0-9-]+)/)?.[1];
 
       if (longFlag) {
-        completion.addOption(
-          path,
-          `--${longFlag}`,
-          option.description || '',
-          async () => [],
-          shortFlag
-        );
-      }
-    }
-
-    // For commands with subcommands, add a special handler
-    if (cmd.commands.length > 0) {
-      const subcommandNames = cmd.commands
-        .filter((subcmd) => subcmd.name() !== 'complete')
-        .map((subcmd) => ({
-          value: subcmd.name(),
-          description: subcmd.description() || '',
-        }));
-
-      if (subcommandNames.length > 0) {
-        const cmdObj = completion.commands.get(path);
-        if (cmdObj) {
-          cmdObj.handler = async () => subcommandNames;
+        if (shortFlag) {
+          command.option(longFlag, option.description || '', shortFlag);
+        } else {
+          command.option(longFlag, option.description || '');
         }
       }
     }

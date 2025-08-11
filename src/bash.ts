@@ -1,4 +1,4 @@
-import { ShellCompDirective } from './';
+import { ShellCompDirective } from './t';
 
 export function generate(name: string, exec: string): string {
   // Replace '-' and ':' with '_' for variable names

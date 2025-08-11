@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
 import cac from 'cac';
-import { script, Completion } from '../src/index.js';
+import { script } from '../src/t.js';
 import tab from '../src/cac.js';
 
 import { setupCompletionForPackageManager } from './completion-handlers';
+import { PackageManagerCompletion } from './package-manager-completion.js';
 
 const packageManagers = ['npm', 'pnpm', 'yarn', 'bun'];
 const shells = ['zsh', 'bash', 'fish', 'powershell'];
@@ -27,8 +28,8 @@ async function main() {
 
     const dashIndex = process.argv.indexOf('--');
     if (dashIndex !== -1) {
-      // TOOD: there's no Completion anymore
-      const completion = new Completion();
+      // Use the new PackageManagerCompletion wrapper
+      const completion = new PackageManagerCompletion(packageManager);
       setupCompletionForPackageManager(packageManager, completion);
       const toComplete = process.argv.slice(dashIndex + 1);
       await completion.parse(toComplete);

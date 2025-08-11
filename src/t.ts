@@ -1,5 +1,5 @@
 // Shell directive constants
-const ShellCompDirective = {
+export const ShellCompDirective = {
   ShellCompDirectiveError: 1 << 0,
   ShellCompDirectiveNoSpace: 1 << 1,
   ShellCompDirectiveNoFileComp: 1 << 2,
@@ -540,5 +540,10 @@ export class RootCommand extends Command {
 }
 
 const t = new RootCommand();
+
+// TODO: re-check the below
+export function script(shell: string, name: string, executable: string) {
+  t.setup(name, executable, shell);
+}
 
 export default t;

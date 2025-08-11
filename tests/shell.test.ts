@@ -3,7 +3,7 @@ import * as fish from '../src/fish';
 import * as bash from '../src/bash';
 import * as zsh from '../src/zsh';
 import * as powershell from '../src/powershell';
-import { ShellCompDirective } from '../src';
+import { ShellCompDirective } from '../src/t';
 
 describe('shell completion generators', () => {
   const name = 'testcli';

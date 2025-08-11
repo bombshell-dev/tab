@@ -1,4 +1,4 @@
-import { ShellCompDirective } from './';
+import { ShellCompDirective } from './t';
 
 // TODO: issue with -- -- completions
 

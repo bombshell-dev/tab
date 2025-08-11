@@ -61,13 +61,9 @@ const completion = tab(program);
 
 // Configure custom completions
 for (const command of completion.commands.values()) {
-  if (command.name === 'lint') {
-    command.handler = () => {
-      return [
-        { value: 'src/**/*.ts', description: 'TypeScript source files' },
-        { value: 'tests/**/*.ts', description: 'Test files' },
-      ];
-    };
+  if (command.value === 'lint') {
+    // Note: Direct handler assignment is not supported in the current API
+    // Custom completion logic would need to be implemented differently
   }
 
   for (const [option, config] of command.options.entries()) {
