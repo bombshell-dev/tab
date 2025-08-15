@@ -1,74 +1,57 @@
 import { Bench } from 'tinybench';
-import { RootCommand } from '../src/t';
+import { promisify } from 'node:util';
+import { exec as execCb } from 'node:child_process';
 
-const bench = new Bench({ time: 1000 });
+const exec = promisify(execCb);
 
-const setupCompletion = () => {
-  const completion = new RootCommand();
-  completion.command('dev', 'Start dev server');
-  completion.command('build', 'Build project');
-  completion.command('test', 'Run tests');
+const bench = new Bench({ time: 2000 });
 
-  completion.option('--config', 'Config file');
-  completion.option('--verbose', 'Verbose output');
+const cmdPrefix = `${process.execPath} ./dist/examples/demo.t.js complete --`;
 
-  const devCommand = completion.commands.get('dev')!;
-  devCommand.option('--port', 'Port number', function (complete) {
-    complete('3000', 'Development port');
-    complete('8080', 'Alternative port');
-  });
+async function run(cmd: string) {
+  await exec(cmd);
+}
 
-  return completion;
-};
-
-const suppressOutput = (fn: () => void) => {
-  const originalLog = console.log;
-  console.log = () => {};
-  fn();
-  console.log = originalLog;
-};
-
-bench.add('command completion', () => {
-  const completion = setupCompletion();
-  suppressOutput(() => completion.parse(['d']));
+bench.add('command completion', async () => {
+  await run(`${cmdPrefix} d`);
 });
 
-bench.add('option completion', () => {
-  const completion = setupCompletion();
-  suppressOutput(() => completion.parse(['dev', '--p']));
+bench.add('option completion', async () => {
+  await run(`${cmdPrefix} dev --p`);
 });
 
-bench.add('option value completion', () => {
-  const completion = setupCompletion();
-  suppressOutput(() => completion.parse(['dev', '--port', '']));
+bench.add('option value completion', async () => {
+  await run(`${cmdPrefix} dev --port ""`);
 });
 
-bench.add('no match', () => {
-  const completion = setupCompletion();
-  suppressOutput(() => completion.parse(['xyz']));
+bench.add('config value completion', async () => {
+  await run(`${cmdPrefix} --config ""`);
 });
 
-bench.add('large command set', () => {
-  const completion = new RootCommand();
-  for (let i = 0; i < 100; i++) {
-    completion.command(`cmd${i}`, `Command ${i}`);
-  }
-  suppressOutput(() => completion.parse(['cmd5']));
+bench.add('no match', async () => {
+  await run(`${cmdPrefix} xyz`);
 });
 
 async function runBenchmarks() {
   await bench.run();
 
   console.table(
-    bench.tasks.map((task) => ({
-      name: task.name,
-      'ops/sec': task.result?.hz
-        ? Math.round(task.result.hz).toLocaleString()
-        : 'N/A',
-      'avg (ms)': task.result?.mean
-        ? (task.result.mean * 1000).toFixed(3)
-        : 'N/A',
-    }))
+    bench.tasks.map((task) => {
+      const hz = task.result?.hz;
+      const derivedMs =
+        typeof hz === 'number' && hz > 0 ? 1000 / hz : undefined;
+      const mean = task.result?.mean;
+      return {
+        name: task.name,
+        'ops/sec': hz ? Math.round(hz).toLocaleString() : 'N/A',
+        'avg (ms)':
+          derivedMs !== undefined
+            ? derivedMs.toFixed(3)
+            : mean !== undefined
+              ? (mean * 1000).toFixed(3)
+              : 'N/A',
+      };
+    })
   );
 }
 
