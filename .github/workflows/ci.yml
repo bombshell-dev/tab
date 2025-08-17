@@ -34,18 +34,23 @@ jobs:
         run: pnpm install
 
       - name: Run core tests (excluding shell integration)
-        run: pnpm test --exclude="**/shell-integration.test.ts"
+        run: pnpm vitest run --exclude "**/shell-integration.test.ts"
 
   shell-tests:
     name: Shell Tests (${{ matrix.shell }} on ${{ matrix.os }})
     strategy:
       matrix:
         shell: [bash, zsh, fish, powershell]
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         exclude:
           # PowerShell installation can be flaky on macOS in CI
           - shell: powershell
             os: macos-latest
+          # Some shells are not easily available on Windows
+          - shell: zsh
+            os: windows-latest
+          - shell: fish
+            os: windows-latest
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -94,7 +99,30 @@ jobs:
               ;;
           esac
 
-      - name: Verify shell installation
+      - name: Install shell dependencies (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          # Windows specific shell setup
+          switch ("${{ matrix.shell }}") {
+            "bash" {
+              # Git for Windows includes bash
+              if (!(Get-Command git -ErrorAction SilentlyContinue)) {
+                choco install git -y
+              }
+              Write-Host "Bash available via Git for Windows"
+            }
+            "powershell" {
+              # PowerShell is already installed on Windows
+              Write-Host "PowerShell already available"
+            }
+            default {
+              Write-Host "Shell ${{ matrix.shell }} not supported on Windows"
+            }
+          }
+
+      - name: Verify shell installation (Unix)
+        if: matrix.os != 'windows-latest'
         run: |
           case "${{ matrix.shell }}" in
             bash)
@@ -110,6 +138,22 @@ jobs:
               pwsh --version
               ;;
           esac
+
+      - name: Verify shell installation (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          switch ("${{ matrix.shell }}") {
+            "bash" {
+              bash --version
+            }
+            "powershell" {
+              pwsh --version
+            }
+            default {
+              Write-Host "Verification not needed for ${{ matrix.shell }} on Windows"
+            }
+          }
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4.0.0

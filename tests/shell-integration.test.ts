@@ -201,6 +201,34 @@ Then source the completion in your shell profile:
             expect(stdout).toMatch(/complete -c \w+ -f/);
           });
           break;
+
+        case 'powershell':
+          it('powershell completion should include proper functions', async () => {
+            const command = `pnpm tsx examples/demo.${cliTool}.ts complete powershell`;
+            const { stdout } = await exec(command);
+
+            // Should contain PowerShell function definition
+            expect(stdout).toContain('function __');
+
+            // Should contain Register-ArgumentCompleter
+            expect(stdout).toContain('Register-ArgumentCompleter');
+
+            // Should handle PowerShell completion parameters
+            expect(stdout).toContain('$WordToComplete');
+            expect(stdout).toContain('$CommandAst');
+            expect(stdout).toContain('$CursorPosition');
+          });
+          break;
+
+        default:
+          // For shells without specific tests, add a basic test to avoid empty suites
+          it(`should generate ${shell} completion script`, async () => {
+            const command = `pnpm tsx examples/demo.${cliTool}.ts complete ${shell}`;
+            const { stdout } = await exec(command);
+            expect(stdout).toBeTruthy();
+            expect(stdout).toContain(`# ${shell} completion for`);
+          });
+          break;
       }
     });
   });
