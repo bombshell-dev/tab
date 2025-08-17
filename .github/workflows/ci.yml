@@ -101,7 +101,7 @@ jobs:
 
       - name: Install shell dependencies (Windows)
         if: matrix.os == 'windows-latest'
-        shell: pwsh
+        shell: powershell
         run: |
           # Windows specific shell setup
           switch ("${{ matrix.shell }}") {
@@ -113,8 +113,8 @@ jobs:
               Write-Host "Bash available via Git for Windows"
             }
             "powershell" {
-              # PowerShell is already installed on Windows
-              Write-Host "PowerShell already available"
+              # Install PowerShell Core for consistency across platforms
+              winget install --id Microsoft.Powershell --source winget --silent
             }
             default {
               Write-Host "Shell ${{ matrix.shell }} not supported on Windows"
@@ -141,7 +141,7 @@ jobs:
 
       - name: Verify shell installation (Windows)
         if: matrix.os == 'windows-latest'
-        shell: pwsh
+        shell: powershell
         run: |
           switch ("${{ matrix.shell }}") {
             "bash" {

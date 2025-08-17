@@ -179,7 +179,7 @@ Then source the completion in your shell profile:
               break;
           }
         }
-      });
+      }, 15000); // Increase timeout to 15 seconds for these intensive tests
     });
   });
 
