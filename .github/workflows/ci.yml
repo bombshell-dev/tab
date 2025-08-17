@@ -72,10 +72,8 @@ jobs:
               sudo apt-get install -y fish
               ;;
             powershell)
-              wget -q https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
-              sudo dpkg -i packages-microsoft-prod.deb
-              sudo apt-get update
-              sudo apt-get install -y powershell
+              # PowerShell Core is pre-installed on GitHub Actions runners
+              echo "PowerShell Core already available"
               ;;
           esac
 
@@ -113,13 +111,8 @@ jobs:
               Write-Host "Bash available via Git for Windows"
             }
             "powershell" {
-              # Check if PowerShell Core is available, install if needed
-              if (!(Get-Command pwsh -ErrorAction SilentlyContinue)) {
-                Write-Host "Installing PowerShell Core..."
-                choco install powershell-core -y --force
-              } else {
-                Write-Host "PowerShell Core already available"
-              }
+              # PowerShell Core is pre-installed on GitHub Actions runners
+              Write-Host "PowerShell Core already available"
             }
             default {
               Write-Host "Shell ${{ matrix.shell }} not supported on Windows"
