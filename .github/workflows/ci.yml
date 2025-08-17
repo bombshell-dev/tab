@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Tests
+    name: Tests (${{ matrix.os }})
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -33,8 +33,101 @@ jobs:
       - name: Install deps
         run: pnpm install
 
-      - name: Run tests
-        run: pnpm test
+      - name: Run core tests (excluding shell integration)
+        run: pnpm test --exclude="**/shell-integration.test.ts"
+
+  shell-tests:
+    name: Shell Tests (${{ matrix.shell }} on ${{ matrix.os }})
+    strategy:
+      matrix:
+        shell: [bash, zsh, fish, powershell]
+        os: [ubuntu-latest, macos-latest]
+        exclude:
+          # PowerShell installation can be flaky on macOS in CI
+          - shell: powershell
+            os: macos-latest
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install shell dependencies (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          case "${{ matrix.shell }}" in
+            bash)
+              sudo apt-get install -y bash-completion
+              ;;
+            zsh)
+              sudo apt-get install -y zsh
+              ;;
+            fish)
+              sudo apt-get install -y fish
+              ;;
+            powershell)
+              wget -q https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
+              sudo dpkg -i packages-microsoft-prod.deb
+              sudo apt-get update
+              sudo apt-get install -y powershell
+              ;;
+          esac
+
+      - name: Install shell dependencies (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          case "${{ matrix.shell }}" in
+            bash)
+              brew install bash-completion@2
+              ;;
+            zsh)
+              # zsh is already installed on macOS
+              echo "zsh already available"
+              ;;
+            fish)
+              brew install fish
+              ;;
+            powershell)
+              # Skip PowerShell on macOS for now due to CI flakiness
+              echo "PowerShell skipped on macOS"
+              ;;
+          esac
+
+      - name: Verify shell installation
+        run: |
+          case "${{ matrix.shell }}" in
+            bash)
+              bash --version
+              ;;
+            zsh)
+              zsh --version
+              ;;
+            fish)
+              fish --version
+              ;;
+            powershell)
+              pwsh --version
+              ;;
+          esac
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4.0.0
+
+      - name: Set node version to 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org/
+          cache: 'pnpm'
+
+      - name: Install deps
+        run: pnpm install
+
+      - name: Run shell-specific tests
+        run: pnpm test tests/shell-integration.test.ts
+        env:
+          TEST_SHELL: ${{ matrix.shell }}
 
   typecheck:
     name: Lint and Type Check

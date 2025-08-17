@@ -7,7 +7,11 @@ import { join } from 'node:path';
 const exec = promisify(execCb);
 
 describe('shell integration tests', () => {
-  const shells = ['zsh', 'bash', 'fish', 'powershell'];
+  // Support matrix testing - if TEST_SHELL is set, only test that shell
+  const testShell = process.env.TEST_SHELL;
+  const shells = testShell
+    ? [testShell]
+    : ['zsh', 'bash', 'fish', 'powershell'];
   const cliTool = 'cac';
 
   describe('shell script generation', () => {
@@ -64,25 +68,66 @@ describe('shell integration tests', () => {
   });
 
   describe('shell script syntax validation', () => {
-    it('should generate syntactically valid bash script', async () => {
-      const command = `pnpm tsx examples/demo.${cliTool}.ts complete bash`;
-      const { stdout } = await exec(command);
+    // Only run syntax validation for the shells we're testing
+    const syntaxTestShells = shells.filter(
+      (shell) =>
+        shell === 'bash' ||
+        shell === 'zsh' ||
+        shell === 'fish' ||
+        shell === 'powershell'
+    );
 
-      // Write script to temp file
-      const scriptPath = join(process.cwd(), 'temp-bash-completion.sh');
-      await writeFile(scriptPath, stdout);
+    syntaxTestShells.forEach((shell) => {
+      it(
+        `should generate syntactically valid ${shell} script`,
+        async () => {
+          const command = `pnpm tsx examples/demo.${cliTool}.ts complete ${shell}`;
+          const { stdout } = await exec(command);
 
-      try {
-        // Test bash syntax with -n flag (syntax check only)
-        await exec(`bash -n ${scriptPath}`);
-        // If we get here, syntax is valid
-        expect(true).toBe(true);
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
+          // Write script to temp file
+          const scriptPath = join(
+            process.cwd(),
+            `temp-${shell}-completion.${shell === 'powershell' ? 'ps1' : shell === 'fish' ? 'fish' : 'sh'}`
+          );
+          await writeFile(scriptPath, stdout);
 
-        // Provide helpful error message about bash-completion dependency
-        const helpMessage = `
+          try {
+            // Test syntax based on shell type
+            switch (shell) {
+              case 'bash':
+                await exec(`bash -n ${scriptPath}`);
+                break;
+              case 'zsh':
+                await exec(`zsh -n ${scriptPath}`);
+                break;
+              case 'fish':
+                await exec(`fish -n ${scriptPath}`);
+                break;
+              case 'powershell':
+                // Test PowerShell syntax with timeout to prevent hanging in CI
+                const testPromise = exec(
+                  `pwsh -NoProfile -Command "& { . '${scriptPath}'; exit 0 }"`
+                );
+
+                const timeoutPromise = new Promise((_, reject) =>
+                  setTimeout(
+                    () => reject(new Error('PowerShell test timed out')),
+                    10000
+                  )
+                );
+
+                await Promise.race([testPromise, timeoutPromise]);
+                break;
+            }
+            // If we get here, syntax is valid
+            expect(true).toBe(true);
+          } catch (error) {
+            const errorMessage =
+              error instanceof Error ? error.message : String(error);
+
+            // Provide helpful error message for bash-completion dependency
+            if (shell === 'bash' && errorMessage.includes('syntax')) {
+              const helpMessage = `
 Bash script has syntax errors: ${errorMessage}
 
 This might be due to missing bash-completion dependency.
@@ -93,170 +138,95 @@ To fix this, install bash-completion@2:
 Then source the completion in your shell profile:
   echo 'source $(brew --prefix)/share/bash-completion/bash_completion' >> ~/.bashrc
 `;
-        throw new Error(helpMessage);
-      } finally {
-        // Clean up
-        await unlink(scriptPath).catch(() => {});
-      }
-    });
+              throw new Error(helpMessage);
+            }
 
-    it('should generate syntactically valid zsh script', async () => {
-      const command = `pnpm tsx examples/demo.${cliTool}.ts complete zsh`;
-      const { stdout } = await exec(command);
-
-      // Write script to temp file
-      const scriptPath = join(process.cwd(), 'temp-zsh-completion.zsh');
-      await writeFile(scriptPath, stdout);
-
-      try {
-        // Test zsh syntax with -n flag (syntax check only)
-        await exec(`zsh -n ${scriptPath}`);
-        // If we get here, syntax is valid
-        expect(true).toBe(true);
-      } catch (error) {
-        throw new Error(`Zsh script has syntax errors: ${error}`);
-      } finally {
-        // Clean up
-        await unlink(scriptPath).catch(() => {});
-      }
-    });
-
-    it('should generate syntactically valid fish script', async () => {
-      const command = `pnpm tsx examples/demo.${cliTool}.ts complete fish`;
-      const { stdout } = await exec(command);
-
-      // Write script to temp file
-      const scriptPath = join(process.cwd(), 'temp-fish-completion.fish');
-      await writeFile(scriptPath, stdout);
-
-      try {
-        // Test fish syntax with -n flag (syntax check only)
-        await exec(`fish -n ${scriptPath}`);
-        // If we get here, syntax is valid
-        expect(true).toBe(true);
-      } catch (error) {
-        // Fish might not be available, so make this a softer check
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
-        if (
-          errorMessage.includes('command not found') ||
-          errorMessage.includes('not recognized')
-        ) {
-          console.warn(
-            'Fish shell not available for syntax testing, skipping...'
-          );
-          expect(true).toBe(true);
-        } else {
-          throw new Error(`Fish script has syntax errors: ${errorMessage}`);
-        }
-      } finally {
-        // Clean up
-        await unlink(scriptPath).catch(() => {});
-      }
-    });
-
-    it('should generate syntactically valid powershell script', async () => {
-      const command = `pnpm tsx examples/demo.${cliTool}.ts complete powershell`;
-      const { stdout } = await exec(command);
-
-      // Write script to temp file
-      const scriptPath = join(process.cwd(), 'temp-powershell-completion.ps1');
-      await writeFile(scriptPath, stdout);
-
-      try {
-        // Test PowerShell syntax
-        await exec(
-          `pwsh -NoProfile -Command "& { . '${scriptPath}'; exit 0 }"`
-        );
-        // If we get here, syntax is valid
-        expect(true).toBe(true);
-      } catch (error) {
-        // PowerShell might not be available, so make this a softer check
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
-        if (
-          errorMessage.includes('command not found') ||
-          errorMessage.includes('not recognized')
-        ) {
-          console.warn(
-            'PowerShell not available for syntax testing, skipping...'
-          );
-          expect(true).toBe(true);
-        } else {
-          throw new Error(
-            `PowerShell script has syntax errors: ${errorMessage}`
-          );
-        }
-      } finally {
-        // Clean up
-        await unlink(scriptPath).catch(() => {});
-      }
+            throw new Error(`${shell} script has syntax errors: ${error}`);
+          } finally {
+            // Clean up
+            await unlink(scriptPath).catch(() => {});
+          }
+        },
+        shell === 'powershell' ? 15000 : 5000
+      ); // Longer timeout for PowerShell
     });
   });
 
   // Test shell-specific features
   describe('shell-specific functionality', () => {
-    it('bash completion should include proper function definitions', async () => {
-      const command = `pnpm tsx examples/demo.${cliTool}.ts complete bash`;
-      const { stdout } = await exec(command);
+    shells.forEach((shell) => {
+      switch (shell) {
+        case 'bash':
+          it('bash completion should include proper function definitions', async () => {
+            const command = `pnpm tsx examples/demo.${cliTool}.ts complete bash`;
+            const { stdout } = await exec(command);
 
-      // Should contain bash completion function
-      expect(stdout).toMatch(/__\w+_complete\(\)/);
+            // Should contain bash completion function
+            expect(stdout).toMatch(/__\w+_complete\(\)/);
 
-      // Should contain complete command registration
-      expect(stdout).toMatch(/complete -F __\w+_complete/);
+            // Should contain complete command registration
+            expect(stdout).toMatch(/complete -F __\w+_complete/);
 
-      // Should handle bash completion variables (using _get_comp_words_by_ref)
-      expect(stdout).toContain('_get_comp_words_by_ref');
-      expect(stdout).toContain('cur prev words cword');
-    });
+            // Should handle bash completion variables (using _get_comp_words_by_ref)
+            expect(stdout).toContain('_get_comp_words_by_ref');
+            expect(stdout).toContain('cur prev words cword');
+          });
+          break;
 
-    it('zsh completion should include proper compdef', async () => {
-      const command = `pnpm tsx examples/demo.${cliTool}.ts complete zsh`;
-      const { stdout } = await exec(command);
+        case 'zsh':
+          it('zsh completion should include proper compdef', async () => {
+            const command = `pnpm tsx examples/demo.${cliTool}.ts complete zsh`;
+            const { stdout } = await exec(command);
 
-      // Should contain compdef directive
-      expect(stdout).toMatch(/#compdef \w+/);
+            // Should contain compdef directive
+            expect(stdout).toMatch(/#compdef \w+/);
 
-      // Should contain completion function
-      expect(stdout).toMatch(/_\w+\(\)/);
+            // Should contain completion function
+            expect(stdout).toMatch(/_\w+\(\)/);
 
-      // Should register the completion
-      expect(stdout).toMatch(/compdef _\w+ \w+/);
-    });
+            // Should register the completion
+            expect(stdout).toMatch(/compdef _\w+ \w+/);
+          });
+          break;
 
-    it('fish completion should include proper complete commands', async () => {
-      const command = `pnpm tsx examples/demo.${cliTool}.ts complete fish`;
-      const { stdout } = await exec(command);
+        case 'fish':
+          it('fish completion should include proper complete commands', async () => {
+            const command = `pnpm tsx examples/demo.${cliTool}.ts complete fish`;
+            const { stdout } = await exec(command);
 
-      // Should contain fish complete commands
-      expect(stdout).toContain('complete -c');
+            // Should contain fish complete commands
+            expect(stdout).toContain('complete -c');
 
-      // Should handle command completion
-      expect(stdout).toMatch(/complete -c \w+ -f/);
-    });
-  });
-
-  // Test for potential bash issues (related to the user's problem)
-  describe('bash-specific issue detection', () => {
-    it('should generate bash script with proper syntax (requires bash-completion@2)', async () => {
-      const command = `pnpm tsx examples/demo.${cliTool}.ts complete bash`;
-      const { stdout } = await exec(command);
-
-      // Check that it uses the correct ${words[@]:1} syntax
-      expect(stdout).toContain('${words[@]:1}'); // Should use ${words[@]:1} (requires bash-completion@2)
-      expect(stdout).toContain('requestComp='); // Should have proper variable assignment
-      expect(stdout).toContain('complete -F'); // Should register completion properly
-      expect(stdout).toContain('_get_comp_words_by_ref'); // Should use bash-completion functions
-    });
-
-    it('should generate bash script that handles empty parameters correctly', async () => {
-      const command = `pnpm tsx examples/demo.${cliTool}.ts complete bash`;
-      const { stdout } = await exec(command);
-
-      // Should handle empty parameters
-      expect(stdout).toContain(`''`); // Should add empty parameter handling
-      expect(stdout).toContain('requestComp='); // Should build command properly
+            // Should handle command completion
+            expect(stdout).toMatch(/complete -c \w+ -f/);
+          });
+          break;
+      }
     });
   });
+
+  // Test for potential bash issues (only run for bash)
+  if (shells.includes('bash')) {
+    describe('bash-specific issue detection', () => {
+      it('should generate bash script with proper syntax (requires bash-completion@2)', async () => {
+        const command = `pnpm tsx examples/demo.${cliTool}.ts complete bash`;
+        const { stdout } = await exec(command);
+
+        // Check that it uses the correct ${words[@]:1} syntax
+        expect(stdout).toContain('${words[@]:1}'); // Should use ${words[@]:1} (requires bash-completion@2)
+        expect(stdout).toContain('requestComp='); // Should have proper variable assignment
+        expect(stdout).toContain('complete -F'); // Should register completion properly
+        expect(stdout).toContain('_get_comp_words_by_ref'); // Should use bash-completion functions
+      });
+
+      it('should generate bash script that handles empty parameters correctly', async () => {
+        const command = `pnpm tsx examples/demo.${cliTool}.ts complete bash`;
+        const { stdout } = await exec(command);
+
+        // Should handle empty parameters
+        expect(stdout).toContain(`''`); // Should add empty parameter handling
+        expect(stdout).toContain('requestComp='); // Should build command properly
+      });
+    });
+  }
 });
