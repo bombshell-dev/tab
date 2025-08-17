@@ -114,7 +114,7 @@ jobs:
             }
             "powershell" {
               # Install PowerShell Core for consistency across platforms
-              winget install --id Microsoft.Powershell --source winget --silent
+              choco install powershell-core -y
             }
             default {
               Write-Host "Shell ${{ matrix.shell }} not supported on Windows"
