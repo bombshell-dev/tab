@@ -42,14 +42,7 @@ __${nameForVar}_complete() {
     local requestComp out directive
     
     # Build the command to get completions
-    # Use a more compatible approach instead of \${words[@]:1}
-    local args=""
-    for (( i=1; i<cword+1; i++ )); do
-        if [[ -n "\${words[i]}" ]]; then
-            args="$args \\"\${words[i]}\\""
-        fi
-    done
-    requestComp="${exec} complete --$args"
+    requestComp="${exec} complete -- \${words[@]:1}"
     
     # Add an empty parameter if the last parameter is complete
     if [[ -z "$cur" ]]; then
@@ -125,5 +118,6 @@ __${nameForVar}_complete() {
 
 # Register completion function
 complete -F __${nameForVar}_complete ${name}
+
 `;
 }

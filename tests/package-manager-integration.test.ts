@@ -114,7 +114,22 @@ describe('package manager integration tests', () => {
           // If we get here, syntax is valid
           expect(true).toBe(true);
         } catch (error) {
-          throw new Error(`${pm} bash script has syntax errors: ${error}`);
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+
+          // Provide helpful error message about bash-completion dependency
+          const helpMessage = `
+${pm} bash script has syntax errors: ${errorMessage}
+
+This might be due to missing bash-completion dependency.
+To fix this, install bash-completion@2:
+
+  brew install bash-completion@2
+
+Then source the completion in your shell profile:
+  echo 'source $(brew --prefix)/share/bash-completion/bash_completion' >> ~/.bashrc
+`;
+          throw new Error(helpMessage);
         } finally {
           // Clean up
           await unlink(scriptPath).catch(() => {});
@@ -125,9 +140,10 @@ describe('package manager integration tests', () => {
         const command = `pnpm tsx bin/cli.ts ${pm} bash`;
         const { stdout } = await exec(command);
 
-        // Check for the actual problematic bash syntax in the requestComp assignment
-        expect(stdout).not.toMatch(/requestComp="[^"]*\$\{words\[@\]:1\}/); // Should not use ${words[@]:1} in requestComp
+        // Check that it uses the correct ${words[@]:1} syntax (requires bash-completion@2)
+        expect(stdout).toContain('${words[@]:1}'); // Should use ${words[@]:1} (requires bash-completion@2)
         expect(stdout).toContain('complete -F'); // Should register completion properly
+        expect(stdout).toContain('_get_comp_words_by_ref'); // Should use bash-completion functions
 
         // Should contain package manager specific function
         expect(stdout).toMatch(
