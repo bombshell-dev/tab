@@ -113,8 +113,13 @@ jobs:
               Write-Host "Bash available via Git for Windows"
             }
             "powershell" {
-              # Install PowerShell Core for consistency across platforms
-              choco install powershell-core -y
+              # Check if PowerShell Core is available, install if needed
+              if (!(Get-Command pwsh -ErrorAction SilentlyContinue)) {
+                Write-Host "Installing PowerShell Core..."
+                choco install powershell-core -y --force
+              } else {
+                Write-Host "PowerShell Core already available"
+              }
             }
             default {
               Write-Host "Shell ${{ matrix.shell }} not supported on Windows"
