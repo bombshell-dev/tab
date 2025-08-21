@@ -27,6 +27,14 @@
     "autocomplete"
   ],
   "author": "Bombshell Authors (https://github.com/bombshell-dev)",
+  "homepage": "https://github.com/bombshell-dev/tab#readme",
+  "bugs": {
+    "url": "https://github.com/bombshell-dev/tab/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bombshell-dev/tab.git"
+  },
   "license": "ISC",
   "devDependencies": {
     "@changesets/cli": "^2.29.6",
