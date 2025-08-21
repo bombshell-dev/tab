@@ -1,5 +1,11 @@
 # @bombsh/tab
 
+## 0.0.3
+
+### Patch Changes
+
+- 1655153: Update package metadata with repo URL.
+
 ## 0.0.2
 
 ### Patch Changes
