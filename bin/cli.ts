@@ -37,7 +37,7 @@ async function main() {
     } else {
       console.error(`Error: Expected '--' followed by command to complete`);
       console.error(
-        `Example: ${packageManager} exec @bombsh/tab ${packageManager} complete -- command-to-complete`
+        `Example: ${packageManager} exec @bomb.sh/tab ${packageManager} complete -- command-to-complete`
       );
       process.exit(1);
     }
@@ -74,7 +74,7 @@ async function main() {
 // function generateCompletionScript(packageManager: string, shell: string) {
 //   const name = packageManager;
 //   const executable = process.env.npm_execpath
-//     ? `${packageManager} exec @bombsh/tab ${packageManager}`
+//     ? `${packageManager} exec @bomb.sh/tab ${packageManager}`
 //     : `node ${process.argv[1]} ${packageManager}`;
 //   script(shell as any, name, executable);
 // }

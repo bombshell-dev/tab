@@ -1,5 +1,5 @@
 {
-  "name": "@bombsh/tab",
+  "name": "@bomb.sh/tab",
   "version": "0.0.1",
   "main": "./dist/t.js",
   "types": "./dist/t.d.ts",

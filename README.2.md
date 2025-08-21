@@ -11,7 +11,7 @@ Autocompletions are the solution to not break the user's flow. The issue is they
 `my-cli.ts`:
 
 ```typescript
-import t from '@bombsh/tab';
+import t from '@bomb.sh/tab';
 
 t.name('my-cli');
 
@@ -87,7 +87,7 @@ And that made us develop our own autocompletion abstraction over npm, pnpm and y
 They'd only have to run this command once and inject it in their shell config.
 
 ```bash
-npx @bombsh/tab pnpm zsh
+npx @bomb.sh/tab pnpm zsh
 ```
 
 These autocompletions on top of the normal autocompletions that these package managers provide are going to be way more powerful.
