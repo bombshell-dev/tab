@@ -15,7 +15,7 @@ Check out the [examples directory](./examples) for complete examples of using Ta
 ## Usage
 
 ```ts
-import { Completion, script } from '@bombsh/tab';
+import { Completion, script } from '@bomb.sh/tab';
 
 const name = 'my-cli';
 const completion = new Completion();
@@ -70,11 +70,11 @@ Now your user can run `source <(my-cli complete zsh)` and they will get completi
 
 Since we are heavy users of tools like `cac` and `citty`, we have created adapters for both of them. Ideally, tab would be integrated internally into these tools, but for now, this is a good compromise.
 
-### `@bombsh/tab/cac`
+### `@bomb.sh/tab/cac`
 
 ```ts
 import cac from 'cac';
-import tab from '@bombsh/tab/cac';
+import tab from '@bomb.sh/tab/cac';
 
 const cli = cac('my-cli');
 
@@ -105,11 +105,11 @@ Now autocompletion will be available for any specified command and option in you
 
 Suggestions are missing in the adapters since yet cac or citty do not have a way to provide suggestions (tab just came out!), we'd have to provide them manually. Mutations do not hurt in this situation.
 
-### `@bombsh/tab/citty`
+### `@bomb.sh/tab/citty`
 
 ```ts
 import citty, { defineCommand, createMain } from 'citty';
-import tab from '@bombsh/tab/citty';
+import tab from '@bomb.sh/tab/citty';
 
 const main = defineCommand({
   meta: {
@@ -154,11 +154,11 @@ const cli = createMain(main);
 cli();
 ```
 
-### `@bombsh/tab/commander`
+### `@bomb.sh/tab/commander`
 
 ```ts
 import { Command } from 'commander';
-import tab from '@bombsh/tab/commander';
+import tab from '@bomb.sh/tab/commander';
 
 const program = new Command('my-cli');
 program.version('1.0.0');
