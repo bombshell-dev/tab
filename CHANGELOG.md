@@ -1,5 +1,11 @@
 # @bombsh/tab
 
+## 0.0.2
+
+### Patch Changes
+
+- 3be9781: Update package org to bomb.sh
+
 ## 0.0.1
 
 ### Patch Changes
