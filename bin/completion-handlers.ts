@@ -54,43 +54,99 @@ export function setupCompletionForPackageManager(
 
 export function setupPnpmCompletions(completion: PackageManagerCompletion) {
   // Package management
-  const addCmd = completion.command('add', 'Install packages');
-  addCmd.option('save-dev', 'Save to devDependencies', 'D');
-  addCmd.option('save-optional', 'Save to optionalDependencies', 'O');
-  addCmd.option('save-exact', 'Save exact version', 'E');
-  addCmd.option('global', 'Install globally', 'g');
-  addCmd.option('workspace', 'Install to workspace');
-  addCmd.option('filter', 'Filter packages');
+  const addCmd = completion.command(
+    'add',
+    'Installs a package and any packages that it depends on. By default, any new package is installed as a prod dependency'
+  );
+  addCmd.option('save-dev', 'Save package to your `devDependencies`', 'D');
+  addCmd.option(
+    'save-optional',
+    'Save package to your `optionalDependencies`',
+    'O'
+  );
+  addCmd.option('save-exact', 'Install exact version', 'E');
+  addCmd.option('global', 'Install as a global package', 'g');
+  addCmd.option(
+    'workspace',
+    'Only adds the new dependency if it is found in the workspace'
+  );
+  addCmd.option(
+    'filter',
+    'Restricts the scope to package names matching the given pattern'
+  );
 
-  const removeCmd = completion.command('remove', 'Remove packages');
+  const removeCmd = completion.command(
+    'remove',
+    "Removes packages from node_modules and from the project's package.json"
+  );
   removeCmd.argument('package', dependencyCompletion);
   removeCmd.option('global', 'Remove globally', 'g');
 
-  const installCmd = completion.command('install', 'Install dependencies');
-  installCmd.option('frozen-lockfile', 'Install with frozen lockfile');
-  installCmd.option('prefer-frozen-lockfile', 'Prefer frozen lockfile');
-  installCmd.option('production', 'Install production dependencies only');
-  installCmd.option('dev', 'Install dev dependencies only');
-  installCmd.option('optional', 'Include optional dependencies');
-  installCmd.option('filter', 'Filter packages');
+  const installCmd = completion.command(
+    'install',
+    'Install all dependencies for a project'
+  );
+  installCmd.option(
+    'frozen-lockfile',
+    "Don't generate a lockfile and fail if an update is needed"
+  );
+  installCmd.option(
+    'prefer-frozen-lockfile',
+    'If the available `pnpm-lock.yaml` satisfies the `package.json` then perform a headless installation'
+  );
+  installCmd.option(
+    'production',
+    "Packages in `devDependencies` won't be installed"
+  );
+  installCmd.option('dev', 'Only `devDependencies` are installed');
+  installCmd.option('optional', '`optionalDependencies` are not installed');
+  installCmd.option(
+    'filter',
+    'Restricts the scope to package names matching the given pattern'
+  );
 
-  const updateCmd = completion.command('update', 'Update dependencies');
+  const updateCmd = completion.command(
+    'update',
+    'Updates packages to their latest version based on the specified range'
+  );
   updateCmd.argument('package', dependencyCompletion);
-  updateCmd.option('latest', 'Update to latest versions');
-  updateCmd.option('global', 'Update global packages', 'g');
-  updateCmd.option('interactive', 'Interactive update', 'i');
+  updateCmd.option('latest', 'Ignore version ranges in package.json');
+  updateCmd.option('global', 'Update globally installed packages', 'g');
+  updateCmd.option(
+    'interactive',
+    'Show outdated dependencies and select which ones to update',
+    'i'
+  );
 
   // Script execution
-  const runCmd = completion.command('run', 'Run scripts');
+  const runCmd = completion.command('run', 'Runs a defined package script');
   runCmd.argument('script', scriptCompletion, true);
-  runCmd.option('parallel', 'Run scripts in parallel');
-  runCmd.option('stream', 'Stream output');
-  runCmd.option('filter', 'Filter packages');
+  runCmd.option(
+    'parallel',
+    'Completely disregard concurrency and topological sorting, running a given script immediately in all matching packages with prefixed streaming output'
+  );
+  runCmd.option(
+    'stream',
+    'Stream output from child processes immediately, prefixed with the originating package directory'
+  );
+  runCmd.option(
+    'filter',
+    'Restricts the scope to package names matching the given pattern'
+  );
 
-  const execCmd = completion.command('exec', 'Execute commands');
-  execCmd.option('filter', 'Filter packages');
+  const execCmd = completion.command(
+    'exec',
+    'Executes a shell command in scope of a project'
+  );
+  execCmd.option(
+    'filter',
+    'Restricts the scope to package names matching the given pattern'
+  );
   execCmd.option('parallel', 'Run in parallel');
-  execCmd.option('stream', 'Stream output');
+  execCmd.option(
+    'stream',
+    'Stream output from child processes immediately, prefixed with the originating package directory'
+  );
 
   completion.command('dlx', 'Run package without installing');
 
@@ -116,18 +172,30 @@ export function setupPnpmCompletions(completion: PackageManagerCompletion) {
   unlinkCmd.option('global', 'Unlink globally', 'g');
 
   // Information
-  const listCmd = completion.command('list', 'List packages');
-  listCmd.option('depth', 'Max depth');
+  const listCmd = completion.command(
+    'list',
+    'Print all the versions of packages that are installed, as well as their dependencies, in a tree-structure'
+  );
+  listCmd.option(
+    'depth',
+    'How deep should levels of dependencies be inspected'
+  );
   listCmd.option('global', 'List global packages', 'g');
   listCmd.option('long', 'Show extended information');
   listCmd.option('parseable', 'Parseable output');
   listCmd.option('json', 'JSON output');
 
-  const outdatedCmd = completion.command('outdated', 'Check outdated packages');
+  const outdatedCmd = completion.command(
+    'outdated',
+    'Check for outdated packages'
+  );
   outdatedCmd.option('global', 'Check global packages', 'g');
   outdatedCmd.option('long', 'Show extended information');
 
-  const auditCmd = completion.command('audit', 'Security audit');
+  const auditCmd = completion.command(
+    'audit',
+    'Checks for known security issues with the installed packages'
+  );
   auditCmd.option('fix', 'Automatically fix vulnerabilities');
   auditCmd.option('json', 'JSON output');
 
@@ -136,9 +204,18 @@ export function setupPnpmCompletions(completion: PackageManagerCompletion) {
 
   // Store management
   completion.command('store', 'Store management');
-  completion.command('store status', 'Store status');
-  completion.command('store prune', 'Prune store');
-  completion.command('store path', 'Store path');
+  completion.command(
+    'store status',
+    'Checks for modified packages in the store'
+  );
+  completion.command(
+    'store prune',
+    'Removes unreferenced (extraneous, orphan) packages from the store'
+  );
+  completion.command(
+    'store path',
+    'Prints the path to the active store directory'
+  );
 
   // Configuration
   completion.command('config', 'Configuration');
@@ -149,18 +226,27 @@ export function setupPnpmCompletions(completion: PackageManagerCompletion) {
 
   // Other useful commands
   completion.command('why', 'Explain why package is installed');
-  completion.command('rebuild', 'Rebuild packages');
-  completion.command('root', 'Print root directory');
+  completion.command('rebuild', 'Rebuild a package');
+  completion.command('root', 'Prints the effective modules directory');
   completion.command('bin', 'Print bin directory');
-  completion.command('start', 'Run start script');
-  completion.command('test', 'Run test script');
+  completion.command(
+    'start',
+    'Runs an arbitrary command specified in the package\'s "start" property of its "scripts" object'
+  );
+  completion.command(
+    'test',
+    'Runs a package\'s "test" script, if one was provided'
+  );
   completion.command('restart', 'Run restart script');
   completion.command('stop', 'Run stop script');
 }
 
 export function setupNpmCompletions(completion: PackageManagerCompletion) {
   // Package management
-  const installCmd = completion.command('install', 'Install packages');
+  const installCmd = completion.command(
+    'install',
+    'install all the dependencies in your project'
+  );
   installCmd.option('save', 'Save to dependencies', 'S');
   installCmd.option('save-dev', 'Save to devDependencies', 'D');
   installCmd.option('save-optional', 'Save to optionalDependencies', 'O');
@@ -169,7 +255,7 @@ export function setupNpmCompletions(completion: PackageManagerCompletion) {
   installCmd.option('production', 'Production install');
   installCmd.option('only', 'Install only specific dependencies');
 
-  const uninstallCmd = completion.command('uninstall', 'Remove packages');
+  const uninstallCmd = completion.command('uninstall', 'Remove a package');
   uninstallCmd.argument('package', dependencyCompletion);
   uninstallCmd.option('save', 'Remove from dependencies', 'S');
   uninstallCmd.option('save-dev', 'Remove from devDependencies', 'D');
@@ -180,7 +266,7 @@ export function setupNpmCompletions(completion: PackageManagerCompletion) {
   updateCmd.option('global', 'Update global packages', 'g');
 
   // Script execution
-  const runCmd = completion.command('run', 'Run scripts');
+  const runCmd = completion.command('run', 'run the script named <foo>');
   runCmd.argument('script', scriptCompletion, true);
 
   const runScriptCmd = completion.command('run-script', 'Run scripts');
@@ -260,35 +346,63 @@ export function setupNpmCompletions(completion: PackageManagerCompletion) {
   completion.command('rebuild', 'Rebuild packages');
   completion.command('start', 'Run start script');
   completion.command('stop', 'Run stop script');
-  completion.command('test', 'Run test script');
+  completion.command('test', "run this project's tests");
   completion.command('restart', 'Run restart script');
 }
 
 export function setupYarnCompletions(completion: PackageManagerCompletion) {
   // Package management
-  const addCmd = completion.command('add', 'Add packages');
-  addCmd.option('dev', 'Add to devDependencies', 'D');
-  addCmd.option('peer', 'Add to peerDependencies', 'P');
-  addCmd.option('optional', 'Add to optionalDependencies', 'O');
-  addCmd.option('exact', 'Add exact version', 'E');
-  addCmd.option('tilde', 'Add with tilde range', 'T');
+  const addCmd = completion.command(
+    'add',
+    'Installs a package and any packages that it depends on.'
+  );
+  addCmd.option('dev', 'save package to your `devDependencies`', 'D');
+  addCmd.option('peer', 'save package to your `peerDependencies`', 'P');
+  addCmd.option('optional', 'save package to your `optionalDependencies`', 'O');
+  addCmd.option('exact', 'install exact version', 'E');
+  addCmd.option(
+    'tilde',
+    'install most recent release with the same minor version',
+    'T'
+  );
 
-  const removeCmd = completion.command('remove', 'Remove packages');
+  const removeCmd = completion.command(
+    'remove',
+    'Removes a package from your direct dependencies updating your package.json and yarn.lock.'
+  );
   removeCmd.argument('package', dependencyCompletion);
 
-  const installCmd = completion.command('install', 'Install dependencies');
-  installCmd.option('frozen-lockfile', 'Install with frozen lockfile');
-  installCmd.option('prefer-offline', 'Prefer offline');
+  const installCmd = completion.command(
+    'install',
+    'Yarn install is used to install all dependencies for a project.'
+  );
+  installCmd.option(
+    'frozen-lockfile',
+    "don't generate a lockfile and fail if an update is needed"
+  );
+  installCmd.option(
+    'prefer-offline',
+    'use network only if dependencies are not available in local cache'
+  );
   installCmd.option('production', 'Production install');
-  installCmd.option('pure-lockfile', 'Pure lockfile');
-  installCmd.option('focus', 'Focus install');
-  installCmd.option('har', 'Save HAR file');
+  installCmd.option('pure-lockfile', "don't generate a lockfile");
+  installCmd.option(
+    'focus',
+    'Focus on a single workspace by installing remote copies of its sibling workspaces'
+  );
+  installCmd.option('har', 'save HAR output of network traffic');
 
-  const upgradeCmd = completion.command('upgrade', 'Upgrade packages');
+  const upgradeCmd = completion.command(
+    'upgrade',
+    'Upgrades packages to their latest version based on the specified range.'
+  );
   upgradeCmd.argument('package', dependencyCompletion);
-  upgradeCmd.option('latest', 'Upgrade to latest');
-  upgradeCmd.option('pattern', 'Upgrade pattern');
-  upgradeCmd.option('scope', 'Upgrade scope');
+  upgradeCmd.option(
+    'latest',
+    'list the latest version of packages, ignoring version ranges in package.json'
+  );
+  upgradeCmd.option('pattern', 'upgrade packages that match pattern');
+  upgradeCmd.option('scope', 'upgrade packages under the specified scope');
 
   const upgradeInteractiveCmd = completion.command(
     'upgrade-interactive',
@@ -376,48 +490,75 @@ export function setupYarnCompletions(completion: PackageManagerCompletion) {
 
 export function setupBunCompletions(completion: PackageManagerCompletion) {
   // Package management
-  const addCmd = completion.command('add', 'Add packages');
-  addCmd.option('development', 'Add to devDependencies', 'd');
-  addCmd.option('optional', 'Add to optionalDependencies');
-  addCmd.option('exact', 'Add exact version', 'E');
+  const addCmd = completion.command(
+    'add',
+    'Add a dependency to package.json (bun a)'
+  );
+  addCmd.option('development', 'Add dependency to "devDependencies"', 'd');
+  addCmd.option('optional', 'Add dependency to "optionalDependencies"');
+  addCmd.option('exact', 'Add the exact version instead of the ^range', 'E');
   addCmd.option('global', 'Install globally', 'g');
 
-  const removeCmd = completion.command('remove', 'Remove packages');
+  const removeCmd = completion.command(
+    'remove',
+    'Remove a dependency from package.json (bun rm)'
+  );
   removeCmd.argument('package', dependencyCompletion);
   removeCmd.option('global', 'Remove globally', 'g');
 
-  const installCmd = completion.command('install', 'Install dependencies');
-  installCmd.option('production', 'Production install');
-  installCmd.option('frozen-lockfile', 'Use frozen lockfile');
-  installCmd.option('dry-run', 'Dry run');
-  installCmd.option('force', 'Force install');
-  installCmd.option('silent', 'Silent install');
+  const installCmd = completion.command(
+    'install',
+    'Install dependencies for a package.json (bun i)'
+  );
+  installCmd.option('production', "Don't install devDependencies");
+  installCmd.option('frozen-lockfile', 'Disallow changes to lockfile');
+  installCmd.option('dry-run', "Don't install anything");
+  installCmd.option(
+    'force',
+    'Always request the latest versions from the registry & reinstall all dependencies'
+  );
+  installCmd.option('silent', "Don't log anything");
 
-  const updateCmd = completion.command('update', 'Update packages');
+  const updateCmd = completion.command(
+    'update',
+    'Update outdated dependencies'
+  );
   updateCmd.argument('package', dependencyCompletion);
   updateCmd.option('global', 'Update global packages', 'g');
 
   // Script execution and running
-  const runCmd = completion.command('run', 'Run scripts');
+  const runCmd = completion.command('run', 'Execute a file with Bun');
   runCmd.argument('script', scriptCompletion, true);
-  runCmd.option('silent', 'Silent output');
+  runCmd.option('silent', "Don't log anything");
   runCmd.option('bun', 'Use bun runtime');
 
-  const xCmd = completion.command('x', 'Execute packages');
+  const xCmd = completion.command(
+    'x',
+    'Execute a package binary (CLI), installing if needed (bunx)'
+  );
   xCmd.option('bun', 'Use bun runtime');
 
   // Bun-specific commands
   completion.command('dev', 'Development server');
-  completion.command('build', 'Build project');
-  completion.command('test', 'Run tests');
+  completion.command(
+    'build',
+    'Bundle TypeScript & JavaScript into a single file'
+  );
+  completion.command('test', 'Run unit tests with Bun');
 
   // Project management
-  completion.command('create', 'Create new project');
-  const initCmd = completion.command('init', 'Initialize project');
+  completion.command('create', 'Create a new project from a template (bun c)');
+  const initCmd = completion.command(
+    'init',
+    'Start an empty Bun project from a built-in template'
+  );
   initCmd.option('yes', 'Use defaults', 'y');
 
   // Publishing
-  const publishCmd = completion.command('publish', 'Publish package');
+  const publishCmd = completion.command(
+    'publish',
+    'Publish a package to the npm registry'
+  );
   publishCmd.option('tag', 'Publish with tag');
   publishCmd.option('access', 'Set access level');
   publishCmd.option('otp', 'One-time password');
@@ -425,15 +566,18 @@ export function setupBunCompletions(completion: PackageManagerCompletion) {
   completion.command('pack', 'Create tarball');
 
   // Linking
-  completion.command('link', 'Link packages');
-  completion.command('unlink', 'Unlink packages');
+  completion.command('link', 'Register or link a local npm package');
+  completion.command('unlink', 'Unregister a local npm package');
 
   // Information
   const listCmd = completion.command('list', 'List packages');
   listCmd.option('global', 'List global packages', 'g');
 
-  completion.command('outdated', 'Check outdated packages');
-  completion.command('audit', 'Security audit');
+  completion.command(
+    'outdated',
+    'Display latest versions of outdated dependencies'
+  );
+  completion.command('audit', 'Check installed packages for vulnerabilities');
 
   // Configuration
   completion.command('config', 'Configuration');
@@ -441,14 +585,14 @@ export function setupBunCompletions(completion: PackageManagerCompletion) {
   // Bun runtime commands
   completion.command('bun', 'Run with Bun runtime');
   completion.command('node', 'Node.js compatibility');
-  completion.command('upgrade', 'Upgrade Bun');
+  completion.command('upgrade', 'Upgrade to latest version of Bun.');
   completion.command('completions', 'Generate completions');
   completion.command('discord', 'Open Discord');
   completion.command('help', 'Show help');
 
   // File operations
   completion.command('install.cache', 'Cache operations');
-  completion.command('pm', 'Package manager operations');
+  completion.command('pm', 'Additional package management utilities');
 
   // Other commands
   completion.command('start', 'Run start script');
