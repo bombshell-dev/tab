@@ -1,6 +1,7 @@
 import { PackageManagerCompletion } from './package-manager-completion.js';
 import { readFileSync } from 'fs';
 import { execSync } from 'child_process';
+import type { Complete } from '../src/t.js';
 
 // Helper functions for dynamic completions
 function getPackageJsonScripts(): string[] {
@@ -28,12 +29,12 @@ function getPackageJsonDependencies(): string[] {
 }
 
 // Common completion handlers
-const scriptCompletion = async (complete: any) => {
+const scriptCompletion = async (complete: Complete) => {
   const scripts = getPackageJsonScripts();
   scripts.forEach((script) => complete(script, `Run ${script} script`));
 };
 
-const dependencyCompletion = async (complete: any) => {
+const dependencyCompletion = async (complete: Complete) => {
   const deps = getPackageJsonDependencies();
   deps.forEach((dep) => complete(dep, ''));
 };
@@ -72,7 +73,11 @@ export async function setupPnpmCompletions(
       }
     }
   } catch (error) {
-    console.error('Failed to setup pnpm completions:', error.message);
+    if (error instanceof Error) {
+      console.error('Failed to setup pnpm completions:', error.message);
+    } else {
+      console.error('Failed to setup pnpm completions:', error);
+    }
   }
 }
 
@@ -143,7 +148,11 @@ async function getPnpmCommandsFromMainHelp(): Promise<Record<string, string>> {
 
     return commands;
   } catch (error) {
-    console.error('Error parsing pnpm help:', error.message);
+    if (error instanceof Error) {
+      console.error('Failed to setup pnpm completions:', error.message);
+    } else {
+      console.error('Failed to setup pnpm completions:', error);
+    }
     return {};
   }
 }
