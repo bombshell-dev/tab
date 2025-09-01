@@ -71,6 +71,10 @@ export async function setupPnpmCompletions(
       if (command === 'run') {
         cmd.argument('script', scriptCompletion, true);
       }
+
+      // TODO: AMIR: MANUAL OPTIONS ?
+
+      setupLazyOptionLoading(cmd, command);
     }
   } catch (error) {
     if (error instanceof Error) {
@@ -168,3 +172,102 @@ export async function setupYarnCompletions(
 export async function setupBunCompletions(
   completion: PackageManagerCompletion
 ) {}
+
+function setupLazyOptionLoading(cmd: any, command: string) {
+  cmd._lazyCommand = command;
+  cmd._optionsLoaded = false;
+
+  const originalOptions = cmd.options;
+  Object.defineProperty(cmd, 'options', {
+    get() {
+      if (!this._optionsLoaded) {
+        this._optionsLoaded = true;
+        loadDynamicOptionsSync(this, this._lazyCommand);
+      }
+      return originalOptions;
+    },
+    configurable: true,
+  });
+}
+
+function loadDynamicOptionsSync(cmd: any, command: string) {
+  try {
+    const output = execSync(`pnpm ${command} --help`, {
+      encoding: 'utf8',
+      timeout: 3000,
+    });
+    const lines = output.split('\n');
+    let inOptionsSection = false;
+    let currentOption = '';
+    let currentDescription = '';
+    let currentShortFlag: string | undefined;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      if (line.match(/^Options:/)) {
+        inOptionsSection = true;
+        continue;
+      }
+
+      if (inOptionsSection && line.match(/^[A-Z][a-z].*:/)) {
+        break;
+      }
+
+      if (inOptionsSection && line.trim()) {
+        const optionMatch = line.match(
+          /^\s*(?:-([A-Za-z]),\s*)?--([a-z-]+)(?!\s+<|\s+\[)\s+(.*)/
+        );
+        if (optionMatch) {
+          if (currentOption && currentDescription) {
+            const existingOption = cmd.options.get(currentOption);
+            if (!existingOption) {
+              cmd.option(
+                currentOption,
+                currentDescription.trim(),
+                currentShortFlag
+              );
+            }
+          }
+
+          const [, shortFlag, optionName, description] = optionMatch;
+
+          // TODO: AMIR: lets only proccess options that don't have <value> ?
+          if (!line.includes('<') && !line.includes('[')) {
+            currentOption = optionName;
+            currentShortFlag = shortFlag || undefined;
+            currentDescription = description;
+
+            let j = i + 1;
+            while (
+              j < lines.length &&
+              lines[j].match(/^\s{25,}/) &&
+              !lines[j].match(/^\s*(?:-[A-Za-z],\s*)?--[a-z-]/)
+            ) {
+              currentDescription += ' ' + lines[j].trim();
+              j++;
+            }
+            i = j - 1;
+          } else {
+            currentOption = '';
+            currentDescription = '';
+            currentShortFlag = undefined;
+          }
+        }
+      }
+    }
+
+    if (currentOption && currentDescription) {
+      const existingOption = cmd.options.get(currentOption);
+      if (!existingOption) {
+        cmd.option(currentOption, currentDescription.trim(), currentShortFlag);
+      }
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(`Failed to load options for ${command}:`, error.message);
+    } else {
+      console.error(`Failed to load options for ${command}:`, error);
+    }
+  }
+}
