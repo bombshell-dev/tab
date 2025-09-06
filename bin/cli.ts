@@ -30,7 +30,7 @@ async function main() {
     if (dashIndex !== -1) {
       // Use the new PackageManagerCompletion wrapper
       const completion = new PackageManagerCompletion(packageManager);
-      setupCompletionForPackageManager(packageManager, completion);
+      await setupCompletionForPackageManager(packageManager, completion);
       const toComplete = process.argv.slice(dashIndex + 1);
       await completion.parse(toComplete);
       process.exit(0);
