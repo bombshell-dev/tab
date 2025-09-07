@@ -13,7 +13,7 @@ export const packageJsonScriptCompletion = async (
   );
 };
 
-// provides completions for package dependencies from package.json.. `pnpm add <dependency>`
+// provides completions for package dependencies from package.json.. for commands like remove `pnpm remove <dependency>`
 export const packageJsonDependencyCompletion = async (
   complete: Complete
 ): Promise<void> => {

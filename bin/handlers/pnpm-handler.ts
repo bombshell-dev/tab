@@ -1,6 +1,17 @@
-import { execFile, execFileSync } from 'child_process';
-import { promisify } from 'util';
+import { promisify } from 'node:util';
+import child_process from 'node:child_process';
+
+const exec = promisify(child_process.exec);
+const { execSync } = child_process;
 import type { PackageManagerCompletion } from '../package-manager-completion.js';
+import { Command } from '../../src/t.js';
+
+interface LazyCommand extends Command {
+  _lazyCommand?: string;
+  _optionsLoaded?: boolean;
+  optionsRaw?: Map<string, any>;
+}
+
 import {
   packageJsonScriptCompletion,
   packageJsonDependencyCompletion,
@@ -15,7 +26,8 @@ import {
   type ParsedOption,
 } from '../utils/text-utils.js';
 
-const execFileP = promisify(execFile);
+// regex to detect options section in help text
+const OPTIONS_SECTION_RE = /^\s*Options:/i;
 
 // we parse the pnpm help text to extract commands and their descriptions!
 export function parsePnpmHelp(helpText: string): Record<string, string> {
@@ -49,7 +61,7 @@ export function parsePnpmHelp(helpText: string): Record<string, string> {
   };
 
   for (const line of helpLines) {
-    if (/^\s*Options:/i.test(line)) break; // we stop at options
+    if (OPTIONS_SECTION_RE.test(line)) break; // we stop at options
 
     // we match the command row
     const rowMatch = line.match(COMMAND_ROW_RE);
@@ -81,7 +93,7 @@ export async function getPnpmCommandsFromMainHelp(): Promise<
   Record<string, string>
 > {
   try {
-    const { stdout } = await execFileP('pnpm', ['--help'], {
+    const { stdout } = await exec('pnpm --help', {
       encoding: 'utf8',
       timeout: 500,
       maxBuffer: 4 * 1024 * 1024,
@@ -157,9 +169,12 @@ export function parsePnpmOptions(
 }
 
 // we load the dynamic options synchronously when requested ( separated from the command loading )
-export function loadDynamicOptionsSync(cmd: any, command: string): void {
+export function loadDynamicOptionsSync(
+  cmd: LazyCommand,
+  command: string
+): void {
   try {
-    const stdout = execFileSync('pnpm', [command, '--help'], {
+    const stdout = execSync(`pnpm ${command} --help`, {
       encoding: 'utf8',
       timeout: 500,
     });
@@ -174,7 +189,8 @@ export function loadDynamicOptionsSync(cmd: any, command: string): void {
 }
 
 // we setup the lazy option loading for a command
-function setupLazyOptionLoading(cmd: any, command: string): void {
+
+function setupLazyOptionLoading(cmd: LazyCommand, command: string): void {
   cmd._lazyCommand = command;
   cmd._optionsLoaded = false;
 
