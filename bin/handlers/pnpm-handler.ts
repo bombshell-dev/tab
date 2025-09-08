@@ -4,12 +4,12 @@ import child_process from 'node:child_process';
 const exec = promisify(child_process.exec);
 const { execSync } = child_process;
 import type { PackageManagerCompletion } from '../package-manager-completion.js';
-import { Command } from '../../src/t.js';
+import { Command, Option } from '../../src/t.js';
 
 interface LazyCommand extends Command {
   _lazyCommand?: string;
   _optionsLoaded?: boolean;
-  optionsRaw?: Map<string, any>;
+  optionsRaw?: Map<string, Option>;
 }
 
 import {
