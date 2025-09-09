@@ -29,6 +29,72 @@ import {
 // regex to detect options section in help text
 const OPTIONS_SECTION_RE = /^\s*Options:/i;
 
+// completion handlers for pnpm options that take values
+const pnpmOptionHandlers = {
+  dir: function (complete: (value: string, description: string) => void) {
+    complete('./', 'Current directory');
+    complete('../', 'Parent directory');
+    complete('./packages', 'Packages directory');
+  },
+  loglevel: function (complete: (value: string, description: string) => void) {
+    complete('debug', 'Debug level');
+    complete('info', 'Info level');
+    complete('warn', 'Warning level');
+    complete('error', 'Error level');
+    complete('silent', 'Silent level');
+  },
+  reporter: function (complete: (value: string, description: string) => void) {
+    complete('default', 'Default reporter');
+    complete('silent', 'Silent reporter');
+    complete('append-only', 'Append-only reporter');
+    complete('ndjson', 'NDJSON reporter');
+  },
+  filter: function (complete: (value: string, description: string) => void) {
+    complete('./packages/*', 'All packages in packages directory');
+    complete('./apps/*', 'All apps in apps directory');
+    complete('@scope/*', 'All packages in scope');
+    complete('.', 'Current working directory');
+  },
+  'modules-dir': function (
+    complete: (value: string, description: string) => void
+  ) {
+    complete('node_modules', 'Default modules directory');
+    complete('./modules', 'Custom modules directory');
+  },
+  'store-dir': function (
+    complete: (value: string, description: string) => void
+  ) {
+    complete('~/.pnpm-store', 'Default pnpm store');
+    complete('./store', 'Local store directory');
+  },
+  'lockfile-dir': function (
+    complete: (value: string, description: string) => void
+  ) {
+    complete('./', 'Current directory');
+    complete('../', 'Parent directory');
+  },
+  'virtual-store-dir': function (
+    complete: (value: string, description: string) => void
+  ) {
+    complete('node_modules/.pnpm', 'Default virtual store');
+    complete('./.pnpm', 'Custom virtual store');
+  },
+  'hoist-pattern': function (
+    complete: (value: string, description: string) => void
+  ) {
+    complete('*', 'Hoist everything (default)');
+    complete('@types/*', 'Hoist only type packages');
+    complete('eslint*', 'Hoist ESLint packages');
+  },
+  'public-hoist-pattern': function (
+    complete: (value: string, description: string) => void
+  ) {
+    complete('*eslint*', 'Hoist ESLint packages to root');
+    complete('*prettier*', 'Hoist Prettier packages to root');
+    complete('@types/*', 'Hoist type packages to root');
+  },
+};
+
 // we parse the pnpm help text to extract commands and their descriptions!
 export function parsePnpmHelp(helpText: string): Record<string, string> {
   const helpLines = stripAnsiEscapes(helpText).split(/\r?\n/);
@@ -117,7 +183,7 @@ export function parsePnpmOptions(
   for (const line of helpLines) {
     const optionMatch = line.match(OPTION_ROW_RE);
     if (!optionMatch) continue;
-    if (flagsOnly && optionMatch.groups?.val) continue; // skip value-taking options, we will add them manually with their value
+    if (flagsOnly && optionMatch.groups?.val) continue;
     const descColumnIndexOnThisLine = line.indexOf(optionMatch.groups!.desc);
     if (
       descColumnIndexOnThisLine >= 0 &&
@@ -179,11 +245,19 @@ export function loadDynamicOptionsSync(
       timeout: 500,
     });
 
-    const parsedOptions = parsePnpmOptions(stdout, { flagsOnly: true });
+    const allOptions = parsePnpmOptions(stdout, { flagsOnly: false });
 
-    for (const { long, short, desc } of parsedOptions) {
+    for (const { long, short, desc } of allOptions) {
       const alreadyDefined = cmd.optionsRaw?.get?.(long);
-      if (!alreadyDefined) cmd.option(long, desc, short);
+      if (!alreadyDefined) {
+        const handler =
+          pnpmOptionHandlers[long as keyof typeof pnpmOptionHandlers];
+        if (handler) {
+          cmd.option(long, desc, handler, short);
+        } else {
+          cmd.option(long, desc, short);
+        }
+      }
     }
   } catch (_err) {}
 }
