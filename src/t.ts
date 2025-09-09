@@ -12,7 +12,7 @@ export const ShellCompDirective = {
 
 export type OptionsMap = Map<string, Option>;
 
-type Complete = (value: string, description: string) => void;
+export type Complete = (value: string, description: string) => void;
 
 export type OptionHandler = (
   this: Option,
