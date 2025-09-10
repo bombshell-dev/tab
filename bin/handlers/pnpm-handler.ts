@@ -17,6 +17,12 @@ import {
   packageJsonDependencyCompletion,
 } from '../completions/completion-producers.js';
 import {
+  getDirectoriesInCwd,
+  getCommonWorkspaceDirs,
+  directoryExists,
+  getDirectoriesMatching,
+} from '../utils/filesystem-utils.js';
+import {
   stripAnsiEscapes,
   measureIndent,
   parseAliasList,
@@ -29,13 +35,30 @@ import {
 // regex to detect options section in help text
 const OPTIONS_SECTION_RE = /^\s*Options:/i;
 
+function getPnpmStorePaths(): string[] {
+  const paths = ['~/.pnpm-store'];
+
+  if (directoryExists('.pnpm-store')) {
+    paths.push('./.pnpm-store');
+  }
+
+  return paths;
+}
+
 // completion handlers for pnpm options that take values
 const pnpmOptionHandlers = {
   dir: function (complete: (value: string, description: string) => void) {
     complete('./', 'Current directory');
     complete('../', 'Parent directory');
-    complete('./packages', 'Packages directory');
+
+    const dirs = getDirectoriesInCwd();
+    for (const dir of dirs) {
+      if (dir !== './') {
+        complete(dir, `Directory: ${dir.slice(2)}`);
+      }
+    }
   },
+
   loglevel: function (complete: (value: string, description: string) => void) {
     complete('debug', 'Debug level');
     complete('info', 'Info level');
@@ -43,55 +66,93 @@ const pnpmOptionHandlers = {
     complete('error', 'Error level');
     complete('silent', 'Silent level');
   },
+
   reporter: function (complete: (value: string, description: string) => void) {
     complete('default', 'Default reporter');
     complete('silent', 'Silent reporter');
     complete('append-only', 'Append-only reporter');
     complete('ndjson', 'NDJSON reporter');
   },
+
   filter: function (complete: (value: string, description: string) => void) {
-    complete('./packages/*', 'All packages in packages directory');
-    complete('./apps/*', 'All apps in apps directory');
-    complete('@scope/*', 'All packages in scope');
     complete('.', 'Current working directory');
+    complete('...', 'Include dependents');
+
+    const workspaceDirs = getCommonWorkspaceDirs();
+    for (const dir of workspaceDirs) {
+      complete(`${dir}/*`, `All packages in ${dir.slice(2)}`);
+    }
+
+    complete('@*/*', 'All scoped packages');
+    complete('@types/*', 'All type packages');
   },
+
   'modules-dir': function (
     complete: (value: string, description: string) => void
   ) {
     complete('node_modules', 'Default modules directory');
-    complete('./modules', 'Custom modules directory');
+
+    const moduleRelatedDirs = getDirectoriesMatching('module').concat(
+      getDirectoriesMatching('lib')
+    );
+    for (const dir of moduleRelatedDirs) {
+      complete(dir.slice(2), `Existing directory: ${dir.slice(2)}`);
+    }
   },
+
   'store-dir': function (
     complete: (value: string, description: string) => void
   ) {
-    complete('~/.pnpm-store', 'Default pnpm store');
-    complete('./store', 'Local store directory');
+    const storePaths = getPnpmStorePaths();
+    for (const path of storePaths) {
+      complete(
+        path,
+        path.startsWith('~') ? 'Default pnpm store' : 'Local store directory'
+      );
+    }
   },
+
   'lockfile-dir': function (
     complete: (value: string, description: string) => void
   ) {
     complete('./', 'Current directory');
     complete('../', 'Parent directory');
+    const dirs = getDirectoriesInCwd();
+    for (const dir of dirs.slice(0, 5)) {
+      if (dir !== './') {
+        complete(dir, `Directory: ${dir.slice(2)}`);
+      }
+    }
   },
+
   'virtual-store-dir': function (
     complete: (value: string, description: string) => void
   ) {
     complete('node_modules/.pnpm', 'Default virtual store');
-    complete('./.pnpm', 'Custom virtual store');
+    complete('.pnpm', 'Custom virtual store');
+
+    if (directoryExists('.pnpm')) {
+      complete('./.pnpm', 'Existing .pnpm directory');
+    }
   },
+
   'hoist-pattern': function (
     complete: (value: string, description: string) => void
   ) {
     complete('*', 'Hoist everything (default)');
     complete('@types/*', 'Hoist only type packages');
     complete('eslint*', 'Hoist ESLint packages');
+    complete('*babel*', 'Hoist Babel packages');
+    complete('*webpack*', 'Hoist Webpack packages');
   },
+
   'public-hoist-pattern': function (
     complete: (value: string, description: string) => void
   ) {
     complete('*eslint*', 'Hoist ESLint packages to root');
     complete('*prettier*', 'Hoist Prettier packages to root');
     complete('@types/*', 'Hoist type packages to root');
+    complete('*babel*', 'Hoist Babel packages to root');
   },
 };
 
