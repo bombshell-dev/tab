@@ -1,51 +1,25 @@
-import { readdirSync, statSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 
-export function getDirectoriesInCwd(): string[] {
+export function getWorkspacePatterns(): string[] {
   try {
-    return readdirSync('.')
-      .filter((item) => {
-        try {
-          return statSync(item).isDirectory();
-        } catch {
-          return false;
-        }
-      })
-      .map((dir) => `./${dir}`)
-      .slice(0, 10);
-  } catch {
-    return ['./'];
-  }
-}
-
-export function getCommonWorkspaceDirs(): string[] {
-  const common = ['packages', 'apps', 'libs', 'modules', 'components'];
-  const existing = [];
-
-  for (const dir of common) {
+    let content: string;
     try {
-      if (statSync(dir).isDirectory()) {
-        existing.push(`./${dir}`);
-      }
-    } catch {}
-  }
+      content = readFileSync('pnpm-workspace.yaml', 'utf8');
+    } catch {
+      content = readFileSync('pnpm-workspace.yml', 'utf8');
+    }
 
-  return existing;
-}
+    const packagesMatch = content.match(/packages:\s*\n((?:\s*-\s*.+\n?)*)/);
+    if (!packagesMatch) return [];
 
-export function directoryExists(path: string): boolean {
-  try {
-    return statSync(path).isDirectory();
-  } catch {
-    return false;
-  }
-}
+    const patterns = packagesMatch[1]
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.startsWith('-'))
+      .map((line) => line.substring(1).trim())
+      .filter((pattern) => pattern && !pattern.startsWith('#'));
 
-// Get directories that match a pattern (e.g., containing 'lib' or 'module')
-export function getDirectoriesMatching(pattern: string): string[] {
-  try {
-    return getDirectoriesInCwd().filter((dir) =>
-      dir.toLowerCase().includes(pattern.toLowerCase())
-    );
+    return patterns;
   } catch {
     return [];
   }

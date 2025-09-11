@@ -16,12 +16,7 @@ import {
   packageJsonScriptCompletion,
   packageJsonDependencyCompletion,
 } from '../completions/completion-producers.js';
-import {
-  getDirectoriesInCwd,
-  getCommonWorkspaceDirs,
-  directoryExists,
-  getDirectoriesMatching,
-} from '../utils/filesystem-utils.js';
+import { getWorkspacePatterns } from '../utils/filesystem-utils.js';
 import {
   stripAnsiEscapes,
   measureIndent,
@@ -35,124 +30,101 @@ import {
 // regex to detect options section in help text
 const OPTIONS_SECTION_RE = /^\s*Options:/i;
 
-function getPnpmStorePaths(): string[] {
-  const paths = ['~/.pnpm-store'];
+function extractValidValuesFromHelp(
+  helpText: string,
+  optionName: string
+): string[] {
+  const lines = stripAnsiEscapes(helpText).split(/\r?\n/);
 
-  if (directoryExists('.pnpm-store')) {
-    paths.push('./.pnpm-store');
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.includes(`--${optionName}`) || line.includes(`${optionName}:`)) {
+      for (let j = i; j < Math.min(i + 3, lines.length); j++) {
+        const searchLine = lines[j];
+
+        const levelMatch = searchLine.match(
+          /(?:levels?|options?|values?)[^:]*:\s*([^.]+)/i
+        );
+        if (levelMatch) {
+          return levelMatch[1]
+            .split(/[,\s]+/)
+            .map((v) => v.trim())
+            .filter((v) => v && !v.includes('(') && !v.includes(')'));
+        }
+
+        if (optionName === 'reporter') {
+          const reporterMatch = searchLine.match(/--reporter\s+(\w+)/);
+          if (reporterMatch) {
+            const reporterValues = new Set<string>();
+            for (const helpLine of lines) {
+              const matches = helpLine.matchAll(/--reporter\s+(\w+)/g);
+              for (const match of matches) {
+                reporterValues.add(match[1]);
+              }
+            }
+            return Array.from(reporterValues);
+          }
+        }
+      }
+    }
   }
 
-  return paths;
+  return [];
 }
 
 // completion handlers for pnpm options that take values
 const pnpmOptionHandlers = {
-  dir: function (complete: (value: string, description: string) => void) {
-    complete('./', 'Current directory');
-    complete('../', 'Parent directory');
-
-    const dirs = getDirectoriesInCwd();
-    for (const dir of dirs) {
-      if (dir !== './') {
-        complete(dir, `Directory: ${dir.slice(2)}`);
-      }
-    }
-  },
+  // Let shell handle directory completions - it's much better at it
+  // dir, modules-dir, store-dir, lockfile-dir, virtual-store-dir removed
 
   loglevel: function (complete: (value: string, description: string) => void) {
-    complete('debug', 'Debug level');
-    complete('info', 'Info level');
-    complete('warn', 'Warning level');
-    complete('error', 'Error level');
-    complete('silent', 'Silent level');
-  },
-
-  reporter: function (complete: (value: string, description: string) => void) {
-    complete('default', 'Default reporter');
-    complete('silent', 'Silent reporter');
-    complete('append-only', 'Append-only reporter');
-    complete('ndjson', 'NDJSON reporter');
-  },
-
-  filter: function (complete: (value: string, description: string) => void) {
-    complete('.', 'Current working directory');
-    complete('...', 'Include dependents');
-
-    const workspaceDirs = getCommonWorkspaceDirs();
-    for (const dir of workspaceDirs) {
-      complete(`${dir}/*`, `All packages in ${dir.slice(2)}`);
-    }
-
-    complete('@*/*', 'All scoped packages');
-    complete('@types/*', 'All type packages');
-  },
-
-  'modules-dir': function (
-    complete: (value: string, description: string) => void
-  ) {
-    complete('node_modules', 'Default modules directory');
-
-    const moduleRelatedDirs = getDirectoriesMatching('module').concat(
-      getDirectoriesMatching('lib')
+    // Try to get values from help, fall back to known values
+    const helpValues = extractValidValuesFromHelp(
+      execSync('pnpm install --help', { encoding: 'utf8', timeout: 500 }),
+      'loglevel'
     );
-    for (const dir of moduleRelatedDirs) {
-      complete(dir.slice(2), `Existing directory: ${dir.slice(2)}`);
-    }
-  },
 
-  'store-dir': function (
-    complete: (value: string, description: string) => void
-  ) {
-    const storePaths = getPnpmStorePaths();
-    for (const path of storePaths) {
-      complete(
-        path,
-        path.startsWith('~') ? 'Default pnpm store' : 'Local store directory'
+    if (helpValues.length > 0) {
+      helpValues.forEach((value) => complete(value, `Log level: ${value}`));
+    } else {
+      // Fallback based on documented values
+      ['debug', 'info', 'warn', 'error', 'silent'].forEach((level) =>
+        complete(level, `Log level: ${level}`)
       );
     }
   },
 
-  'lockfile-dir': function (
-    complete: (value: string, description: string) => void
-  ) {
-    complete('./', 'Current directory');
-    complete('../', 'Parent directory');
-    const dirs = getDirectoriesInCwd();
-    for (const dir of dirs.slice(0, 5)) {
-      if (dir !== './') {
-        complete(dir, `Directory: ${dir.slice(2)}`);
-      }
-    }
+  reporter: function (complete: (value: string, description: string) => void) {
+    // valid values from pnpm help
+    const reporters = [
+      { value: 'default', desc: 'Default reporter when stdout is TTY' },
+      {
+        value: 'append-only',
+        desc: 'Output always appended, no cursor manipulation',
+      },
+      { value: 'ndjson', desc: 'Most verbose reporter in NDJSON format' },
+      { value: 'silent', desc: 'No output logged to console' },
+    ];
+
+    reporters.forEach(({ value, desc }) => complete(value, desc));
   },
 
-  'virtual-store-dir': function (
-    complete: (value: string, description: string) => void
-  ) {
-    complete('node_modules/.pnpm', 'Default virtual store');
-    complete('.pnpm', 'Custom virtual store');
+  filter: function (complete: (value: string, description: string) => void) {
+    // Based on pnpm documentation
+    complete('.', 'Current working directory');
+    complete('!<selector>', 'Exclude packages matching selector');
 
-    if (directoryExists('.pnpm')) {
-      complete('./.pnpm', 'Existing .pnpm directory');
-    }
-  },
+    // Get actual workspace patterns from pnpm-workspace.yaml
+    const workspacePatterns = getWorkspacePatterns();
+    workspacePatterns.forEach((pattern) => {
+      complete(pattern, `Workspace pattern: ${pattern}`);
+      complete(`${pattern}...`, `Include dependencies of ${pattern}`);
+    });
 
-  'hoist-pattern': function (
-    complete: (value: string, description: string) => void
-  ) {
-    complete('*', 'Hoist everything (default)');
-    complete('@types/*', 'Hoist only type packages');
-    complete('eslint*', 'Hoist ESLint packages');
-    complete('*babel*', 'Hoist Babel packages');
-    complete('*webpack*', 'Hoist Webpack packages');
-  },
-
-  'public-hoist-pattern': function (
-    complete: (value: string, description: string) => void
-  ) {
-    complete('*eslint*', 'Hoist ESLint packages to root');
-    complete('*prettier*', 'Hoist Prettier packages to root');
-    complete('@types/*', 'Hoist type packages to root');
-    complete('*babel*', 'Hoist Babel packages to root');
+    // Common scope patterns
+    complete('@*/*', 'All scoped packages');
+    complete('...<pattern>', 'Include dependencies of pattern');
+    complete('<pattern>...', 'Include dependents of pattern');
   },
 };
 
