@@ -22,18 +22,15 @@ export type CompletionHandler = (
 ) => void;
 export type OptionHandlers = Record<string, CompletionHandler>;
 
-export const commonOptionHandlers = {
-  workspace: function (complete: (value: string, description: string) => void) {
-    const workspacePatterns = getWorkspacePatterns();
-    workspacePatterns.forEach((pattern) => {
-      complete(pattern, `Workspace pattern: ${pattern}`);
-    });
-
+export const commonOptionHandlers: OptionHandlers = {
+  workspace(complete) {
+    const patterns = getWorkspacePatterns();
+    patterns.forEach((p) => complete(p, `Workspace pattern: ${p}`));
     complete('packages/*', 'All packages in packages directory');
     complete('apps/*', 'All apps in apps directory');
   },
 
-  registry: function (complete: (value: string, description: string) => void) {
+  registry(complete) {
     complete('https://registry.npmjs.org/', 'Official npm registry');
     complete('https://registry.npmmirror.com/', 'npm China mirror');
   },
@@ -42,14 +39,14 @@ export const commonOptionHandlers = {
 export function setupLazyOptionLoading(
   cmd: LazyCommand,
   command: string,
-  packageManager: string,
+  _packageManager: string,
   loadOptionsSync: (cmd: LazyCommand, command: string) => void
 ): void {
   cmd._lazyCommand = command;
   cmd._optionsLoaded = false;
 
-  const optionsStore = cmd.options;
-  cmd.optionsRaw = optionsStore;
+  const store = cmd.options;
+  cmd.optionsRaw = store;
 
   Object.defineProperty(cmd, 'options', {
     get() {
@@ -57,7 +54,7 @@ export function setupLazyOptionLoading(
         this._optionsLoaded = true;
         loadOptionsSync(this, this._lazyCommand);
       }
-      return optionsStore;
+      return store;
     },
     configurable: true,
   });
@@ -66,14 +63,12 @@ export function setupLazyOptionLoading(
 export function setupCommandArguments(
   cmd: LazyCommand,
   command: string,
-  packageManager: string
+  _packageManager: string
 ): void {
-  // Package removal commands
   if (['remove', 'rm', 'uninstall', 'un', 'update', 'up'].includes(command)) {
     cmd.argument('package', packageJsonDependencyCompletion);
   }
 
-  // Script running commands
   if (['run', 'run-script'].includes(command)) {
     cmd.argument('script', packageJsonScriptCompletion, true);
   }
@@ -92,13 +87,13 @@ export async function safeExec(
     });
     return stdout as unknown as string;
   } catch (error) {
-    // Many package managers exit with non-zero but still provide useful output
     if (error instanceof Error && 'stdout' in error) {
-      return error.stdout as unknown as string;
+      return (error as any).stdout as string;
     }
     return '';
   }
 }
+
 export function safeExecSync(command: string, options: any = {}): string {
   try {
     return execSync(command, {
@@ -107,16 +102,10 @@ export function safeExecSync(command: string, options: any = {}): string {
       ...options,
     }) as unknown as string;
   } catch (error: any) {
-    // Handle non-zero exit codes that still provide output
-    if (error.stdout) {
-      return error.stdout as unknown as string;
-    }
-    return '';
+    return error?.stdout ? (error.stdout as string) : '';
   }
 }
 
 export function createLogLevelHandler(levels: string[]): CompletionHandler {
-  return function (complete: (value: string, description: string) => void) {
-    levels.forEach((level) => complete(level, ' '));
-  };
+  return (complete) => levels.forEach((lvl) => complete(lvl, ' '));
 }
