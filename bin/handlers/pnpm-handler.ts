@@ -27,8 +27,10 @@ import {
   type ParsedOption,
 } from '../utils/text-utils.js';
 
-// regex to detect options section in help text
+// regex patterns to avoid recompilation in loops
 const OPTIONS_SECTION_RE = /^\s*Options:/i;
+const LEVEL_MATCH_RE = /(?:levels?|options?|values?)[^:]*:\s*([^.]+)/i;
+const REPORTER_MATCH_RE = /--reporter\s+(\w+)/g;
 
 function extractValidValuesFromHelp(
   helpText: string,
@@ -42,9 +44,7 @@ function extractValidValuesFromHelp(
       for (let j = i; j < Math.min(i + 3, lines.length); j++) {
         const searchLine = lines[j];
 
-        const levelMatch = searchLine.match(
-          /(?:levels?|options?|values?)[^:]*:\s*([^.]+)/i
-        );
+        const levelMatch = searchLine.match(LEVEL_MATCH_RE);
         if (levelMatch) {
           return levelMatch[1]
             .split(/[,\s]+/)
@@ -53,11 +53,11 @@ function extractValidValuesFromHelp(
         }
 
         if (optionName === 'reporter') {
-          const reporterMatch = searchLine.match(/--reporter\s+(\w+)/);
+          const reporterMatch = searchLine.match(REPORTER_MATCH_RE);
           if (reporterMatch) {
             const reporterValues = new Set<string>();
             for (const helpLine of lines) {
-              const matches = helpLine.matchAll(/--reporter\s+(\w+)/g);
+              const matches = helpLine.matchAll(REPORTER_MATCH_RE);
               for (const match of matches) {
                 reporterValues.add(match[1]);
               }
