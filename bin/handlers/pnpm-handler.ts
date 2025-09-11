@@ -9,7 +9,7 @@ import {
   safeExec,
   safeExecSync,
   createLogLevelHandler,
-} from '../utils/package-manager-base.js';
+} from '../utils/shared.js';
 import {
   stripAnsiEscapes,
   measureIndent,

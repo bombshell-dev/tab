@@ -9,22 +9,43 @@ import {
   safeExec,
   safeExecSync,
   createLogLevelHandler,
-} from '../utils/package-manager-base.js';
+} from '../utils/shared.js';
 
-// regex patterns to avoid recompilation in loops
 const ALL_COMMANDS_RE = /^All commands:\s*$/i;
 const OPTIONS_SECTION_RE = /^Options:\s*$/i;
-const SECTION_END_RE = /^(aliases|run|more)/i;
+const SECTION_END_RE = /^(aliases|run|more)/i; // marks end of Options: block
 const COMMAND_VALIDATION_RE = /^[a-z][a-z0-9-]*$/;
 const NPM_OPTION_RE =
   /(?:\[)?(?:-([a-z])\|)?--([a-z][a-z0-9-]+)(?:\s+<[^>]+>)?(?:\])?/gi;
-const OPTION_VALUE_RE = /<[^>]+>/;
-const NON_INDENTED_LINE_RE = /^\s/;
+const ANGLE_VALUE_RE = /<[^>]+>/;
+const INDENTED_LINE_RE = /^\s/;
+
+function toLines(helpText: string): string[] {
+  return stripAnsiEscapes(helpText).split(/\r?\n/);
+}
+
+function readIndentedBlockAfter(lines: string[], headerRe: RegExp): string {
+  const start = lines.findIndex((l) => headerRe.test(l.trim()));
+  if (start === -1) return '';
+
+  let buf = '';
+  for (let i = start + 1; i < lines.length; i++) {
+    const line = lines[i];
+    if (!INDENTED_LINE_RE.test(line) && line.trim() && !line.includes(','))
+      break;
+    if (INDENTED_LINE_RE.test(line)) buf += ' ' + line.trim();
+  }
+  return buf;
+}
+
+const listHandler =
+  (values: string[], describe: (v: string) => string = () => ' ') =>
+  (complete: (value: string, description: string) => void) =>
+    values.forEach((v) => complete(v, describe(v)));
 
 const npmOptionHandlers: OptionHandlers = {
   ...commonOptionHandlers,
 
-  // npm log levels
   loglevel: createLogLevelHandler([
     'silent',
     'error',
@@ -36,72 +57,60 @@ const npmOptionHandlers: OptionHandlers = {
     'silly',
   ]),
 
-  'install-strategy': function (complete) {
-    // From npm help: hoisted|nested|shallow|linked
-    complete('hoisted', 'Hoist all dependencies to top level');
-    complete('nested', 'Create nested node_modules structure');
-    complete('shallow', 'Shallow dependency installation');
-    complete('linked', 'Use linked dependencies');
-  },
+  'install-strategy': listHandler(
+    ['hoisted', 'nested', 'shallow', 'linked'],
+    (v) =>
+      (
+        ({
+          hoisted: 'Hoist all dependencies to top level',
+          nested: 'Nested node_modules structure',
+          shallow: 'Shallow dependency installation',
+          linked: 'Use linked dependencies',
+        }) as Record<string, string>
+      )[v] ?? ' '
+  ),
 
-  omit: function (complete) {
-    // From npm help: dev|optional|peer
-    complete('dev', 'Omit devDependencies');
-    complete('optional', 'Omit optionalDependencies');
-    complete('peer', 'Omit peerDependencies');
-  },
+  omit: listHandler(
+    ['dev', 'optional', 'peer'],
+    (v) =>
+      (
+        ({
+          dev: 'Omit devDependencies',
+          optional: 'Omit optionalDependencies',
+          peer: 'Omit peerDependencies',
+        }) as Record<string, string>
+      )[v] ?? ' '
+  ),
 
-  include: function (complete) {
-    // From npm help: prod|dev|optional|peer
-    complete('prod', 'Include production dependencies');
-    complete('dev', 'Include devDependencies');
-    complete('optional', 'Include optionalDependencies');
-    complete('peer', 'Include peerDependencies');
-  },
+  include: listHandler(
+    ['prod', 'dev', 'optional', 'peer'],
+    (v) =>
+      (
+        ({
+          prod: 'Include production deps',
+          dev: 'Include dev deps',
+          optional: 'Include optional deps',
+          peer: 'Include peer deps',
+        }) as Record<string, string>
+      )[v] ?? ' '
+  ),
 };
 
-// parse npm help text to extract commands and their descriptions
 export function parseNpmHelp(helpText: string): Record<string, string> {
-  const helpLines = stripAnsiEscapes(helpText).split(/\r?\n/);
-
-  // find "All commands:" section
-  let startIndex = -1;
-  for (let i = 0; i < helpLines.length; i++) {
-    if (ALL_COMMANDS_RE.test(helpLines[i].trim())) {
-      startIndex = i + 1;
-      break;
-    }
-  }
-
-  if (startIndex === -1) return {};
+  const lines = toLines(helpText);
+  const commandsBlob = readIndentedBlockAfter(lines, ALL_COMMANDS_RE);
+  if (!commandsBlob) return {};
 
   const commands: Record<string, string> = {};
-  let commandsText = '';
 
-  // collect all lines that are part of the commands section
-  for (let i = startIndex; i < helpLines.length; i++) {
-    const line = helpLines[i];
-
-    // stop if we hit a non-indented line that starts a new section
-    if (!NON_INDENTED_LINE_RE.test(line) && line.trim() && !line.includes(','))
-      break;
-
-    // add this line to our commands text
-    if (NON_INDENTED_LINE_RE.test(line)) {
-      commandsText += ' ' + line.trim();
-    }
-  }
-
-  // parse the comma-separated command list
-  const commandList = commandsText
+  commandsBlob
     .split(',')
-    .map((cmd) => cmd.trim())
-    .filter((cmd) => cmd && COMMAND_VALIDATION_RE.test(cmd));
-
-  // npm does not ptrovide descriptions in the main help.
-  commandList.forEach((cmd) => {
-    commands[cmd] = ' ';
-  });
+    .map((c) => c.trim())
+    .filter((c) => c && COMMAND_VALIDATION_RE.test(c))
+    .forEach((cmd) => {
+      // npm main help has no per-command descriptions
+      commands[cmd] = ' ';
+    });
 
   // this is the most common used aliase that isn't in the main list
   commands['run'] = ' ';
@@ -117,56 +126,35 @@ export async function getNpmCommandsFromMainHelp(): Promise<
   return output ? parseNpmHelp(output) : {};
 }
 
-// Parse npm options from help text (npm has a different format than pnpm)
 export function parseNpmOptions(
   helpText: string,
   { flagsOnly = true }: { flagsOnly?: boolean } = {}
 ): ParsedOption[] {
-  const helpLines = stripAnsiEscapes(helpText).split(/\r?\n/);
-  const optionsOut: ParsedOption[] = [];
+  const lines = toLines(helpText);
 
-  // Find the Options: section
-  let optionsStartIndex = -1;
-  for (let i = 0; i < helpLines.length; i++) {
-    if (OPTIONS_SECTION_RE.test(helpLines[i].trim())) {
-      optionsStartIndex = i + 1;
-      break;
-    }
-  }
+  const start = lines.findIndex((l) => OPTIONS_SECTION_RE.test(l.trim()));
+  if (start === -1) return [];
 
-  if (optionsStartIndex === -1) return [];
+  const out: ParsedOption[] = [];
 
-  // Parse the compact npm option format: [-S|--save|--no-save] etc.
-  for (let i = optionsStartIndex; i < helpLines.length; i++) {
-    const line = helpLines[i];
+  for (const line of lines.slice(start + 1)) {
+    const trimmed = line.trim();
+    if (SECTION_END_RE.test(trimmed)) break;
 
-    // Stop at aliases or other sections
-    if (SECTION_END_RE.test(line.trim())) break;
-
-    // Parse option patterns like [-S|--save] or [--loglevel <level>]
-    const optionMatches = line.matchAll(NPM_OPTION_RE);
-
-    for (const match of optionMatches) {
-      const short = match[1] || undefined;
-      const long = match[2];
-
-      // Check if this option takes a value
-      const takesValue = OPTION_VALUE_RE.test(match[0]);
-
+    const matches = line.matchAll(NPM_OPTION_RE);
+    for (const m of matches) {
+      const short = m[1] || undefined;
+      const long = m[2];
+      const takesValue = ANGLE_VALUE_RE.test(m[0]);
       if (flagsOnly && takesValue) continue;
 
-      optionsOut.push({
-        short,
-        long,
-        desc: ' ',
-      });
+      out.push({ short, long, desc: ' ' });
     }
   }
 
-  return optionsOut;
+  return out;
 }
 
-// Load dynamic options synchronously when requested
 function loadNpmOptionsSync(cmd: LazyCommand, command: string): void {
   const output = safeExecSync(`npm ${command} --help`);
   if (!output) return;
@@ -174,15 +162,12 @@ function loadNpmOptionsSync(cmd: LazyCommand, command: string): void {
   const allOptions = parseNpmOptions(output, { flagsOnly: false });
 
   for (const { long, short, desc } of allOptions) {
-    const alreadyDefined = cmd.optionsRaw?.get?.(long);
-    if (!alreadyDefined) {
-      const handler = npmOptionHandlers[long];
-      if (handler) {
-        cmd.option(long, desc, handler, short);
-      } else {
-        cmd.option(long, desc, short);
-      }
-    }
+    const exists = cmd.optionsRaw?.get?.(long);
+    if (exists) continue;
+
+    const handler = npmOptionHandlers[long];
+    if (handler) cmd.option(long, desc, handler, short);
+    else cmd.option(long, desc, short);
   }
 }
 
@@ -190,18 +175,13 @@ export async function setupNpmCompletions(
   completion: PackageManagerCompletion
 ): Promise<void> {
   try {
-    const commandsWithDescriptions = await getNpmCommandsFromMainHelp();
+    const commands = await getNpmCommandsFromMainHelp();
+    for (const [command, description] of Object.entries(commands)) {
+      const c = completion.command(command, description);
 
-    for (const [command, description] of Object.entries(
-      commandsWithDescriptions
-    )) {
-      const cmd = completion.command(command, description);
+      setupCommandArguments(c, command, 'npm');
 
-      // Setup common argument patterns
-      setupCommandArguments(cmd, command, 'npm');
-
-      // Setup lazy option loading
-      setupLazyOptionLoading(cmd, command, 'npm', loadNpmOptionsSync);
+      setupLazyOptionLoading(c, command, 'npm', loadNpmOptionsSync);
     }
-  } catch (_err) {}
+  } catch {}
 }
