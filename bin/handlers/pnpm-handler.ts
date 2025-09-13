@@ -1,22 +1,15 @@
-import { promisify } from 'node:util';
-import child_process from 'node:child_process';
-
-const exec = promisify(child_process.exec);
-const { execSync } = child_process;
 import type { PackageManagerCompletion } from '../package-manager-completion.js';
-import { Command, Option } from '../../src/t.js';
-
-interface LazyCommand extends Command {
-  _lazyCommand?: string;
-  _optionsLoaded?: boolean;
-  optionsRaw?: Map<string, Option>;
-}
-
-import {
-  packageJsonScriptCompletion,
-  packageJsonDependencyCompletion,
-} from '../completions/completion-producers.js';
 import { getWorkspacePatterns } from '../utils/filesystem-utils.js';
+import {
+  LazyCommand,
+  OptionHandlers,
+  commonOptionHandlers,
+  setupLazyOptionLoading,
+  setupCommandArguments,
+  safeExec,
+  safeExecSync,
+  createLogLevelHandler,
+} from '../utils/shared.js';
 import {
   stripAnsiEscapes,
   measureIndent,
@@ -27,314 +20,314 @@ import {
   type ParsedOption,
 } from '../utils/text-utils.js';
 
-// regex to detect options section in help text
 const OPTIONS_SECTION_RE = /^\s*Options:/i;
+const LEVEL_MATCH_RE = /(?:levels?|options?|values?)[^:]*:\s*([^.]+)/i;
+const LINE_SPLIT_RE = /\r?\n/;
+const COMMA_SPACE_SPLIT_RE = /[,\s]+/;
+const OPTION_WITH_VALUE_RE =
+  /^\s*(?:-\w,?\s*)?--(\w+(?:-\w+)*)\s+(\w+(?:-\w+)*)\s+(.+)$/;
+const OPTION_ALIAS_RE =
+  /^\s*-\w,?\s*--\w+(?:,\s*--(\w+(?:-\w+)*)\s+(\w+(?:-\w+)*))?\s+(.+)$/;
+const CONTINUATION_LINE_RE = /^\s{20,}/;
+const SECTION_HEADER_RE = /^\s*[A-Z][^:]*:\s*$/;
+
+function toLines(text: string): string[] {
+  return stripAnsiEscapes(text).split(LINE_SPLIT_RE);
+}
+
+function findCommandDescColumn(lines: string[]): number {
+  let col = Number.POSITIVE_INFINITY;
+  for (const line of lines) {
+    const m = line.match(COMMAND_ROW_RE);
+    if (!m) continue;
+    const idx = line.indexOf(m[2]);
+    if (idx >= 0 && idx < col) col = idx;
+  }
+  return col;
+}
+
+function findOptionDescColumn(lines: string[], flagsOnly: boolean): number {
+  let col = Number.POSITIVE_INFINITY;
+  for (const line of lines) {
+    const m = line.match(OPTION_ROW_RE);
+    if (!m) continue;
+    if (flagsOnly && m.groups?.val) continue; // skip value-taking options in flagsOnly mode
+    const idx = line.indexOf(m.groups!.desc);
+    if (idx >= 0 && idx < col) col = idx;
+  }
+  return col;
+}
 
 function extractValidValuesFromHelp(
   helpText: string,
   optionName: string
-): string[] {
-  const lines = stripAnsiEscapes(helpText).split(/\r?\n/);
+): Array<{ value: string; desc: string }> {
+  const lines = toLines(helpText);
+  const results: Array<{ value: string; desc: string }> = [];
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    if (line.includes(`--${optionName}`) || line.includes(`${optionName}:`)) {
-      for (let j = i; j < Math.min(i + 3, lines.length); j++) {
-        const searchLine = lines[j];
 
-        const levelMatch = searchLine.match(
-          /(?:levels?|options?|values?)[^:]*:\s*([^.]+)/i
-        );
-        if (levelMatch) {
-          return levelMatch[1]
-            .split(/[,\s]+/)
-            .map((v) => v.trim())
-            .filter((v) => v && !v.includes('(') && !v.includes(')'));
-        }
+    // Look for options with values in any section
+    const optionMatch = line.match(OPTION_WITH_VALUE_RE);
+    if (optionMatch) {
+      const [, option, value, initialDesc] = optionMatch;
+      if (option === optionName) {
+        // capture continuation lines for complete description
+        let fullDesc = initialDesc.trim();
+        let j = i + 1;
 
-        if (optionName === 'reporter') {
-          const reporterMatch = searchLine.match(/--reporter\s+(\w+)/);
-          if (reporterMatch) {
-            const reporterValues = new Set<string>();
-            for (const helpLine of lines) {
-              const matches = helpLine.matchAll(/--reporter\s+(\w+)/g);
-              for (const match of matches) {
-                reporterValues.add(match[1]);
-              }
-            }
-            return Array.from(reporterValues);
+        // Look ahead for continuation lines (indented lines that don't start new options)
+        while (j < lines.length) {
+          const nextLine = lines[j];
+          const isIndented = CONTINUATION_LINE_RE.test(nextLine);
+          const isNewOption =
+            OPTION_WITH_VALUE_RE.test(nextLine) ||
+            OPTION_ALIAS_RE.test(nextLine);
+          const isEmptyOrSection =
+            !nextLine.trim() || SECTION_HEADER_RE.test(nextLine);
+
+          if (isIndented && !isNewOption && !isEmptyOrSection) {
+            fullDesc += ' ' + nextLine.trim();
+            j++;
+          } else {
+            break;
           }
         }
+
+        results.push({ value, desc: fullDesc });
+      }
+    }
+
+    const aliasMatch = line.match(OPTION_ALIAS_RE);
+    if (aliasMatch) {
+      const [, option, value, initialDesc] = aliasMatch;
+      if (option === optionName && value) {
+        // capture continuation lines for alias descriptions too
+        let fullDesc = initialDesc.trim();
+        let j = i + 1;
+
+        while (j < lines.length) {
+          const nextLine = lines[j];
+          const isIndented = CONTINUATION_LINE_RE.test(nextLine);
+          const isNewOption =
+            OPTION_WITH_VALUE_RE.test(nextLine) ||
+            OPTION_ALIAS_RE.test(nextLine);
+          const isEmptyOrSection =
+            !nextLine.trim() || SECTION_HEADER_RE.test(nextLine);
+
+          if (isIndented && !isNewOption && !isEmptyOrSection) {
+            fullDesc += ' ' + nextLine.trim();
+            j++;
+          } else {
+            break;
+          }
+        }
+
+        results.push({ value, desc: fullDesc });
       }
     }
   }
 
+  if (results.length) return results;
+
+  for (let i = 0; i < lines.length; i++) {
+    const ln = lines[i];
+    if (ln.includes(`--${optionName}`) || ln.includes(`${optionName}:`)) {
+      for (let j = i; j < Math.min(i + 3, lines.length); j++) {
+        const probe = lines[j];
+        const m = probe.match(LEVEL_MATCH_RE);
+        if (m) {
+          return m[1]
+            .split(COMMA_SPACE_SPLIT_RE)
+            .map((v) => v.trim())
+            .filter((v) => v && !v.includes('(') && !v.includes(')'))
+            .map((value) => ({ value, desc: `Log level: ${value}` }));
+        }
+      }
+    }
+  }
   return [];
 }
 
-// completion handlers for pnpm options that take values
-const pnpmOptionHandlers = {
-  // Let shell handle directory completions - it's much better at it
-  // dir, modules-dir, store-dir, lockfile-dir, virtual-store-dir removed
+const pnpmOptionHandlers: OptionHandlers = {
+  ...commonOptionHandlers,
 
-  loglevel: function (complete: (value: string, description: string) => void) {
-    // Try to get values from help, fall back to known values
-    const helpValues = extractValidValuesFromHelp(
-      execSync('pnpm install --help', { encoding: 'utf8', timeout: 500 }),
+  loglevel(complete) {
+    const fromHelp = extractValidValuesFromHelp(
+      safeExecSync('pnpm install --help'),
       'loglevel'
     );
-
-    if (helpValues.length > 0) {
-      helpValues.forEach((value) => complete(value, `Log level: ${value}`));
+    if (fromHelp.length) {
+      fromHelp.forEach(({ value, desc }) => complete(value, desc));
     } else {
-      // Fallback based on documented values
-      ['debug', 'info', 'warn', 'error', 'silent'].forEach((level) =>
-        complete(level, `Log level: ${level}`)
+      createLogLevelHandler(['debug', 'info', 'warn', 'error', 'silent'])(
+        complete
       );
     }
   },
 
-  reporter: function (complete: (value: string, description: string) => void) {
-    // valid values from pnpm help
-    const reporters = [
-      { value: 'default', desc: 'Default reporter when stdout is TTY' },
-      {
-        value: 'append-only',
-        desc: 'Output always appended, no cursor manipulation',
-      },
-      { value: 'ndjson', desc: 'Most verbose reporter in NDJSON format' },
-      { value: 'silent', desc: 'No output logged to console' },
-    ];
-
-    reporters.forEach(({ value, desc }) => complete(value, desc));
+  reporter(complete) {
+    const out = extractValidValuesFromHelp(
+      safeExecSync('pnpm install --help'),
+      'reporter'
+    );
+    if (out.length) {
+      out.forEach(({ value, desc }) => complete(value, desc));
+    } else {
+      createLogLevelHandler(['default', 'append-only', 'ndjson', 'silent'])(
+        complete
+      );
+    }
   },
 
-  filter: function (complete: (value: string, description: string) => void) {
-    // Based on pnpm documentation
+  filter(complete) {
     complete('.', 'Current working directory');
     complete('!<selector>', 'Exclude packages matching selector');
 
-    // Get actual workspace patterns from pnpm-workspace.yaml
-    const workspacePatterns = getWorkspacePatterns();
-    workspacePatterns.forEach((pattern) => {
-      complete(pattern, `Workspace pattern: ${pattern}`);
-      complete(`${pattern}...`, `Include dependencies of ${pattern}`);
+    const patterns = getWorkspacePatterns();
+    patterns.forEach((p) => {
+      complete(p, `Workspace pattern: ${p}`);
+      complete(`${p}...`, `Include dependencies of ${p}`);
     });
 
-    // Common scope patterns
     complete('@*/*', 'All scoped packages');
     complete('...<pattern>', 'Include dependencies of pattern');
     complete('<pattern>...', 'Include dependents of pattern');
   },
 };
 
-// we parse the pnpm help text to extract commands and their descriptions!
 export function parsePnpmHelp(helpText: string): Record<string, string> {
-  const helpLines = stripAnsiEscapes(helpText).split(/\r?\n/);
+  const lines = toLines(helpText);
 
-  // we find the earliest description column across command rows.
-  let descColumnIndex = Number.POSITIVE_INFINITY;
-  for (const line of helpLines) {
-    const rowMatch = line.match(COMMAND_ROW_RE);
-    if (!rowMatch) continue;
-    const descColumnIndexOnThisLine = line.indexOf(rowMatch[2]);
-    if (
-      descColumnIndexOnThisLine >= 0 &&
-      descColumnIndexOnThisLine < descColumnIndex
-    ) {
-      descColumnIndex = descColumnIndexOnThisLine;
-    }
-  }
-  if (!Number.isFinite(descColumnIndex)) return {};
+  const descCol = findCommandDescColumn(lines);
+  if (!Number.isFinite(descCol)) return {};
 
-  // we fold rows, and join continuation lines aligned to descColumnIndex or deeper.
-  type PendingRow = { names: string[]; desc: string } | null;
-  let pendingRow: PendingRow = null;
+  type Pending = { names: string[]; desc: string } | null;
+  let pending: Pending = null;
 
-  const commandMap = new Map<string, string>();
-  const flushPendingRow = () => {
-    if (!pendingRow) return;
-    const desc = pendingRow.desc.trim();
-    for (const name of pendingRow.names) commandMap.set(name, desc);
-    pendingRow = null;
+  const out = new Map<string, string>();
+
+  const flush = () => {
+    if (!pending) return;
+    const desc = pending.desc.trim();
+    for (const n of pending.names) out.set(n, desc);
+    pending = null;
   };
 
-  for (const line of helpLines) {
-    if (OPTIONS_SECTION_RE.test(line)) break; // we stop at options
+  for (const line of lines) {
+    if (OPTIONS_SECTION_RE.test(line)) break; // end of commands section
 
-    // we match the command row
-    const rowMatch = line.match(COMMAND_ROW_RE);
-    if (rowMatch) {
-      flushPendingRow();
-      pendingRow = {
-        names: parseAliasList(rowMatch[1]),
-        desc: rowMatch[2].trim(),
+    const row = line.match(COMMAND_ROW_RE);
+    if (row) {
+      flush();
+      pending = {
+        names: parseAliasList(row[1]),
+        desc: row[2].trim(),
       };
       continue;
     }
 
-    // we join continuation lines aligned to descColumnIndex or deeper
-    if (pendingRow) {
-      const indentWidth = measureIndent(line);
-      if (indentWidth >= descColumnIndex && line.trim()) {
-        pendingRow.desc += ' ' + line.trim();
+    if (pending) {
+      const indent = measureIndent(line);
+      if (indent >= descCol && line.trim()) {
+        pending.desc += ' ' + line.trim();
       }
     }
   }
-  // we flush the pending row and return the command map
-  flushPendingRow();
+  flush();
 
-  return Object.fromEntries(commandMap);
+  return Object.fromEntries(out);
 }
 
-// now we get the pnpm commands from the main help output
 export async function getPnpmCommandsFromMainHelp(): Promise<
   Record<string, string>
 > {
-  try {
-    const { stdout } = await exec('pnpm --help', {
-      encoding: 'utf8',
-      timeout: 500,
-      maxBuffer: 4 * 1024 * 1024,
-    });
-    return parsePnpmHelp(stdout);
-  } catch {
-    return {};
-  }
+  const output = await safeExec('pnpm --help');
+  return output ? parsePnpmHelp(output) : {};
 }
 
-// here we parse the pnpm options from the help text
 export function parsePnpmOptions(
   helpText: string,
   { flagsOnly = true }: { flagsOnly?: boolean } = {}
 ): ParsedOption[] {
-  // we strip the ANSI escapes from the help text
-  const helpLines = stripAnsiEscapes(helpText).split(/\r?\n/);
+  const lines = toLines(helpText);
 
-  // we find the earliest description column among option rows we care about
-  let descColumnIndex = Number.POSITIVE_INFINITY;
-  for (const line of helpLines) {
-    const optionMatch = line.match(OPTION_ROW_RE);
-    if (!optionMatch) continue;
-    if (flagsOnly && optionMatch.groups?.val) continue;
-    const descColumnIndexOnThisLine = line.indexOf(optionMatch.groups!.desc);
-    if (
-      descColumnIndexOnThisLine >= 0 &&
-      descColumnIndexOnThisLine < descColumnIndex
-    ) {
-      descColumnIndex = descColumnIndexOnThisLine;
-    }
-  }
-  if (!Number.isFinite(descColumnIndex)) return [];
+  const descCol = findOptionDescColumn(lines, flagsOnly);
+  if (!Number.isFinite(descCol)) return [];
 
-  // we fold the option rows and join the continuations
-  const optionsOut: ParsedOption[] = [];
-  let pendingOption: ParsedOption | null = null;
+  const out: ParsedOption[] = [];
+  let pending: ParsedOption | null = null;
 
-  const flushPendingOption = () => {
-    if (!pendingOption) return;
-    pendingOption.desc = pendingOption.desc.trim();
-    optionsOut.push(pendingOption);
-    pendingOption = null;
+  const flush = () => {
+    if (!pending) return;
+    pending.desc = pending.desc.trim();
+    out.push(pending);
+    pending = null;
   };
 
-  // we match the option row
-  for (const line of helpLines) {
-    const optionMatch = line.match(OPTION_ROW_RE);
-    if (optionMatch) {
-      if (flagsOnly && optionMatch.groups?.val) continue;
-      flushPendingOption();
-      pendingOption = {
-        short: optionMatch.groups?.short || undefined,
-        long: optionMatch.groups!.long,
-        desc: optionMatch.groups!.desc.trim(),
+  for (const line of lines) {
+    const m = line.match(OPTION_ROW_RE);
+    if (m) {
+      if (flagsOnly && m.groups?.val) continue;
+      flush();
+      pending = {
+        short: m.groups?.short || undefined,
+        long: m.groups!.long,
+        desc: m.groups!.desc.trim(),
       };
       continue;
     }
 
-    // we join the continuations
-    if (pendingOption) {
-      const indentWidth = measureIndent(line);
-      const startsNewOption = OPTION_HEAD_RE.test(line);
-      if (indentWidth >= descColumnIndex && line.trim() && !startsNewOption) {
-        pendingOption.desc += ' ' + line.trim();
+    if (pending) {
+      const indent = measureIndent(line);
+      const startsNew = OPTION_HEAD_RE.test(line);
+      if (indent >= descCol && line.trim() && !startsNew) {
+        pending.desc += ' ' + line.trim();
       }
     }
   }
-  // we flush the pending option
-  flushPendingOption();
+  flush();
 
-  return optionsOut;
+  return out;
 }
 
-// we load the dynamic options synchronously when requested ( separated from the command loading )
-export function loadDynamicOptionsSync(
-  cmd: LazyCommand,
-  command: string
-): void {
-  try {
-    const stdout = execSync(`pnpm ${command} --help`, {
-      encoding: 'utf8',
-      timeout: 500,
-    });
+function loadPnpmOptionsSync(cmd: LazyCommand, command: string): void {
+  const output = safeExecSync(`pnpm ${command} --help`);
+  if (!output) return;
 
-    const allOptions = parsePnpmOptions(stdout, { flagsOnly: false });
+  const options = parsePnpmOptions(output, { flagsOnly: false });
 
-    for (const { long, short, desc } of allOptions) {
-      const alreadyDefined = cmd.optionsRaw?.get?.(long);
-      if (!alreadyDefined) {
-        const handler =
-          pnpmOptionHandlers[long as keyof typeof pnpmOptionHandlers];
-        if (handler) {
-          cmd.option(long, desc, handler, short);
-        } else {
-          cmd.option(long, desc, short);
-        }
+  for (const { long, short, desc } of options) {
+    const exists = cmd.optionsRaw?.get?.(long);
+    if (exists) continue;
+
+    const handler = pnpmOptionHandlers[long];
+    if (handler) cmd.option(long, desc, handler, short);
+    else cmd.option(long, desc, short);
+  }
+
+  // Register options found by general algorithm but not in standard parsing
+  for (const [optionName, handler] of Object.entries(pnpmOptionHandlers)) {
+    if (!cmd.optionsRaw?.get?.(optionName)) {
+      const values = extractValidValuesFromHelp(output, optionName);
+      if (values.length > 0) {
+        cmd.option(optionName, ' ', handler);
       }
     }
-  } catch (_err) {}
-}
-
-// we setup the lazy option loading for a command
-
-function setupLazyOptionLoading(cmd: LazyCommand, command: string): void {
-  cmd._lazyCommand = command;
-  cmd._optionsLoaded = false;
-
-  const optionsStore = cmd.options;
-  cmd.optionsRaw = optionsStore;
-
-  Object.defineProperty(cmd, 'options', {
-    get() {
-      if (!this._optionsLoaded) {
-        this._optionsLoaded = true;
-        loadDynamicOptionsSync(this, this._lazyCommand); // block until filled
-      }
-      return optionsStore;
-    },
-    configurable: true,
-  });
+  }
 }
 
 export async function setupPnpmCompletions(
   completion: PackageManagerCompletion
 ): Promise<void> {
   try {
-    const commandsWithDescriptions = await getPnpmCommandsFromMainHelp();
+    const commands = await getPnpmCommandsFromMainHelp();
 
-    for (const [command, description] of Object.entries(
-      commandsWithDescriptions
-    )) {
-      const cmd = completion.command(command, description);
-
-      if (['remove', 'rm', 'update', 'up'].includes(command)) {
-        cmd.argument('package', packageJsonDependencyCompletion);
-      }
-      if (command === 'run') {
-        cmd.argument('script', packageJsonScriptCompletion, true);
-      }
-
-      setupLazyOptionLoading(cmd, command);
+    for (const [command, description] of Object.entries(commands)) {
+      const c = completion.command(command, description);
+      setupCommandArguments(c, command, 'pnpm');
+      setupLazyOptionLoading(c, command, 'pnpm', loadPnpmOptionsSync);
     }
-  } catch (_err) {}
+  } catch {}
 }
