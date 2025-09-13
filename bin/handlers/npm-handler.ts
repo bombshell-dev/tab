@@ -59,41 +59,12 @@ const npmOptionHandlers: OptionHandlers = {
 
   'install-strategy': listHandler(
     ['hoisted', 'nested', 'shallow', 'linked'],
-    (v) =>
-      (
-        ({
-          hoisted: 'Hoist all dependencies to top level',
-          nested: 'Nested node_modules structure',
-          shallow: 'Shallow dependency installation',
-          linked: 'Use linked dependencies',
-        }) as Record<string, string>
-      )[v] ?? ' '
+    () => ' '
   ),
 
-  omit: listHandler(
-    ['dev', 'optional', 'peer'],
-    (v) =>
-      (
-        ({
-          dev: 'Omit devDependencies',
-          optional: 'Omit optionalDependencies',
-          peer: 'Omit peerDependencies',
-        }) as Record<string, string>
-      )[v] ?? ' '
-  ),
+  omit: listHandler(['dev', 'optional', 'peer'], () => ' '),
 
-  include: listHandler(
-    ['prod', 'dev', 'optional', 'peer'],
-    (v) =>
-      (
-        ({
-          prod: 'Include production deps',
-          dev: 'Include dev deps',
-          optional: 'Include optional deps',
-          peer: 'Include peer deps',
-        }) as Record<string, string>
-      )[v] ?? ' '
-  ),
+  include: listHandler(['prod', 'dev', 'optional', 'peer'], () => ' '),
 };
 
 export function parseNpmHelp(helpText: string): Record<string, string> {

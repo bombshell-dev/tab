@@ -23,10 +23,13 @@ import {
 const OPTIONS_SECTION_RE = /^\s*Options:/i;
 const LEVEL_MATCH_RE = /(?:levels?|options?|values?)[^:]*:\s*([^.]+)/i;
 const LINE_SPLIT_RE = /\r?\n/;
-const REPORTER_LINE_RE = /^\s*--reporter\s+\w/;
-const REPORTER_MATCH_RE = /^\s*--reporter\s+(\w+(?:-\w+)*)\s+(.+)$/;
-const SILENT_REPORTER_RE = /-s,\s*--silent,\s*--reporter\s+silent\s+(.+)/;
 const COMMA_SPACE_SPLIT_RE = /[,\s]+/;
+const OPTION_WITH_VALUE_RE =
+  /^\s*(?:-\w,?\s*)?--(\w+(?:-\w+)*)\s+(\w+(?:-\w+)*)\s+(.+)$/;
+const OPTION_ALIAS_RE =
+  /^\s*-\w,?\s*--\w+(?:,\s*--(\w+(?:-\w+)*)\s+(\w+(?:-\w+)*))?\s+(.+)$/;
+const CONTINUATION_LINE_RE = /^\s{20,}/;
+const SECTION_HEADER_RE = /^\s*[A-Z][^:]*:\s*$/;
 
 function toLines(text: string): string[] {
   return stripAnsiEscapes(text).split(LINE_SPLIT_RE);
@@ -60,28 +63,73 @@ function extractValidValuesFromHelp(
   optionName: string
 ): Array<{ value: string; desc: string }> {
   const lines = toLines(helpText);
+  const results: Array<{ value: string; desc: string }> = [];
 
-  // edge case: reporter often appears as multiple lines
-  if (optionName === 'reporter') {
-    const out: Array<{ value: string; desc: string }> = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
 
-    for (const line of lines) {
-      if (line.includes('--reporter') && REPORTER_LINE_RE.test(line)) {
-        const match = line.match(REPORTER_MATCH_RE);
-        if (match) {
-          const [, value, desc] = match;
-          out.push({ value, desc: desc.trim() });
+    // Look for options with values in any section
+    const optionMatch = line.match(OPTION_WITH_VALUE_RE);
+    if (optionMatch) {
+      const [, option, value, initialDesc] = optionMatch;
+      if (option === optionName) {
+        // capture continuation lines for complete description
+        let fullDesc = initialDesc.trim();
+        let j = i + 1;
+
+        // Look ahead for continuation lines (indented lines that don't start new options)
+        while (j < lines.length) {
+          const nextLine = lines[j];
+          const isIndented = CONTINUATION_LINE_RE.test(nextLine);
+          const isNewOption =
+            OPTION_WITH_VALUE_RE.test(nextLine) ||
+            OPTION_ALIAS_RE.test(nextLine);
+          const isEmptyOrSection =
+            !nextLine.trim() || SECTION_HEADER_RE.test(nextLine);
+
+          if (isIndented && !isNewOption && !isEmptyOrSection) {
+            fullDesc += ' ' + nextLine.trim();
+            j++;
+          } else {
+            break;
+          }
         }
-      }
 
-      const silent = line.match(SILENT_REPORTER_RE);
-      if (silent && !out.some((r) => r.value === 'silent')) {
-        out.push({ value: 'silent', desc: silent[1].trim() });
+        results.push({ value, desc: fullDesc });
       }
     }
 
-    if (out.length) return out;
+    const aliasMatch = line.match(OPTION_ALIAS_RE);
+    if (aliasMatch) {
+      const [, option, value, initialDesc] = aliasMatch;
+      if (option === optionName && value) {
+        // capture continuation lines for alias descriptions too
+        let fullDesc = initialDesc.trim();
+        let j = i + 1;
+
+        while (j < lines.length) {
+          const nextLine = lines[j];
+          const isIndented = CONTINUATION_LINE_RE.test(nextLine);
+          const isNewOption =
+            OPTION_WITH_VALUE_RE.test(nextLine) ||
+            OPTION_ALIAS_RE.test(nextLine);
+          const isEmptyOrSection =
+            !nextLine.trim() || SECTION_HEADER_RE.test(nextLine);
+
+          if (isIndented && !isNewOption && !isEmptyOrSection) {
+            fullDesc += ' ' + nextLine.trim();
+            j++;
+          } else {
+            break;
+          }
+        }
+
+        results.push({ value, desc: fullDesc });
+      }
+    }
   }
+
+  if (results.length) return results;
 
   for (let i = 0; i < lines.length; i++) {
     const ln = lines[i];
@@ -259,11 +307,14 @@ function loadPnpmOptionsSync(cmd: LazyCommand, command: string): void {
     else cmd.option(long, desc, short);
   }
 
-  // edge case: reporter sometimes doesn’t match standard row pattern
-  if (output.includes('--reporter') && !cmd.optionsRaw?.get?.('reporter')) {
-    const handler = pnpmOptionHandlers['reporter'];
-    if (handler)
-      cmd.option('reporter', 'Output reporter for pnpm commands', handler);
+  // Register options found by general algorithm but not in standard parsing
+  for (const [optionName, handler] of Object.entries(pnpmOptionHandlers)) {
+    if (!cmd.optionsRaw?.get?.(optionName)) {
+      const values = extractValidValuesFromHelp(output, optionName);
+      if (values.length > 0) {
+        cmd.option(optionName, ' ', handler);
+      }
+    }
   }
 }
 

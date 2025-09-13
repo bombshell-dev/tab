@@ -26,13 +26,6 @@ export const commonOptionHandlers: OptionHandlers = {
   workspace(complete) {
     const patterns = getWorkspacePatterns();
     patterns.forEach((p) => complete(p, `Workspace pattern: ${p}`));
-    complete('packages/*', 'All packages in packages directory');
-    complete('apps/*', 'All apps in apps directory');
-  },
-
-  registry(complete) {
-    complete('https://registry.npmjs.org/', 'Official npm registry');
-    complete('https://registry.npmmirror.com/', 'npm China mirror');
   },
 };
 
