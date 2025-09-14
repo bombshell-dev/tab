@@ -37,44 +37,38 @@ function findSectionStart(lines: string[], header: RegExp): number {
 const bunOptionHandlers: OptionHandlers = {
   ...commonOptionHandlers,
 
-  silent(complete) {
-    complete('true', 'Enable silent mode');
-    complete('false', 'Disable silent mode');
-  },
-
   backend(complete) {
-    complete('clonefile', 'Clone files (default, fastest)');
-    complete('hardlink', 'Use hard links');
-    complete('symlink', 'Use symbolic links');
-    complete('copyfile', 'Copy files');
+    complete('clonefile', ' ');
+    complete('hardlink', ' ');
+    complete('symlink', ' ');
+    complete('copyfile', ' ');
   },
 
   linker(complete) {
-    complete('isolated', 'Isolated linker strategy');
-    complete('hoisted', 'Hoisted linker strategy');
+    complete('isolated', ' ');
+    complete('hoisted', ' ');
   },
 
   omit(complete) {
-    complete('dev', 'Omit devDependencies');
-    complete('optional', 'Omit optionalDependencies');
-    complete('peer', 'Omit peerDependencies');
+    complete('dev', ' ');
+    complete('optional', ' ');
+    complete('peer', ' ');
   },
 
   shell(complete) {
-    complete('bun', 'Use Bun shell');
-    complete('system', 'Use system shell');
+    complete('bun', ' ');
+    complete('system', ' ');
   },
 
   'unhandled-rejections'(complete) {
-    complete('strict', 'Strict unhandled rejection handling');
-    complete('throw', 'Throw on unhandled rejections');
-    complete('warn', 'Warn on unhandled rejections');
-    complete('none', 'Ignore unhandled rejections');
-    complete('warn-with-error-code', 'Warn with error code');
+    complete('strict', ' ');
+    complete('throw', ' ');
+    complete('warn', ' ');
+    complete('none', ' ');
+    complete('warn-with-error-code', ' ');
   },
 };
 
-/** ---------- Commands ---------- */
 export function parseBunHelp(helpText: string): Record<string, string> {
   const lines = toLines(helpText);
 
