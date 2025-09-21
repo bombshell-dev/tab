@@ -33,8 +33,7 @@ npx @bomb.sh/tab yarn fish > ~/.config/fish/completions/yarn.fish
 npx @bomb.sh/tab bun powershell >> $PROFILE
 ```
 
-You'd get smart completions for all commands and options, and dynamic option values e.g., `--reporter=<TAB>`. and its always up-to-date (parsed from live help output)
-
+You'd get completions for all commands and options, and dynamic option values e.g., `--reporter=<TAB>`.
 **Example in action:**
 
 ```bash
@@ -50,7 +49,7 @@ yarn add --emoji=<TAB>
 
 ### CLI Framework Integration
 
-For your own CLI tools, tab provides seamless integration with popular frameworks:
+For your own CLI tools, tab provides integration with popular frameworks:
 
 #### Using the Core API
 
@@ -225,6 +224,10 @@ my-cli complete -- install --port=""
 --port=8080    Production port
 :4
 ```
+
+## Docs
+
+For more detailed documentation, please visit [bombshell docs](https://bomb.sh/docs/tab/)!
 
 ## Contributing
 
