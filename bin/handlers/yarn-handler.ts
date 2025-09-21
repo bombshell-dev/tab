@@ -91,7 +91,7 @@ export function parseYarnHelp(helpText: string): Record<string, string> {
 export async function getYarnCommandsFromMainHelp(): Promise<
   Record<string, string>
 > {
-  const output = await safeExec('cd /tmp && yarn --help');
+  const output = await safeExec('yarn --help');
   return output ? parseYarnHelp(output) : {};
 }
 
@@ -127,8 +127,7 @@ export function parseYarnOptions(
 }
 
 function loadYarnOptionsSync(cmd: LazyCommand, command: string): void {
-  // Use cd /tmp to avoid packageManager constraints
-  const output = safeExecSync(`cd /tmp && yarn ${command} --help`);
+  const output = safeExecSync(`yarn ${command} --help`);
   if (!output) return;
 
   const options = parseYarnOptions(output, { flagsOnly: false });
