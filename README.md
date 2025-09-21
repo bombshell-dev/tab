@@ -1,13 +1,13 @@
-> A video showcasing how pnpm autocompletions work on a test CLI command 
-like `my-cli`
+> A video showcasing how pnpm autocompletions work on a test CLI command
+> like `my-cli`
 
 # tab
+
 Shell autocompletions are largely missing in the JavaScript CLI ecosystem. This tool bridges that gap by autocompletions for `pnpm`, `npm`, `yarn`, and `bun` with dynamic option parsing and context-aware suggestions and also Easy-to-use adapters for popular JavaScript CLI frameworks like CAC, Citty, and Commander.js
 
 As CLI tooling authors, if we can spare our users a second or two by not checking documentation or writing the `-h` flag, we're doing them a huge favor. The unconscious mind loves hitting the [TAB] key and always expects feedback. When nothing happens, it breaks the user's flow - a frustration apparent across the whole JavaScript CLI tooling ecosystem.
 
 Tab solves this complexity by providing autocompletions that work consistently across `zsh`, `bash`, `fish`, and `powershell`.
-
 
 ### Installation
 
@@ -36,11 +36,12 @@ npx @bomb.sh/tab bun powershell >> $PROFILE
 You'd get smart completions for all commands and options, and dynamic option values e.g., `--reporter=<TAB>`. and its always up-to-date (parsed from live help output)
 
 **Example in action:**
+
 ```bash
 pnpm install --reporter=<TAB>
 # Shows append-only, default, ndjson, silent
 
-npm remove <TAB>  
+npm remove <TAB>
 # Shows the packages from package.json
 
 yarn add --emoji=<TAB>
@@ -77,25 +78,27 @@ if (process.argv[2] === 'complete') {
 ```
 
 **Test your completions:**
+
 ```bash
 node my-cli.js complete -- dev --p<TAB>
 # Output: --port  Specify port
 
-node my-cli.js complete -- dev --port=<TAB>  
+node my-cli.js complete -- dev --port=<TAB>
 # Output: --port=3000  Development port
 #         --port=8080  Production port
 ```
 
 **Install for users:**
+
 ```bash
 # One-time setup
 source <(my-cli complete zsh)
 
-# Permanent setup  
+# Permanent setup
 my-cli complete zsh >> ~/.zshrc
 ```
 
-##  Framework Adapters
+## Framework Adapters
 
 Tab provides adapters for popular JavaScript CLI frameworks.
 
@@ -108,9 +111,10 @@ import tab from '@bomb.sh/tab/cac';
 const cli = cac('my-cli');
 
 // Define your CLI
-cli.command('dev', 'Start dev server')
-   .option('--port <port>', 'Specify port')
-   .option('--host <host>', 'Specify host');
+cli
+  .command('dev', 'Start dev server')
+  .option('--port <port>', 'Specify port')
+  .option('--host <host>', 'Specify host');
 
 // Initialize tab completions
 const completion = tab(cli);
@@ -202,9 +206,7 @@ for (const command of completion.commands.values()) {
 program.parse();
 ```
 
-
 Tab's package manager completions are dynamically generated from the actual help output of each tool:
-
 
 Tab uses a standardized completion protocol that any CLI can implement:
 
@@ -217,13 +219,13 @@ my-cli complete -- install --port=""
 ```
 
 **Output Format:**
+
 ```
 --port=3000    Development port
---port=8080    Production port  
+--port=8080    Production port
 :4
 ```
+
 ## Contributing
 
 We welcome contributions! Tab's architecture makes it easy to add support for new package managers or CLI frameworks.
-
-
