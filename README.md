@@ -1,169 +1,179 @@
+> A video showcasing how pnpm autocompletions work on a test CLI command 
+like `my-cli`
+
 # tab
+Shell autocompletions are largely missing in the JavaScript CLI ecosystem. This tool bridges that gap by autocompletions for `pnpm`, `npm`, `yarn`, and `bun` with dynamic option parsing and context-aware suggestions and also Easy-to-use adapters for popular JavaScript CLI frameworks like CAC, Citty, and Commander.js
 
-Shell autocompletions are largely missing in the javascript cli ecosystem. This tool is an attempt to make autocompletions come out of the box for any cli tool.
+As CLI tooling authors, if we can spare our users a second or two by not checking documentation or writing the `-h` flag, we're doing them a huge favor. The unconscious mind loves hitting the [TAB] key and always expects feedback. When nothing happens, it breaks the user's flow - a frustration apparent across the whole JavaScript CLI tooling ecosystem.
 
-Tools like git and their autocompletion experience inspired us to build this tool and make the same ability available for any javascript cli project. Developers love hitting the tab key, hence why they prefer tabs over spaces.
+Tab solves this complexity by providing autocompletions that work consistently across `zsh`, `bash`, `fish`, and `powershell`.
 
-## Examples
 
-Check out the [examples directory](./examples) for complete examples of using Tab with different command-line frameworks:
+### Installation
 
-- [CAC](./examples/demo.cac.ts)
-- [Citty](./examples/demo.citty.ts)
-- [Commander.js](./examples/demo.commander.ts)
+```bash
+npm install @bomb.sh/tab
+# or
+pnpm add @bomb.sh/tab
+# or
+yarn add @bomb.sh/tab
+# or
+bun add @bomb.sh/tab
+```
 
-## Usage
+### Package Manager Completions
 
-```ts
-import { Completion, script } from '@bomb.sh/tab';
+Get autocompletions for your package manager with zero configuration:
 
-const name = 'my-cli';
-const completion = new Completion();
+```bash
+# this generates a completion script for your shell
+npx @bomb.sh/tab pnpm zsh >> ~/.zshrc
+npx @bomb.sh/tab npm bash >> ~/.bashrc
+npx @bomb.sh/tab yarn fish > ~/.config/fish/completions/yarn.fish
+npx @bomb.sh/tab bun powershell >> $PROFILE
+```
 
-completion.addCommand(
-  'start',
-  'Start the application',
-  async (previousArgs, toComplete, endsWithSpace) => {
-    // suggestions
-    return [
-      { value: 'dev', description: 'Start in development mode' },
-      { value: 'prod', description: 'Start in production mode' },
-    ];
+You'd get smart completions for all commands and options, and dynamic option values e.g., `--reporter=<TAB>`. and its always up-to-date (parsed from live help output)
+
+**Example in action:**
+```bash
+pnpm install --reporter=<TAB>
+# Shows append-only, default, ndjson, silent
+
+npm remove <TAB>  
+# Shows the packages from package.json
+
+yarn add --emoji=<TAB>
+# Show true, false
+```
+
+### CLI Framework Integration
+
+For your own CLI tools, tab provides seamless integration with popular frameworks:
+
+#### Using the Core API
+
+```typescript
+import t from '@bomb.sh/tab';
+
+t.command('dev', 'Start development server');
+t.option('port', 'Specify port', (complete) => {
+  complete('3000', 'Development port');
+  complete('8080', 'Production port');
+});
+
+// handle completion requests
+if (process.argv[2] === 'complete') {
+  const shell = process.argv[3];
+  if (shell === '--') {
+    // parse completion arguments
+    const args = process.argv.slice(4);
+    t.parse(args);
+  } else {
+    // generate shell script
+    t.setup('my-cli', 'node my-cli.js', shell);
   }
-);
-
-completion.addOption(
-  'start',
-  '--port',
-  'Specify the port number',
-  async (previousArgs, toComplete, endsWithSpace) => {
-    return [
-      { value: '3000', description: 'Development port' },
-      { value: '8080', description: 'Production port' },
-    ];
-  }
-);
-
-// a way of getting the executable path to pass to the shell autocompletion script
-function quoteIfNeeded(path: string) {
-  return path.includes(' ') ? `'${path}'` : path;
-}
-const execPath = process.execPath;
-const processArgs = process.argv.slice(1);
-const quotedExecPath = quoteIfNeeded(execPath);
-const quotedProcessArgs = processArgs.map(quoteIfNeeded);
-const quotedProcessExecArgs = process.execArgv.map(quoteIfNeeded);
-const x = `${quotedExecPath} ${quotedProcessExecArgs.join(' ')} ${quotedProcessArgs[0]}`;
-
-if (process.argv[2] === '--') {
-  // autocompletion logic
-  await completion.parse(process.argv.slice(2), 'start'); // TODO: remove "start"
-} else {
-  // process.argv[2] can be "zsh", "bash", "fish", "powershell"
-  script(process.argv[2], name, x);
 }
 ```
 
-Now your user can run `source <(my-cli complete zsh)` and they will get completions for the `my-cli` command using the [autocompletion server](#autocompletion-server).
+**Test your completions:**
+```bash
+node my-cli.js complete -- dev --p<TAB>
+# Output: --port  Specify port
 
-## Adapters
+node my-cli.js complete -- dev --port=<TAB>  
+# Output: --port=3000  Development port
+#         --port=8080  Production port
+```
 
-Since we are heavy users of tools like `cac` and `citty`, we have created adapters for both of them. Ideally, tab would be integrated internally into these tools, but for now, this is a good compromise.
+**Install for users:**
+```bash
+# One-time setup
+source <(my-cli complete zsh)
 
-### `@bomb.sh/tab/cac`
+# Permanent setup  
+my-cli complete zsh >> ~/.zshrc
+```
 
-```ts
+##  Framework Adapters
+
+Tab provides adapters for popular JavaScript CLI frameworks.
+
+### CAC Integration
+
+```typescript
 import cac from 'cac';
 import tab from '@bomb.sh/tab/cac';
 
 const cli = cac('my-cli');
 
-cli.command('dev', 'Start dev server').option('--port <port>', 'Specify port');
+// Define your CLI
+cli.command('dev', 'Start dev server')
+   .option('--port <port>', 'Specify port')
+   .option('--host <host>', 'Specify host');
 
+// Initialize tab completions
 const completion = tab(cli);
 
-// Get the dev command completion handler
-const devCommandCompletion = completion.commands.get('dev');
-
-// Get and configure the port option completion handler
-const portOptionCompletion = devCommandCompletion.options.get('--port');
-portOptionCompletion.handler = async (
-  previousArgs,
-  toComplete,
-  endsWithSpace
-) => {
-  return [
+// Add custom completions for option values
+const devCommand = completion.commands.get('dev');
+const portOption = devCommand?.options.get('--port');
+if (portOption) {
+  portOption.handler = async () => [
     { value: '3000', description: 'Development port' },
     { value: '8080', description: 'Production port' },
   ];
-};
+}
 
 cli.parse();
 ```
 
-Now autocompletion will be available for any specified command and option in your cac instance. If your user writes `my-cli dev --po`, they will get suggestions for the `--port` option. Or if they write `my-cli d` they will get suggestions for the `dev` command.
+### Citty Integration
 
-Suggestions are missing in the adapters since yet cac or citty do not have a way to provide suggestions (tab just came out!), we'd have to provide them manually. Mutations do not hurt in this situation.
-
-### `@bomb.sh/tab/citty`
-
-```ts
-import citty, { defineCommand, createMain } from 'citty';
+```typescript
+import { defineCommand, createMain } from 'citty';
 import tab from '@bomb.sh/tab/citty';
 
 const main = defineCommand({
-  meta: {
-    name: 'my-cli',
-    description: 'My CLI tool',
+  meta: { name: 'my-cli', description: 'My CLI tool' },
+  subCommands: {
+    dev: defineCommand({
+      meta: { name: 'dev', description: 'Start dev server' },
+      args: {
+        port: { type: 'string', description: 'Specify port' },
+        host: { type: 'string', description: 'Specify host' },
+      },
+    }),
   },
 });
 
-const devCommand = defineCommand({
-  meta: {
-    name: 'dev',
-    description: 'Start dev server',
-  },
-  args: {
-    port: { type: 'string', description: 'Specify port' },
-  },
-});
-
-main.subCommands = {
-  dev: devCommand,
-};
-
+// Initialize tab completions
 const completion = await tab(main);
 
-// TODO: addHandler function to export
-const devCommandCompletion = completion.commands.get('dev');
-
-const portOptionCompletion = devCommandCompletion.options.get('--port');
-
-portOptionCompletion.handler = async (
-  previousArgs,
-  toComplete,
-  endsWithSpace
-) => {
-  return [
+// Add custom completions
+const devCommand = completion.commands.get('dev');
+const portOption = devCommand?.options.get('--port');
+if (portOption) {
+  portOption.handler = async () => [
     { value: '3000', description: 'Development port' },
     { value: '8080', description: 'Production port' },
   ];
-};
+}
 
 const cli = createMain(main);
 cli();
 ```
 
-### `@bomb.sh/tab/commander`
+### Commander.js Integration
 
-```ts
+```typescript
 import { Command } from 'commander';
 import tab from '@bomb.sh/tab/commander';
 
 const program = new Command('my-cli');
 program.version('1.0.0');
 
-// Add commands
+// Define commands
 program
   .command('serve')
   .description('Start the server')
@@ -173,21 +183,18 @@ program
     console.log('Starting server...');
   });
 
-// Initialize tab completion
+// Initialize tab completions
 const completion = tab(program);
 
-// Configure custom completions
+// Add custom completions
 for (const command of completion.commands.values()) {
-  if (command.name === 'serve') {
-    for (const [option, config] of command.options.entries()) {
-      if (option === '--port') {
-        config.handler = () => {
-          return [
-            { value: '3000', description: 'Default port' },
-            { value: '8080', description: 'Alternative port' },
-          ];
-        };
-      }
+  if (command.value === 'serve') {
+    const portOption = command.options.get('--port');
+    if (portOption) {
+      portOption.handler = async () => [
+        { value: '3000', description: 'Default port' },
+        { value: '8080', description: 'Alternative port' },
+      ];
     }
   }
 }
@@ -195,52 +202,28 @@ for (const command of completion.commands.values()) {
 program.parse();
 ```
 
-## Recipe
 
-`source <(my-cli complete zsh)` won't be enough since the user would have to run this command each time they spin up a new shell instance.
+Tab's package manager completions are dynamically generated from the actual help output of each tool:
 
-We suggest this approach for the end user that you as a maintainer might want to push.
 
-```
-my-cli completion zsh > ~/completion-for-my-cli.zsh
-echo 'source ~/completion-for-my-cli.zsh' >> ~/.zshrc
-```
-
-For other shells:
+Tab uses a standardized completion protocol that any CLI can implement:
 
 ```bash
-# Bash
-my-cli complete bash > ~/.bash_completion.d/my-cli
-echo 'source ~/.bash_completion.d/my-cli' >> ~/.bashrc
+# Generate shell completion script
+my-cli complete zsh
 
-# Fish
-my-cli complete fish > ~/.config/fish/completions/my-cli.fish
-
-# PowerShell
-my-cli complete powershell > $PROFILE.CurrentUserAllHosts
+# Parse completion request (called by shell)
+my-cli complete -- install --port=""
 ```
 
-## Autocompletion Server
-
-By integrating tab into your cli, your cli would have a new command called `complete`. This is where all the magic happens. And the shell would contact this command to get completions. That's why we call it the autocompletion server.
-
-```zsh
-my-cli complete -- --po
---port  Specify the port number
-:0
+**Output Format:**
 ```
+--port=3000    Development port
+--port=8080    Production port  
+:4
+```
+## Contributing
 
-The autocompletion server can be a standard to identify whether a package provides autocompletions. Whether running `tool complete --` would result in an output that ends with `:{Number}` (matching the pattern `/:\d+$/`).
+We welcome contributions! Tab's architecture makes it easy to add support for new package managers or CLI frameworks.
 
-In situations like `my-cli dev --po` you'd have autocompletions! But in the case of `pnpm my-cli dev --po` which is what most of us use, tab does not inject autocompletions for a tool like pnpm.
 
-Since pnpm already has its own autocompletion [script](https://pnpm.io/completion), this provides the opportunity to check whether a package provides autocompletions and use those autocompletions if available.
-
-This would also have users avoid injecting autocompletions in their shell config for any tool that provides its own autocompletion script, since pnpm would already support proxying the autocompletions out of the box.
-
-Other package managers like `npm` and `yarn` can decide whether to support this or not too for more universal support.
-
-## Inspiration
-
-- git
-- [cobra](https://github.com/spf13/cobra/blob/main/shell_completions.go), without cobra, tab would have took 10x longer to build
