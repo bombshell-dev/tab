@@ -8,8 +8,8 @@ vite.config.js	Vite config file
 `;
 
 exports[`cli completion tests for cac > --config option tests > should complete --config option with equals sign 1`] = `
-"--config=vite.config.ts	Vite config file
---config=vite.config.js	Vite config file
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
 :4
 "
 `;
@@ -84,7 +84,7 @@ vite.config.js	Vite config file
 `;
 
 exports[`cli completion tests for cac > cli option value handling > should resolve port value correctly 1`] = `
-"--port=3000	Development server port
+"3000	Development server port
 :4
 "
 `;
@@ -132,8 +132,8 @@ exports[`cli completion tests for cac > edge case completions for end with space
 `;
 
 exports[`cli completion tests for cac > edge case completions for end with space > should suggest port values if user typed \`--port=\` and hasn't typed a space or value yet 1`] = `
-"--port=3000	Development server port
---port=8080	Alternative port
+"3000	Development server port
+8080	Alternative port
 :4
 "
 `;
@@ -283,7 +283,7 @@ exports[`cli completion tests for cac > short flag handling > should handle shor
 `;
 
 exports[`cli completion tests for cac > short flag handling > should handle short flag with equals sign 1`] = `
-"-p=3000	Development server port
+"3000	Development server port
 :4
 "
 `;
@@ -313,8 +313,8 @@ vite.config.js	Vite config file
 `;
 
 exports[`cli completion tests for citty > --config option tests > should complete --config option with equals sign 1`] = `
-"--config=vite.config.ts	Vite config file
---config=vite.config.js	Vite config file
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
 :4
 "
 `;
@@ -391,7 +391,7 @@ vite.config.js	Vite config file
 `;
 
 exports[`cli completion tests for citty > cli option value handling > should resolve port value correctly 1`] = `
-"--port=3000	Development server port
+"3000	Development server port
 :4
 "
 `;
@@ -439,8 +439,8 @@ exports[`cli completion tests for citty > edge case completions for end with spa
 `;
 
 exports[`cli completion tests for citty > edge case completions for end with space > should suggest port values if user typed \`--port=\` and hasn't typed a space or value yet 1`] = `
-"--port=3000	Development server port
---port=8080	Alternative port
+"3000	Development server port
+8080	Alternative port
 :4
 "
 `;
@@ -595,7 +595,7 @@ exports[`cli completion tests for citty > short flag handling > should handle sh
 `;
 
 exports[`cli completion tests for citty > short flag handling > should handle short flag with equals sign 1`] = `
-"-p=3000	Development server port
+"3000	Development server port
 :4
 "
 `;
@@ -645,8 +645,8 @@ vite.config.js	Vite config file
 `;
 
 exports[`cli completion tests for t > --config option tests > should complete --config option with equals sign 1`] = `
-"--config=vite.config.ts	Vite config file
---config=vite.config.js	Vite config file
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
 :4
 "
 `;
@@ -721,7 +721,7 @@ vite.config.js	Vite config file
 `;
 
 exports[`cli completion tests for t > cli option value handling > should resolve port value correctly 1`] = `
-"--port=3000	Development server port
+"3000	Development server port
 :4
 "
 `;
@@ -769,8 +769,8 @@ exports[`cli completion tests for t > edge case completions for end with space >
 `;
 
 exports[`cli completion tests for t > edge case completions for end with space > should suggest port values if user typed \`--port=\` and hasn't typed a space or value yet 1`] = `
-"--port=3000	Development server port
---port=8080	Alternative port
+"3000	Development server port
+8080	Alternative port
 :4
 "
 `;
@@ -934,7 +934,7 @@ exports[`cli completion tests for t > short flag handling > should handle short 
 `;
 
 exports[`cli completion tests for t > short flag handling > should handle short flag with equals sign 1`] = `
-"-p=3000	Development server port
+"3000	Development server port
 :4
 "
 `;
