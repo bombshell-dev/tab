@@ -3,13 +3,15 @@
 
 # tab
 
-Shell autocompletions are largely missing in the JavaScript CLI ecosystem. This tool bridges that gap by autocompletions for `pnpm`, `npm`, `yarn`, and `bun` with dynamic option parsing and context-aware suggestions and also Easy-to-use adapters for popular JavaScript CLI frameworks like CAC, Citty, and Commander.js
+Shell autocompletions are largely missing in the JavaScript CLI ecosystem. Tab provides a simple API for adding autocompletions to any JavaScript CLI tool.
+
+Additionally, tab supports autocompletions for `pnpm`, `npm`, `yarn`, and `bun`.
 
 As CLI tooling authors, if we can spare our users a second or two by not checking documentation or writing the `-h` flag, we're doing them a huge favor. The unconscious mind loves hitting the [TAB] key and always expects feedback. When nothing happens, it breaks the user's flow - a frustration apparent across the whole JavaScript CLI tooling ecosystem.
 
 Tab solves this complexity by providing autocompletions that work consistently across `zsh`, `bash`, `fish`, and `powershell`.
 
-### Installation
+## Installation
 
 ```bash
 npm install @bomb.sh/tab
@@ -21,9 +23,50 @@ yarn add @bomb.sh/tab
 bun add @bomb.sh/tab
 ```
 
-### Package Manager Completions
+## Quick Start
 
-Get autocompletions for your package manager with zero configuration:
+Add autocompletions to your CLI tool:
+
+```typescript
+import t from '@bomb.sh/tab';
+
+// Define your CLI structure
+t.command('dev', 'Start development server');
+t.option('port', 'Specify port', (complete) => {
+  complete('3000', 'Development port');
+  complete('8080', 'Production port');
+});
+
+// Handle completion requests
+if (process.argv[2] === 'complete') {
+  const shell = process.argv[3];
+  if (shell === '--') {
+    const args = process.argv.slice(4);
+    t.parse(args);
+  } else {
+    t.setup('my-cli', 'node my-cli.js', shell);
+  }
+}
+```
+
+Test your completions:
+
+```bash
+node my-cli.js complete -- dev --port=<TAB>
+# Output: --port=3000  Development port
+#         --port=8080  Production port
+```
+
+Install for users:
+
+```bash
+source <(my-cli complete zsh)  # One-time setup
+my-cli complete zsh >> ~/.zshrc  # Permanent setup
+```
+
+## Package Manager Completions
+
+As mentioned earlier, tab provides completions for package managers as well:
 
 ```bash
 # this generates a completion script for your shell
@@ -33,23 +76,19 @@ npx @bomb.sh/tab yarn fish > ~/.config/fish/completions/yarn.fish
 npx @bomb.sh/tab bun powershell >> $PROFILE
 ```
 
-You'd get completions for all commands and options, and dynamic option values e.g., `--reporter=<TAB>`.
-**Example in action:**
+Example in action:
 
 ```bash
 pnpm install --reporter=<TAB>
-# Shows append-only, default, ndjson, silent
-
-npm remove <TAB>
-# Shows the packages from package.json
+# Shows: append-only, default, ndjson, silent (with descriptions)
 
 yarn add --emoji=<TAB>
-# Show true, false
+# Shows: true, false
 ```
 
-### CLI Framework Integration
+## Framework Integration
 
-For your own CLI tools, tab provides integration with popular frameworks:
+Tab includes adapters for popular JavaScript CLI frameworks:
 
 #### Using the Core API
 
@@ -204,8 +243,6 @@ for (const command of completion.commands.values()) {
 
 program.parse();
 ```
-
-Tab's package manager completions are dynamically generated from the actual help output of each tool:
 
 Tab uses a standardized completion protocol that any CLI can implement:
 
