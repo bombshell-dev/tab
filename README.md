@@ -31,8 +31,8 @@ Add autocompletions to your CLI tool:
 import t from '@bomb.sh/tab';
 
 // Define your CLI structure
-t.command('dev', 'Start development server');
-t.option('port', 'Specify port', (complete) => {
+const devCmd = t.command('dev', 'Start development server');
+devCmd.option('port', 'Specify port', (complete) => {
   complete('3000', 'Development port');
   complete('8080', 'Production port');
 });
@@ -60,8 +60,12 @@ node my-cli.js complete -- dev --port=<TAB>
 Install for users:
 
 ```bash
-source <(my-cli complete zsh)  # One-time setup
-my-cli complete zsh >> ~/.zshrc  # Permanent setup
+# One-time setup
+source <(my-cli complete zsh)
+
+# Permanent setup
+my-cli complete zsh > ~/.my-cli-completion.zsh
+echo 'source ~/.my-cli-completion.zsh' >> ~/.zshrc
 ```
 
 ## Package Manager Completions
@@ -69,11 +73,11 @@ my-cli complete zsh >> ~/.zshrc  # Permanent setup
 As mentioned earlier, tab provides completions for package managers as well:
 
 ```bash
-# this generates a completion script for your shell
-npx @bomb.sh/tab pnpm zsh >> ~/.zshrc
-npx @bomb.sh/tab npm bash >> ~/.bashrc
+# Generate and install completion scripts
+npx @bomb.sh/tab pnpm zsh > ~/.pnpm-completion.zsh && echo 'source ~/.pnpm-completion.zsh' >> ~/.zshrc
+npx @bomb.sh/tab npm bash > ~/.npm-completion.bash && echo 'source ~/.npm-completion.bash' >> ~/.bashrc
 npx @bomb.sh/tab yarn fish > ~/.config/fish/completions/yarn.fish
-npx @bomb.sh/tab bun powershell >> $PROFILE
+npx @bomb.sh/tab bun powershell > ~/.bun-completion.ps1 && echo '. ~/.bun-completion.ps1' >> $PROFILE
 ```
 
 Example in action:
@@ -84,56 +88,6 @@ pnpm install --reporter=<TAB>
 
 yarn add --emoji=<TAB>
 # Shows: true, false
-```
-
-## Framework Integration
-
-Tab includes adapters for popular JavaScript CLI frameworks:
-
-#### Using the Core API
-
-```typescript
-import t from '@bomb.sh/tab';
-
-t.command('dev', 'Start development server');
-t.option('port', 'Specify port', (complete) => {
-  complete('3000', 'Development port');
-  complete('8080', 'Production port');
-});
-
-// handle completion requests
-if (process.argv[2] === 'complete') {
-  const shell = process.argv[3];
-  if (shell === '--') {
-    // parse completion arguments
-    const args = process.argv.slice(4);
-    t.parse(args);
-  } else {
-    // generate shell script
-    t.setup('my-cli', 'node my-cli.js', shell);
-  }
-}
-```
-
-**Test your completions:**
-
-```bash
-node my-cli.js complete -- dev --p<TAB>
-# Output: --port  Specify port
-
-node my-cli.js complete -- dev --port=<TAB>
-# Output: --port=3000  Development port
-#         --port=8080  Production port
-```
-
-**Install for users:**
-
-```bash
-# One-time setup
-source <(my-cli complete zsh)
-
-# Permanent setup
-my-cli complete zsh >> ~/.zshrc
 ```
 
 ## Framework Adapters
@@ -158,14 +112,10 @@ cli
 const completion = tab(cli);
 
 // Add custom completions for option values
-const devCommand = completion.commands.get('dev');
-const portOption = devCommand?.options.get('--port');
-if (portOption) {
-  portOption.handler = async () => [
-    { value: '3000', description: 'Development port' },
-    { value: '8080', description: 'Production port' },
-  ];
-}
+completion.commands.get('dev')?.options.get('--port')!.handler = async () => [
+  { value: '3000', description: 'Development port' },
+  { value: '8080', description: 'Production port' },
+];
 
 cli.parse();
 ```
@@ -193,14 +143,10 @@ const main = defineCommand({
 const completion = await tab(main);
 
 // Add custom completions
-const devCommand = completion.commands.get('dev');
-const portOption = devCommand?.options.get('--port');
-if (portOption) {
-  portOption.handler = async () => [
-    { value: '3000', description: 'Development port' },
-    { value: '8080', description: 'Production port' },
-  ];
-}
+completion.commands.get('dev')?.options.get('--port')!.handler = async () => [
+  { value: '3000', description: 'Development port' },
+  { value: '8080', description: 'Production port' },
+];
 
 const cli = createMain(main);
 cli();
@@ -229,17 +175,10 @@ program
 const completion = tab(program);
 
 // Add custom completions
-for (const command of completion.commands.values()) {
-  if (command.value === 'serve') {
-    const portOption = command.options.get('--port');
-    if (portOption) {
-      portOption.handler = async () => [
-        { value: '3000', description: 'Default port' },
-        { value: '8080', description: 'Alternative port' },
-      ];
-    }
-  }
-}
+completion.commands.get('serve')?.options.get('--port')!.handler = async () => [
+  { value: '3000', description: 'Default port' },
+  { value: '8080', description: 'Alternative port' },
+];
 
 program.parse();
 ```
@@ -262,9 +201,9 @@ my-cli complete -- install --port=""
 :4
 ```
 
-## Docs
+## Documentation
 
-For more detailed documentation, please visit [bombshell docs](https://bomb.sh/docs/tab/)!
+See [bombshell docs](https://bomb.sh/docs/tab/).
 
 ## Contributing
 
