@@ -293,12 +293,7 @@ export class RootCommand extends Command {
           command.options
         );
 
-        this.completions = toComplete.includes('=')
-          ? suggestions.map((s) => ({
-              value: `${optionName}=${s.value}`,
-              description: s.description,
-            }))
-          : suggestions;
+        this.completions = suggestions;
       }
       return;
     }
@@ -428,7 +423,14 @@ export class RootCommand extends Command {
         seen.add(comp.value);
         return true;
       })
-      .filter((comp) => comp.value.startsWith(toComplete))
+      .filter((comp) => {
+        if (toComplete.includes('=')) {
+          // for --option=value format, extract the value part after =
+          const [, valueToComplete] = toComplete.split('=');
+          return comp.value.startsWith(valueToComplete);
+        }
+        return comp.value.startsWith(toComplete);
+      })
       .forEach((comp) =>
         console.log(`${comp.value}\t${comp.description ?? ''}`)
       );
@@ -541,7 +543,6 @@ export class RootCommand extends Command {
 
 const t = new RootCommand();
 
-// TODO: re-check the below
 export function script(shell: string, name: string, executable: string) {
   t.setup(name, executable, shell);
 }
