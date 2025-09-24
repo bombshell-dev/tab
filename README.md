@@ -1,5 +1,4 @@
-> A video showcasing how pnpm autocompletions work on a test CLI command
-> like `my-cli`
+![Tab CLI autocompletions demo](assets/preview.gif)
 
 # tab
 
