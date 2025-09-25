@@ -8,9 +8,7 @@ import {
 export const packageJsonScriptCompletion = async (
   complete: Complete
 ): Promise<void> => {
-  getPackageJsonScripts().forEach((script) =>
-    complete(script, `Run ${script} script`)
-  );
+  getPackageJsonScripts().forEach((script) => complete(script, ' '));
 };
 
 // provides completions for package dependencies from package.json.. for commands like remove `pnpm remove <dependency>`
