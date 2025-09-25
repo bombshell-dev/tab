@@ -78,6 +78,11 @@ export default async function tab(
       const targetCommand = isRootCommand ? t : command;
       if (targetCommand) {
         const handler = commandCompletionConfig?.options?.[argName];
+
+        // Check if option takes a value (has <> or [] in rawName, or is marked as required)
+        const takesValue =
+          option.required || /<[^>]+>|\[[^\]]+\]/.test(option.rawName);
+
         if (handler) {
           // Has custom handler → value option
           if (shortFlag) {
@@ -90,8 +95,24 @@ export default async function tab(
           } else {
             targetCommand.option(argName, option.description || '', handler);
           }
+        } else if (takesValue) {
+          // Takes value but no custom handler → value option with no completions
+          if (shortFlag) {
+            targetCommand.option(
+              argName,
+              option.description || '',
+              async () => [], // Empty completions
+              shortFlag
+            );
+          } else {
+            targetCommand.option(
+              argName,
+              option.description || '',
+              async () => []
+            );
+          }
         } else {
-          // No custom handler → boolean flag
+          // No custom handler and doesn't take value → boolean flag
           if (shortFlag) {
             targetCommand.option(argName, option.description || '', shortFlag);
           } else {
