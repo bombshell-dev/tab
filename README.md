@@ -227,6 +227,6 @@ tab was inspired by the great [Cobra](https://github.com/spf13/cobra/) project, 
 ## Adoption Support
 
 We want to make it as easy as possible for the JS ecosystem to enjoy great autocompletions.  
-We at [thundraa](https://thundraa.com) would be happy to help any **open source CLI utility** adopt **tab**.
+We at [thundraa](https://thundraa.com) would be happy to help any open source CLI utility adopt tab.
 If you maintain a CLI and would like autocompletions set up for your users, just [drop the details in our _Adopting tab_ discussion](https://github.com/bombshell-dev/tab/discussions/61).  
 We’ll gladly help and even open a PR to get you started.
