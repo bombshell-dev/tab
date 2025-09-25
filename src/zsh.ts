@@ -195,11 +195,10 @@ _${name}() {
             if [ $((directive & shellCompDirectiveNoFileComp)) -ne 0 ]; then
                 __${name}_debug "deactivating file completion"
 
-                # We must return an error code here to let zsh know that there were no
-                # completions found by _describe; this is what will trigger other
-                # matching algorithms to attempt to find completions.
-                # For example zsh can match letters in the middle of words.
-                return 1
+                # Return 0 to indicate completion is finished and prevent zsh from
+                # trying other completion algorithms (which could cause hanging).
+                # We use NoFileComp directive to explicitly disable file completion.
+                return 0
             else
                 # Perform file completion
                 __${name}_debug "Activating file completion"
