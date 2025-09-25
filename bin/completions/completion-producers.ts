@@ -8,7 +8,10 @@ import {
 export const packageJsonScriptCompletion = async (
   complete: Complete
 ): Promise<void> => {
-  getPackageJsonScripts().forEach((script) => complete(script, ' '));
+  getPackageJsonScripts().forEach((script) => {
+    const escapedScript = script.replace(/:/g, '\\:'); // escape colons in script names
+    complete(escapedScript, ' ');
+  });
 };
 
 // provides completions for package dependencies from package.json.. for commands like remove `pnpm remove <dependency>`
