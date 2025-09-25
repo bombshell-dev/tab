@@ -15,6 +15,9 @@ const quotedProcessExecArgs = process.execArgv.map(quoteIfNeeded);
 
 const x = `${quotedExecPath} ${quotedProcessExecArgs.join(' ')} ${quotedProcessArgs[0]}`;
 
+// Regex to detect if an option takes a value (has <required> or [optional] parameters)
+const VALUE_OPTION_RE = /<[^>]+>|\[[^\]]+\]/;
+
 function quoteIfNeeded(path: string): string {
   return path.includes(' ') ? `'${path}'` : path;
 }
@@ -81,10 +84,9 @@ export default async function tab(
 
         // Check if option takes a value (has <> or [] in rawName, or is marked as required)
         const takesValue =
-          option.required || /<[^>]+>|\[[^\]]+\]/.test(option.rawName);
+          option.required || VALUE_OPTION_RE.test(option.rawName);
 
         if (handler) {
-          // Has custom handler → value option
           if (shortFlag) {
             targetCommand.option(
               argName,
@@ -96,7 +98,7 @@ export default async function tab(
             targetCommand.option(argName, option.description || '', handler);
           }
         } else if (takesValue) {
-          // Takes value but no custom handler → value option with no completions
+          // Takes value but no custom handler = value option with no completions
           if (shortFlag) {
             targetCommand.option(
               argName,
@@ -112,7 +114,7 @@ export default async function tab(
             );
           }
         } else {
-          // No custom handler and doesn't take value → boolean flag
+          // No custom handler and doesn't take value = boolean flag
           if (shortFlag) {
             targetCommand.option(argName, option.description || '', shortFlag);
           } else {
