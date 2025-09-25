@@ -108,13 +108,17 @@ cli
   .option('--host <host>', 'Specify host');
 
 // Initialize tab completions
-const completion = tab(cli);
+const completion = await tab(cli);
 
 // Add custom completions for option values
-completion.commands.get('dev')?.options.get('--port')!.handler = async () => [
-  { value: '3000', description: 'Development port' },
-  { value: '8080', description: 'Production port' },
-];
+const devCommand = completion.commands.get('dev');
+const portOption = devCommand?.options.get('port');
+if (portOption) {
+  portOption.handler = (complete) => {
+    complete('3000', 'Development port');
+    complete('8080', 'Production port');
+  };
+}
 
 cli.parse();
 ```
@@ -142,10 +146,14 @@ const main = defineCommand({
 const completion = await tab(main);
 
 // Add custom completions
-completion.commands.get('dev')?.options.get('--port')!.handler = async () => [
-  { value: '3000', description: 'Development port' },
-  { value: '8080', description: 'Production port' },
-];
+const devCommand = completion.commands.get('dev');
+const portOption = devCommand?.options.get('port');
+if (portOption) {
+  portOption.handler = (complete) => {
+    complete('3000', 'Development port');
+    complete('8080', 'Production port');
+  };
+}
 
 const cli = createMain(main);
 cli();
@@ -174,10 +182,14 @@ program
 const completion = tab(program);
 
 // Add custom completions
-completion.commands.get('serve')?.options.get('--port')!.handler = async () => [
-  { value: '3000', description: 'Default port' },
-  { value: '8080', description: 'Alternative port' },
-];
+const serveCommand = completion.commands.get('serve');
+const portOption = serveCommand?.options.get('port');
+if (portOption) {
+  portOption.handler = (complete) => {
+    complete('3000', 'Default port');
+    complete('8080', 'Alternative port');
+  };
+}
 
 program.parse();
 ```
