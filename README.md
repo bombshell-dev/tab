@@ -1,15 +1,14 @@
-> A video showcasing how pnpm autocompletions work on a test CLI command
-> like `my-cli`
+![tab CLI autocompletions demo](assets/preview.gif)
 
 # tab
 
-Shell autocompletions are largely missing in the JavaScript CLI ecosystem. Tab provides a simple API for adding autocompletions to any JavaScript CLI tool.
+Shell autocompletions are largely missing in the JavaScript CLI ecosystem. tab provides a simple API for adding autocompletions to any JavaScript CLI tool.
 
 Additionally, tab supports autocompletions for `pnpm`, `npm`, `yarn`, and `bun`.
 
 As CLI tooling authors, if we can spare our users a second or two by not checking documentation or writing the `-h` flag, we're doing them a huge favor. The unconscious mind loves hitting the [TAB] key and always expects feedback. When nothing happens, it breaks the user's flow - a frustration apparent across the whole JavaScript CLI tooling ecosystem.
 
-Tab solves this complexity by providing autocompletions that work consistently across `zsh`, `bash`, `fish`, and `powershell`.
+tab solves this complexity by providing autocompletions that work consistently across `zsh`, `bash`, `fish`, and `powershell`.
 
 ## Installation
 
@@ -92,7 +91,7 @@ yarn add --emoji=<TAB>
 
 ## Framework Adapters
 
-Tab provides adapters for popular JavaScript CLI frameworks.
+tab provides adapters for popular JavaScript CLI frameworks.
 
 ### CAC Integration
 
@@ -109,13 +108,17 @@ cli
   .option('--host <host>', 'Specify host');
 
 // Initialize tab completions
-const completion = tab(cli);
+const completion = await tab(cli);
 
 // Add custom completions for option values
-completion.commands.get('dev')?.options.get('--port')!.handler = async () => [
-  { value: '3000', description: 'Development port' },
-  { value: '8080', description: 'Production port' },
-];
+const devCommand = completion.commands.get('dev');
+const portOption = devCommand?.options.get('port');
+if (portOption) {
+  portOption.handler = (complete) => {
+    complete('3000', 'Development port');
+    complete('8080', 'Production port');
+  };
+}
 
 cli.parse();
 ```
@@ -143,10 +146,14 @@ const main = defineCommand({
 const completion = await tab(main);
 
 // Add custom completions
-completion.commands.get('dev')?.options.get('--port')!.handler = async () => [
-  { value: '3000', description: 'Development port' },
-  { value: '8080', description: 'Production port' },
-];
+const devCommand = completion.commands.get('dev');
+const portOption = devCommand?.options.get('port');
+if (portOption) {
+  portOption.handler = (complete) => {
+    complete('3000', 'Development port');
+    complete('8080', 'Production port');
+  };
+}
 
 const cli = createMain(main);
 cli();
@@ -175,15 +182,19 @@ program
 const completion = tab(program);
 
 // Add custom completions
-completion.commands.get('serve')?.options.get('--port')!.handler = async () => [
-  { value: '3000', description: 'Default port' },
-  { value: '8080', description: 'Alternative port' },
-];
+const serveCommand = completion.commands.get('serve');
+const portOption = serveCommand?.options.get('port');
+if (portOption) {
+  portOption.handler = (complete) => {
+    complete('3000', 'Default port');
+    complete('8080', 'Alternative port');
+  };
+}
 
 program.parse();
 ```
 
-Tab uses a standardized completion protocol that any CLI can implement:
+tab uses a standardized completion protocol that any CLI can implement:
 
 ```bash
 # Generate shell completion script
@@ -207,4 +218,15 @@ See [bombshell docs](https://bomb.sh/docs/tab/).
 
 ## Contributing
 
-We welcome contributions! Tab's architecture makes it easy to add support for new package managers or CLI frameworks.
+We welcome contributions! tab's architecture makes it easy to add support for new package managers or CLI frameworks.
+
+## Acknowledgments
+
+tab was inspired by the great [Cobra](https://github.com/spf13/cobra/) project, which set the standard for CLI tooling in the Go ecosystem.
+
+## Adoption Support
+
+We want to make it as easy as possible for the JS ecosystem to enjoy great autocompletions.  
+We at [thundraa](https://thundraa.com) would be happy to help any open source CLI utility adopt tab.
+If you maintain a CLI and would like autocompletions set up for your users, just [drop the details in our _Adopting tab_ discussion](https://github.com/bombshell-dev/tab/discussions/61).  
+We’ll gladly help and even open a PR to get you started.
