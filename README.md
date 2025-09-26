@@ -83,7 +83,7 @@ Example in action:
 
 ```bash
 pnpm install --reporter=<TAB>
-# Shows: append-only, default, ndjson, silent (with descriptions)
+# Shows: append-only, default, ndjson, silent
 
 yarn add --emoji=<TAB>
 # Shows: true, false
