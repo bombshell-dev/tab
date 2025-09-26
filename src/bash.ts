@@ -118,5 +118,6 @@ __${nameForVar}_complete() {
 
 # Register completion function
 complete -F __${nameForVar}_complete ${name}
+
 `;
 }
