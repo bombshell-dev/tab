@@ -1,6 +1,6 @@
 {
   "name": "@bomb.sh/tab",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "main": "./dist/t.js",
   "types": "./dist/t.d.ts",
   "type": "module",
