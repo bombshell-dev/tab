@@ -1,5 +1,11 @@
 # @bombsh/tab
 
+## 0.0.5
+
+### Patch Changes
+
+- ab8c800: trigger release
+
 ## 0.0.4
 
 ### Patch Changes
