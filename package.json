@@ -56,6 +56,22 @@
   "dependencies": {
     "mri": "^1.2.0"
   },
+  "peerDependencies": {
+    "cac": "^6.7.14",
+    "citty": "^0.1.6",
+    "commander": "^13.1.0"
+  },
+  "peerDependenciesMeta": {
+    "cac": {
+      "optional": true
+    },
+    "citty": {
+      "optional": true
+    },
+    "commander": {
+      "optional": true
+    }
+  },
   "exports": {
     ".": {
       "types": "./dist/t.d.ts",
