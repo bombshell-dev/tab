@@ -13,5 +13,4 @@ export default defineConfig({
   clean: true,
   minify: true,
   treeshake: true,
-  external: ['cac', 'citty', 'commander'],
 });
