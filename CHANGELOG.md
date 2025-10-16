@@ -1,5 +1,12 @@
 # @bombsh/tab
 
+## 0.0.6
+
+### Patch Changes
+
+- 5f929c4: fix: citty should not throw an error when there is no subcommand
+- 9aa80ef: remove mri dep
+
 ## 0.0.5
 
 ### Patch Changes
