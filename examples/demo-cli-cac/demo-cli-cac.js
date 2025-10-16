@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import cac from 'cac';
-import tab from '../../dist/src/cac.js';
+import tab from '../../dist/cac.js';
 
 const cli = cac('demo-cli-cac');
 
