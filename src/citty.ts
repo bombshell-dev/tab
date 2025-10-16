@@ -127,9 +127,6 @@ export default async function tab<TArgs extends ArgsDef>(
   }
 
   const subCommands = await resolve(instance.subCommands);
-  if (!subCommands) {
-    throw new Error('Invalid or missing subCommands.');
-  }
 
   const isPositional = isConfigPositional(instance);
 
@@ -149,11 +146,13 @@ export default async function tab<TArgs extends ArgsDef>(
     }
   }
 
-  await handleSubCommands(
-    subCommands,
-    undefined,
-    completionConfig?.subCommands
-  );
+  if (subCommands) {
+    await handleSubCommands(
+      subCommands,
+      undefined,
+      completionConfig?.subCommands
+    );
+  }
 
   if (instance.args) {
     for (const [argName, argConfig] of Object.entries(instance.args)) {
@@ -243,7 +242,11 @@ export default async function tab<TArgs extends ArgsDef>(
     },
   });
 
-  subCommands.complete = completeCommand;
+  if (!subCommands) {
+    instance.subCommands = { complete: completeCommand };
+  } else {
+    subCommands.complete = completeCommand;
+  }
 
   return t;
 }
