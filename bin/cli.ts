@@ -73,7 +73,7 @@ async function main() {
 
 function generateCompletionScript(packageManager: string, shell: string) {
   const name = packageManager;
-  const executable = process.env.npm_execpath
+  const executable = process.env.npm_config_user_agent
     ? `npx --yes @bomb.sh/tab ${packageManager}`
     : `node ${process.argv[1]} ${packageManager}`;
   script(shell as any, name, executable);
