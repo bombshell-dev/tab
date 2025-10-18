@@ -71,18 +71,11 @@ async function main() {
   cli.parse();
 }
 
-// function generateCompletionScript(packageManager: string, shell: string) {
-//   const name = packageManager;
-//   const executable = process.env.npm_execpath
-//     ? `${packageManager} exec @bomb.sh/tab ${packageManager}`
-//     : `node ${process.argv[1]} ${packageManager}`;
-//   script(shell as any, name, executable);
-// }
-
 function generateCompletionScript(packageManager: string, shell: string) {
   const name = packageManager;
-  // this always points at the actual file on disk (TESTING)
-  const executable = `node ${process.argv[1]} ${packageManager}`;
+  const executable = process.env.npm_config_user_agent
+    ? `npx --yes @bomb.sh/tab ${packageManager}`
+    : `node ${process.argv[1]} ${packageManager}`;
   script(shell as any, name, executable);
 }
 
