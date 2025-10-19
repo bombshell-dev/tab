@@ -12,18 +12,22 @@ async function checkCliHasCompletions(
   packageManager: string
 ): Promise<boolean> {
   try {
-    debugLog(`Checking if ${cliName} has completions via ${packageManager}`);
-    const command = `${packageManager} ${cliName} complete --`;
-    const result = execSync(command, {
+    const result = execSync(`${cliName} complete --`, {
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'ignore'],
       timeout: 1000,
     });
-    const hasCompletions = !!result.trim();
-    debugLog(`${cliName} supports completions: ${hasCompletions}`);
-    return hasCompletions;
-  } catch (error) {
-    debugLog(`Error checking completions for ${cliName}:`, error);
+    if (result.trim()) return true;
+  } catch {}
+
+  try {
+    const result = execSync(`${packageManager} ${cliName} complete --`, {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'ignore'],
+      timeout: 1000,
+    });
+    return !!result.trim();
+  } catch {
     return false;
   }
 }
@@ -33,24 +37,35 @@ async function getCliCompletions(
   packageManager: string,
   args: string[]
 ): Promise<string[]> {
+  const completeArgs = args.map((arg) =>
+    arg.includes(' ') ? `"${arg}"` : arg
+  );
+
   try {
-    const completeArgs = args.map((arg) =>
-      arg.includes(' ') ? `"${arg}"` : arg
+    const result = execSync(
+      `${cliName} complete -- ${completeArgs.join(' ')}`,
+      {
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'ignore'],
+        timeout: 1000,
+      }
     );
-    const completeCommand = `${packageManager} ${cliName} complete -- ${completeArgs.join(' ')}`;
-    debugLog(`Getting completions with command: ${completeCommand}`);
+    if (result.trim()) {
+      return result.trim().split('\n').filter(Boolean);
+    }
+  } catch {}
 
-    const result = execSync(completeCommand, {
-      encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'ignore'],
-      timeout: 1000,
-    });
-
-    const completions = result.trim().split('\n').filter(Boolean);
-    debugLog(`Got ${completions.length} completions from ${cliName}`);
-    return completions;
-  } catch (error) {
-    debugLog(`Error getting completions from ${cliName}:`, error);
+  try {
+    const result = execSync(
+      `${packageManager} ${cliName} complete -- ${completeArgs.join(' ')}`,
+      {
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'ignore'],
+        timeout: 1000,
+      }
+    );
+    return result.trim().split('\n').filter(Boolean);
+  } catch {
     return [];
   }
 }
@@ -69,11 +84,18 @@ export class PackageManagerCompletion extends RootCommand {
     this.packageManager = packageManager;
   }
 
-  // Enhanced parse method with package manager logic
+  private stripPackageManagerCommands(args: string[]): string[] {
+    if (args.length === 0) return args;
+    const execCommands = ['exec', 'x', 'run', 'dlx'];
+    if (execCommands.includes(args[0])) return args.slice(1);
+    return args;
+  }
+
   async parse(args: string[]) {
-    // Handle package manager completions first
-    if (args.length >= 1 && args[0].trim() !== '') {
-      const potentialCliName = args[0];
+    const normalizedArgs = this.stripPackageManagerCommands(args);
+
+    if (normalizedArgs.length >= 1 && normalizedArgs[0].trim() !== '') {
+      const potentialCliName = normalizedArgs[0];
       const knownCommands = [...this.commands.keys()];
 
       if (!knownCommands.includes(potentialCliName)) {
@@ -83,7 +105,7 @@ export class PackageManagerCompletion extends RootCommand {
         );
 
         if (hasCompletions) {
-          const cliArgs = args.slice(1);
+          const cliArgs = normalizedArgs.slice(1);
           const suggestions = await getCliCompletions(
             potentialCliName,
             this.packageManager,
@@ -91,10 +113,11 @@ export class PackageManagerCompletion extends RootCommand {
           );
 
           if (suggestions.length > 0) {
-            // Print completions directly in the same format as the core library
+            debugLog(
+              `Returning ${suggestions.length} completions for ${potentialCliName}`
+            );
             for (const suggestion of suggestions) {
               if (suggestion.startsWith(':')) continue;
-
               if (suggestion.includes('\t')) {
                 const [value, description] = suggestion.split('\t');
                 console.log(`${value}\t${description}`);
@@ -102,14 +125,13 @@ export class PackageManagerCompletion extends RootCommand {
                 console.log(suggestion);
               }
             }
-            console.log(':4'); // Shell completion directive (NoFileComp)
+            console.log(':4');
             return;
           }
         }
       }
     }
 
-    // Fall back to regular completion logic (shows basic package manager commands)
     return super.parse(args);
   }
 }
