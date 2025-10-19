@@ -1,5 +1,12 @@
 # @bombsh/tab
 
+## 0.0.7
+
+### Patch Changes
+
+- 7178288: fix: use npx for portable completion scripts instead of absolute paths
+- 8defa6f: npm exec support
+
 ## 0.0.6
 
 ### Patch Changes
