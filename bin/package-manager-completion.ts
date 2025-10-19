@@ -18,7 +18,7 @@ async function checkCliHasCompletions(
       timeout: 1000,
     });
     if (result.trim()) return true;
-  } catch { }
+  } catch {}
 
   try {
     const result = execSync(`${packageManager} ${cliName} complete --`, {
@@ -42,22 +42,28 @@ async function getCliCompletions(
   );
 
   try {
-    const result = execSync(`${cliName} complete -- ${completeArgs.join(' ')}`, {
-      encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'ignore'],
-      timeout: 1000,
-    });
+    const result = execSync(
+      `${cliName} complete -- ${completeArgs.join(' ')}`,
+      {
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'ignore'],
+        timeout: 1000,
+      }
+    );
     if (result.trim()) {
       return result.trim().split('\n').filter(Boolean);
     }
-  } catch { }
+  } catch {}
 
   try {
-    const result = execSync(`${packageManager} ${cliName} complete -- ${completeArgs.join(' ')}`, {
-      encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'ignore'],
-      timeout: 1000,
-    });
+    const result = execSync(
+      `${packageManager} ${cliName} complete -- ${completeArgs.join(' ')}`,
+      {
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'ignore'],
+        timeout: 1000,
+      }
+    );
     return result.trim().split('\n').filter(Boolean);
   } catch {
     return [];
@@ -107,7 +113,9 @@ export class PackageManagerCompletion extends RootCommand {
           );
 
           if (suggestions.length > 0) {
-            debugLog(`Returning ${suggestions.length} completions for ${potentialCliName}`);
+            debugLog(
+              `Returning ${suggestions.length} completions for ${potentialCliName}`
+            );
             for (const suggestion of suggestions) {
               if (suggestion.startsWith(':')) continue;
               if (suggestion.includes('\t')) {
