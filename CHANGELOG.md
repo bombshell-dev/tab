@@ -1,5 +1,11 @@
 # @bombsh/tab
 
+## 0.0.8
+
+### Patch Changes
+
+- 86b24d4: parse args manually for tab's cli instead of using cac
+
 ## 0.0.7
 
 ### Patch Changes
