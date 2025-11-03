@@ -1,5 +1,11 @@
 # @bombsh/tab
 
+## 0.0.9
+
+### Patch Changes
+
+- d6cdbe4: fix(cli): use the globally installed version for shell completions
+
 ## 0.0.8
 
 ### Patch Changes
