@@ -14,6 +14,28 @@ tab solves this complexity by providing autocompletions that work consistently a
 
 ## Installation
 
+### For Package Manager Completions (Global install is recommended)
+
+```bash
+npm install -g @bomb.sh/tab
+```
+
+Then enable completions permanently:
+
+```bash
+# For zsh
+echo 'source <(tab pnpm zsh)' >> ~/.zshrc
+source ~/.zshrc
+
+# For bash
+echo 'source <(tab pnpm bash)' >> ~/.bashrc
+source ~/.bashrc
+
+# The same can be done for other shells!
+```
+
+### For CLI Library (Adding Completions to Your CLI)
+
 ```bash
 npm install @bomb.sh/tab
 # or
