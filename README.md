@@ -20,11 +20,18 @@ tab solves this complexity by providing autocompletions that work consistently a
 npm install -g @bomb.sh/tab
 ```
 
-Then enable completions:
+Then enable completions permanently:
 
 ```bash
-source <(tab pnpm zsh)   # for zsh
-source <(tab pnpm bash)  # for bash
+# For zsh
+echo 'source <(tab pnpm zsh)' >> ~/.zshrc
+source ~/.zshrc
+
+# For bash
+echo 'source <(tab pnpm bash)' >> ~/.bashrc
+source ~/.bashrc
+
+# The same can be done for other shells!
 ```
 
 ### For CLI Library (Adding Completions to Your CLI)
