@@ -40,7 +40,10 @@ async function main() {
       // PowerShell: -- was stripped, everything after 'complete' is what we want
       const completion = new PackageManagerCompletion(packageManager);
       await setupCompletionForPackageManager(packageManager, completion);
-      const toComplete = args.slice(2);
+      let toComplete = args.slice(2);
+      // Always append -- for PowerShell (it was stripped from the input)
+      // This ensures option completion works correctly
+      toComplete.push('--');
       await completion.parse(toComplete);
       process.exit(0);
     } else {
