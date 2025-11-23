@@ -9,6 +9,10 @@ const shells = ['zsh', 'bash', 'fish', 'powershell'];
 
 async function main() {
   const args = process.argv.slice(2);
+  const isPwsh = process.platform === 'win32' && !!process.env.PSModulePath; 
+  if ( isPwsh && args.length >= 2 && args[1] === 'complete' && process.argv.indexOf('--') === -1 ) { 
+    process.argv.push('--'); 
+  }
 
   // <packageManager> complete -- <args>
   if (args.length >= 2 && args[1] === 'complete') {
@@ -57,7 +61,7 @@ async function main() {
     process.exit(0);
   }
 
-  console.error('Usage: tab <packageManager> <shell>');
+  console.error('Usages: tab <packageManager> <shell>');
   console.error(`       tab <packageManager> complete -- <args>`);
   process.exit(1);
 }
