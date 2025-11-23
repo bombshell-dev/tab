@@ -36,7 +36,7 @@ async function main() {
       const toComplete = process.argv.slice(dashIndex + 1);
       await completion.parse(toComplete);
       process.exit(0);
-    } else if (isPowerShell && args.length > 2) {
+    } else if (isPowerShell) {
       // PowerShell: -- was stripped, everything after 'complete' is what we want
       const completion = new PackageManagerCompletion(packageManager);
       await setupCompletionForPackageManager(packageManager, completion);
