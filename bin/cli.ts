@@ -14,6 +14,10 @@ async function main() {
     process.argv.push('--'); 
   }
 
+  if (process.env.TAB_DEBUG) {
+  console.error("RAW ARGS:", process.argv);
+  }
+
   // <packageManager> complete -- <args>
   if (args.length >= 2 && args[1] === 'complete') {
     const packageManager = args[0];
@@ -68,6 +72,8 @@ async function main() {
 
 function generateCompletionScript(packageManager: string, shell: string) {
   const name = packageManager;
+  console.log(process.argv);
+
 
   const isLocalDev = process.argv[1].endsWith('dist/bin/cli.js');
 
