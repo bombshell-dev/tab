@@ -9,10 +9,6 @@ const shells = ['zsh', 'bash', 'fish', 'powershell'];
 
 async function main() {
   const args = process.argv.slice(2);
-  const isPwsh = process.platform === 'win32' && !!process.env.PSModulePath; 
-  if ( isPwsh && args.length >= 2 && args[1] === 'complete' && process.argv.indexOf('--') === -1 ) { 
-    process.argv.push('--'); 
-  }
 
   if (process.env.TAB_DEBUG) {
   console.error("RAW ARGS:", process.argv);
@@ -31,10 +27,20 @@ async function main() {
     }
 
     const dashIndex = process.argv.indexOf('--');
+    const isPowerShell = process.platform === 'win32' && process.env.PSModulePath !== undefined;
+    
     if (dashIndex !== -1) {
+      // POSIX shells or explicit -- usage
       const completion = new PackageManagerCompletion(packageManager);
       await setupCompletionForPackageManager(packageManager, completion);
       const toComplete = process.argv.slice(dashIndex + 1);
+      await completion.parse(toComplete);
+      process.exit(0);
+    } else if (isPowerShell && args.length > 2) {
+      // PowerShell: -- was stripped, everything after 'complete' is what we want
+      const completion = new PackageManagerCompletion(packageManager);
+      await setupCompletionForPackageManager(packageManager, completion);
+      const toComplete = args.slice(2);
       await completion.parse(toComplete);
       process.exit(0);
     } else {
