@@ -27,25 +27,10 @@ async function main() {
     }
 
     const dashIndex = process.argv.indexOf('--');
-    const isPowerShell = process.platform === 'win32' && process.env.PSModulePath !== undefined;
-    
     if (dashIndex !== -1) {
-      // POSIX shells or explicit -- usage
       const completion = new PackageManagerCompletion(packageManager);
       await setupCompletionForPackageManager(packageManager, completion);
       const toComplete = process.argv.slice(dashIndex + 1);
-      await completion.parse(toComplete);
-      process.exit(0);
-    } else if (isPowerShell) {
-      // PowerShell: -- was stripped, everything after 'complete' is what we want
-      const completion = new PackageManagerCompletion(packageManager);
-      await setupCompletionForPackageManager(packageManager, completion);
-      let toComplete = args.slice(2);
-      // In PowerShell, -- is stripped. Append empty string to simulate space at end
-      // This lets the parser know we want completions for what comes after the last arg
-      if (toComplete.length > 0) {
-        toComplete = [...toComplete, ''];
-      }
       await completion.parse(toComplete);
       process.exit(0);
     } else {
