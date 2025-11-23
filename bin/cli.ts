@@ -41,9 +41,10 @@ async function main() {
       const completion = new PackageManagerCompletion(packageManager);
       await setupCompletionForPackageManager(packageManager, completion);
       let toComplete = args.slice(2);
-      // Always append -- for PowerShell (it was stripped from the input)
-      // This ensures option completion works correctly
-      toComplete.push('--');
+      // Only append -- if there are actual args (PowerShell stripped the trailing --)
+      if (toComplete.length > 0) {
+        toComplete.push('--');
+      }
       await completion.parse(toComplete);
       process.exit(0);
     } else {
