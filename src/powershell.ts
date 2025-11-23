@@ -3,30 +3,30 @@ import { ShellCompDirective } from './t';
 // TODO: issue with -- -- completions
 
 export function generate(
-  name: string,
-  exec: string,
-  includeDesc = false
+    name: string,
+    exec: string,
+    includeDesc = false
 ): string {
-  // Replace '-' and ':' with '_' for variable names
-  const nameForVar = name.replace(/[-:]/g, '_');
+    // Replace '-' and ':' with '_' for variable names
+    const nameForVar = name.replace(/[-:]/g, '_');
 
-  // Determine the completion command
-  // const compCmd = includeDesc ? "complete" : "complete";
+    // Determine the completion command
+    // const compCmd = includeDesc ? "complete" : "complete";
 
-  // Shell completion directives
-  const ShellCompDirectiveError = ShellCompDirective.ShellCompDirectiveError;
-  const ShellCompDirectiveNoSpace =
-    ShellCompDirective.ShellCompDirectiveNoSpace;
-  const ShellCompDirectiveNoFileComp =
-    ShellCompDirective.ShellCompDirectiveNoFileComp;
-  const ShellCompDirectiveFilterFileExt =
-    ShellCompDirective.ShellCompDirectiveFilterFileExt;
-  const ShellCompDirectiveFilterDirs =
-    ShellCompDirective.ShellCompDirectiveFilterDirs;
-  const ShellCompDirectiveKeepOrder =
-    ShellCompDirective.ShellCompDirectiveKeepOrder;
+    // Shell completion directives
+    const ShellCompDirectiveError = ShellCompDirective.ShellCompDirectiveError;
+    const ShellCompDirectiveNoSpace =
+        ShellCompDirective.ShellCompDirectiveNoSpace;
+    const ShellCompDirectiveNoFileComp =
+        ShellCompDirective.ShellCompDirectiveNoFileComp;
+    const ShellCompDirectiveFilterFileExt =
+        ShellCompDirective.ShellCompDirectiveFilterFileExt;
+    const ShellCompDirectiveFilterDirs =
+        ShellCompDirective.ShellCompDirectiveFilterDirs;
+    const ShellCompDirectiveKeepOrder =
+        ShellCompDirective.ShellCompDirectiveKeepOrder;
 
-  return `# powershell completion for ${name} -*- shell-script -*-
+    return `# powershell completion for ${name} -*- shell-script -*-
 
   [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
     function __${name}_debug {
@@ -75,7 +75,7 @@ export function generate(
     # Split the command at the first space to separate the program and arguments.
     $Program, $Arguments = $Command.Split(" ", 2)
 
-    $RequestComp = "& ${exec} complete -- $Arguments"
+    $RequestComp = "& ${exec} complete --% -- $Arguments"
     __${name}_debug "RequestComp: $RequestComp"
 
     # we cannot use $WordToComplete because it
