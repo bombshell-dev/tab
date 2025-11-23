@@ -75,7 +75,7 @@ export function generate(
     # Split the command at the first space to separate the program and arguments.
     $Program, $Arguments = $Command.Split(" ", 2)
 
-    $RequestComp = "& ${exec} complete --% -- $Arguments"
+    $RequestComp = "& ${exec} complete -- $Arguments"
     __${name}_debug "RequestComp: $RequestComp"
 
     # we cannot use $WordToComplete because it
