@@ -41,10 +41,10 @@ async function main() {
       const completion = new PackageManagerCompletion(packageManager);
       await setupCompletionForPackageManager(packageManager, completion);
       let toComplete = args.slice(2);
-      // In PowerShell, -- is stripped. Only append it if the last arg is a flag
-      // (starts with -), meaning we want flag/option completion
-      if (toComplete.length > 0 && toComplete[toComplete.length - 1].startsWith('-')) {
-        toComplete = [...toComplete, '--'];
+      // In PowerShell, -- is stripped. Append empty string to simulate space at end
+      // This lets the parser know we want completions for what comes after the last arg
+      if (toComplete.length > 0) {
+        toComplete = [...toComplete, ''];
       }
       await completion.parse(toComplete);
       process.exit(0);
