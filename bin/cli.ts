@@ -34,8 +34,20 @@ async function main() {
       await completion.parse(toComplete);
       process.exit(0);
     } else {
-      console.error(`Error: Expected '--' followed by command to complete`);
-      process.exit(1);
+      // Handle PowerShell case where trailing '--' gets stripped by npm.cmd
+      // In PowerShell, args after 'complete' should be treated as completion args
+      const isPowerShell = process.platform === 'win32' && process.env.PSModulePath;
+      if (isPowerShell) {
+        const completion = new PackageManagerCompletion(packageManager);
+        await setupCompletionForPackageManager(packageManager, completion);
+        // Take args after 'complete' (args[2..]) as the completion args
+        const toComplete = args.slice(2);
+        await completion.parse(toComplete);
+        process.exit(0);
+      } else {
+        console.error(`Error: Expected '--' followed by command to complete`);
+        process.exit(1);
+      }
     }
   }
 
