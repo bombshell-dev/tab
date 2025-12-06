@@ -28,15 +28,16 @@ async function main() {
     }
 
     const dashIndex = process.argv.indexOf('--');
-    // When PowerShell shims drop the literal '--', fall back to treating
-    // everything after "complete" as the completion payload.
+    // PowerShell's argument parsing can normalize or drop a `--`
+    // our "<pm> complete -- <query>" POSIX-style contract doesn't work the same way.
+    // so we need to handle the PowerShell case separately.
+    // gh issue discussion: https://github.com/bombshell-dev/tab/issues/82
+
     const completionArgs =
-      // POSIX or already-present separator
       dashIndex !== -1 && (!isPowerShell || dashIndex < process.argv.length - 1)
         ? process.argv.slice(dashIndex + 1)
         : isPowerShell
-          ? // PowerShell shims may drop the first '--' and leave only a trailing one
-            args.slice(2)
+          ? args.slice(2)
           : null;
 
     if (!completionArgs) {
