@@ -32,11 +32,11 @@ async function main() {
     // everything after "complete" as the completion payload.
     const completionArgs =
       // POSIX or already-present separator
-      (dashIndex !== -1 && (!isPowerShell || dashIndex < process.argv.length - 1))
+      dashIndex !== -1 && (!isPowerShell || dashIndex < process.argv.length - 1)
         ? process.argv.slice(dashIndex + 1)
         : isPowerShell
-          // PowerShell shims may drop the first '--' and leave only a trailing one
-          ? args.slice(2)
+          ? // PowerShell shims may drop the first '--' and leave only a trailing one
+            args.slice(2)
           : null;
 
     if (!completionArgs) {
@@ -80,7 +80,6 @@ async function main() {
 function generateCompletionScript(packageManager: string, shell: string) {
   const name = packageManager;
   console.log(process.argv);
-
 
   const isLocalDev = process.argv[1].endsWith('dist/bin/cli.js');
 
