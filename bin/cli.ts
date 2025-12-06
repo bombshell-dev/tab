@@ -73,7 +73,7 @@ async function main() {
     process.exit(0);
   }
 
-  console.error('Usages: tab <packageManager> <shell>');
+  console.error('Usage: tab <packageManager> <shell>');
   console.error(`       tab <packageManager> complete -- <args>`);
   process.exit(1);
 }
