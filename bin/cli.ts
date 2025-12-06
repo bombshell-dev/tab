@@ -31,9 +31,11 @@ async function main() {
     // When PowerShell shims drop the literal '--', fall back to treating
     // everything after "complete" as the completion payload.
     const completionArgs =
-      dashIndex !== -1
+      // POSIX or already-present separator
+      (dashIndex !== -1 && (!isPowerShell || dashIndex < process.argv.length - 1))
         ? process.argv.slice(dashIndex + 1)
         : isPowerShell
+          // PowerShell shims may drop the first '--' and leave only a trailing one
           ? args.slice(2)
           : null;
 
