@@ -9,9 +9,10 @@ const shells = ['zsh', 'bash', 'fish', 'powershell'];
 
 async function main() {
   const args = process.argv.slice(2);
+  const isPowerShell = process.platform === 'win32' && process.env.PSModulePath;
 
   if (process.env.TAB_DEBUG) {
-  console.error("RAW ARGS:", process.argv);
+    console.error('RAW ARGS:', process.argv);
   }
 
   // <packageManager> complete -- <args>
@@ -27,28 +28,24 @@ async function main() {
     }
 
     const dashIndex = process.argv.indexOf('--');
-    if (dashIndex !== -1) {
-      const completion = new PackageManagerCompletion(packageManager);
-      await setupCompletionForPackageManager(packageManager, completion);
-      const toComplete = process.argv.slice(dashIndex + 1);
-      await completion.parse(toComplete);
-      process.exit(0);
-    } else {
-      // Handle PowerShell case where trailing '--' gets stripped by npm.cmd
-      // In PowerShell, args after 'complete' should be treated as completion args
-      const isPowerShell = process.platform === 'win32' && process.env.PSModulePath;
-      if (isPowerShell) {
-        const completion = new PackageManagerCompletion(packageManager);
-        await setupCompletionForPackageManager(packageManager, completion);
-        // Take args after 'complete' (args[2..]) as the completion args
-        const toComplete = args.slice(2);
-        await completion.parse(toComplete);
-        process.exit(0);
-      } else {
-        console.error(`Error: Expected '--' followed by command to complete`);
-        process.exit(1);
-      }
+    // When PowerShell shims drop the literal '--', fall back to treating
+    // everything after "complete" as the completion payload.
+    const completionArgs =
+      dashIndex !== -1
+        ? process.argv.slice(dashIndex + 1)
+        : isPowerShell
+          ? args.slice(2)
+          : null;
+
+    if (!completionArgs) {
+      console.error(`Error: Expected '--' followed by command to complete`);
+      process.exit(1);
     }
+
+    const completion = new PackageManagerCompletion(packageManager);
+    await setupCompletionForPackageManager(packageManager, completion);
+    await completion.parse(completionArgs);
+    process.exit(0);
   }
 
   // <packageManager> <shell>
