@@ -80,7 +80,6 @@ async function main() {
 
 function generateCompletionScript(packageManager: string, shell: string) {
   const name = packageManager;
-  console.log(process.argv);
 
   const isLocalDev = process.argv[1].endsWith('dist/bin/cli.js');
 
