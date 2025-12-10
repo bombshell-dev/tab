@@ -26,11 +26,9 @@ export default async function tab(
   instance: CAC,
   completionConfig?: CompletionConfig
 ): Promise<RootCommand> {
-  // Add all commands and their options
   for (const cmd of [instance.globalCommand, ...instance.commands]) {
-    if (cmd.name === 'complete') continue; // Skip completion command
+    if (cmd.name === 'complete') continue;
 
-    // Get positional args info from command usage
     const args = (cmd.rawName.match(/\[.*?\]|<.*?>/g) || []).map((arg) =>
       arg.startsWith('[')
     ); // true if optional (wrapped in [])
@@ -40,22 +38,21 @@ export default async function tab(
       ? completionConfig
       : completionConfig?.subCommands?.[cmd.name];
 
-    // Add command to completion using t.ts API
+    // command
     const commandName = isRootCommand ? '' : cmd.name;
     const command = isRootCommand
       ? t
       : t.command(commandName, cmd.description || '');
 
-    // Set args for the command
+    // args (if has positional arguments)
     if (command) {
-      // Extract argument names from command usage
       const argMatches =
         cmd.rawName.match(/<([^>]+)>|\[\.\.\.([^\]]+)\]/g) || [];
       const argNames = argMatches.map((match) => {
         if (match.startsWith('<') && match.endsWith('>')) {
-          return match.slice(1, -1); // Remove < >
+          return match.slice(1, -1);
         } else if (match.startsWith('[...') && match.endsWith(']')) {
-          return match.slice(4, -1); // Remove [... ]
+          return match.slice(4, -1);
         }
         return match;
       });
@@ -71,18 +68,17 @@ export default async function tab(
       });
     }
 
-    // Add command options
+    // options
     for (const option of [...instance.globalCommand.options, ...cmd.options]) {
-      // Extract short flag from the rawName if it exists (e.g., "-c, --config" -> "c")
+      // short flag (if exists)
       const shortFlag = option.rawName.match(/^-([a-zA-Z]), --/)?.[1];
-      const argName = option.name; // option.name is already clean (e.g., "config")
+      const argName = option.name;
 
-      // Add option using t.ts API
       const targetCommand = isRootCommand ? t : command;
       if (targetCommand) {
         const handler = commandCompletionConfig?.options?.[argName];
 
-        // Check if option takes a value (has <> or [] in rawName, or is marked as required)
+        // takes value (if has <> or [] in rawName, or is marked as required)
         const takesValue =
           option.required || VALUE_OPTION_RE.test(option.rawName);
 
@@ -98,12 +94,12 @@ export default async function tab(
             targetCommand.option(argName, option.description || '', handler);
           }
         } else if (takesValue) {
-          // Takes value but no custom handler = value option with no completions
+          // value option (if takes value but no custom handler)
           if (shortFlag) {
             targetCommand.option(
               argName,
               option.description || '',
-              async () => [], // Empty completions
+              async () => [],
               shortFlag
             );
           } else {
@@ -114,7 +110,7 @@ export default async function tab(
             );
           }
         } else {
-          // No custom handler and doesn't take value = boolean flag
+          // boolean flag (if no custom handler and doesn't take value)
           if (shortFlag) {
             targetCommand.option(argName, option.description || '', shortFlag);
           } else {
@@ -153,13 +149,12 @@ export default async function tab(
         const args: string[] = extra['--'] || [];
         instance.showHelpOnExit = false;
 
-        // Parse current command context
+        // command context
         instance.unsetMatchedCommand();
         instance.parse([execPath, processArgs[0], ...args], {
           run: false,
         });
 
-        // Use t.ts parse method instead of completion.parse
         return t.parse(args);
       }
     }

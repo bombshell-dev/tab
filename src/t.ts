@@ -20,7 +20,6 @@ export type OptionHandler = (
   options: OptionsMap
 ) => void;
 
-// Completion result types
 export type Completion = {
   description?: string;
   value: string;
@@ -88,7 +87,6 @@ export class Command {
     this.description = description;
   }
 
-  // Function overloads for better UX - combined into single signature with optional parameters
   option(
     value: string,
     description: string,
@@ -99,7 +97,6 @@ export class Command {
     let aliasStr: string | undefined;
     let isBoolean: boolean;
 
-    // Parse arguments based on types
     if (typeof handlerOrAlias === 'function') {
       handler = handlerOrAlias;
       aliasStr = alias;
@@ -154,7 +151,6 @@ export class RootCommand extends Command {
     return c;
   }
 
-  // Utility method to strip options from args for command matching
   private stripOptions(args: string[]): string[] {
     const parts: string[] = [];
     let i = 0;
@@ -163,18 +159,15 @@ export class RootCommand extends Command {
       const arg = args[i];
 
       if (arg.startsWith('-')) {
-        i++; // Skip the option
+        i++;
 
-        // Check if this option expects a value (not boolean)
-        // We need to check across all commands since we don't know which command context we're in yet
         let isBoolean = false;
 
-        // Check root command options
         const rootOption = this.findOption(this, arg);
         if (rootOption) {
           isBoolean = rootOption.isBoolean ?? false;
         } else {
-          // Check all subcommand options
+          // subcommand options
           for (const [, command] of this.commands) {
             const option = this.findOption(command, arg);
             if (option) {
@@ -184,9 +177,9 @@ export class RootCommand extends Command {
           }
         }
 
-        // Only skip the next argument if this is not a boolean option and the next arg doesn't start with -
+        // skip the next argument if this is not a boolean option and the next arg doesn't start with -
         if (!isBoolean && i < args.length && !args[i].startsWith('-')) {
-          i++; // Skip the option value
+          i++;
         }
       } else {
         parts.push(arg);
@@ -197,7 +190,6 @@ export class RootCommand extends Command {
     return parts;
   }
 
-  // Find the appropriate command based on args
   private matchCommand(args: string[]): [Command, string[]] {
     args = this.stripOptions(args);
     const parts: string[] = [];
@@ -217,46 +209,41 @@ export class RootCommand extends Command {
       }
     }
 
-    // If no command was matched, use the root command (this)
     return [matchedCommand || this, remaining];
   }
 
-  // Determine if we should complete flags
   private shouldCompleteFlags(
     lastPrevArg: string | undefined,
     toComplete: string,
     endsWithSpace: boolean
   ): boolean {
-    // Always complete if the current token starts with a dash
     if (toComplete.startsWith('-')) {
       return true;
     }
 
-    // If the previous argument was an option, check if it expects a value
+    // previous argument was an option, check if it expects a value
     if (lastPrevArg?.startsWith('-')) {
-      // Find the option to check if it's boolean
       let option = this.findOption(this, lastPrevArg);
       if (!option) {
-        // Check all subcommand options
+        // subcommand options
         for (const [, command] of this.commands) {
           option = this.findOption(command, lastPrevArg);
           if (option) break;
         }
       }
 
-      // If it's a boolean option, don't try to complete its value
+      // boolean option, don't try to complete its value
       if (option && option.isBoolean) {
         return false;
       }
 
-      // Non-boolean options expect values
+      // non-boolean options expect values
       return true;
     }
 
     return false;
   }
 
-  // Determine if we should complete commands
   private shouldCompleteCommands(
     toComplete: string,
     endsWithSpace: boolean
@@ -264,7 +251,7 @@ export class RootCommand extends Command {
     return !toComplete.startsWith('-');
   }
 
-  // Handle flag completion (names and values)
+  // flag completion (names and values)
   private handleFlagCompletion(
     command: Command,
     previousArgs: string[],
@@ -298,7 +285,6 @@ export class RootCommand extends Command {
       return;
     }
 
-    // Handle flag name completion
     if (toComplete.startsWith('-')) {
       const isShortFlag =
         toComplete.startsWith('-') && !toComplete.startsWith('--');
@@ -324,17 +310,15 @@ export class RootCommand extends Command {
     }
   }
 
-  // Helper method to find an option by name or alias
+  // find option by name or alias
   private findOption(command: Command, optionName: string): Option | undefined {
-    // Try direct match (with dashes)
     let option = command.options.get(optionName);
     if (option) return option;
 
-    // Try without dashes (the actual storage format)
     option = command.options.get(optionName.replace(/^-+/, ''));
     if (option) return option;
 
-    // Try by short alias
+    // short alias
     for (const [_name, opt] of command.options) {
       if (opt.alias && `-${opt.alias}` === optionName) {
         return opt;
@@ -344,7 +328,7 @@ export class RootCommand extends Command {
     return undefined;
   }
 
-  // Handle command completion
+  // command completion
   private handleCommandCompletion(previousArgs: string[], toComplete: string) {
     const commandParts = this.stripOptions(previousArgs);
 
@@ -365,36 +349,31 @@ export class RootCommand extends Command {
     }
   }
 
-  // Handle positional argument completion
+  // positional argument completion
   private handlePositionalCompletion(
     command: Command,
     previousArgs: string[],
     toComplete: string,
     endsWithSpace: boolean
   ) {
-    // Get the current argument position (subtract command name)
+    // current argument position (subtract command name)
     const commandParts = command.value.split(' ').length;
     const currentArgIndex = Math.max(0, previousArgs.length - commandParts);
     const argumentEntries = Array.from(command.arguments.entries());
 
-    // If we have arguments defined
     if (argumentEntries.length > 0) {
-      // Find the appropriate argument for the current position
       let targetArgument: Argument | undefined;
 
       if (currentArgIndex < argumentEntries.length) {
-        // We're within the defined arguments
         const [_argName, argument] = argumentEntries[currentArgIndex];
         targetArgument = argument;
       } else {
-        // We're beyond the defined arguments, check if the last argument is variadic
         const lastArgument = argumentEntries[argumentEntries.length - 1][1];
         if (lastArgument.variadic) {
           targetArgument = lastArgument;
         }
       }
 
-      // If we found a target argument with a handler, use it
       if (
         targetArgument &&
         targetArgument.handler &&
@@ -412,7 +391,6 @@ export class RootCommand extends Command {
     }
   }
 
-  // Format and output completion results
   private complete(toComplete: string) {
     this.directive = ShellCompDirective.ShellCompDirectiveNoFileComp;
 
@@ -459,7 +437,6 @@ export class RootCommand extends Command {
     const [matchedCommand] = this.matchCommand(previousArgs);
     const lastPrevArg = previousArgs[previousArgs.length - 1];
 
-    // 1. Handle flag/option completion
     if (this.shouldCompleteFlags(lastPrevArg, toComplete, endsWithSpace)) {
       this.handleFlagCompletion(
         matchedCommand,
@@ -469,31 +446,24 @@ export class RootCommand extends Command {
         lastPrevArg
       );
     } else {
-      // Check if we just finished a boolean option with no value expected
-      // In this case, don't complete anything
       if (lastPrevArg?.startsWith('-') && toComplete === '' && endsWithSpace) {
         let option = this.findOption(this, lastPrevArg);
         if (!option) {
-          // Check all subcommand options
           for (const [, command] of this.commands) {
             option = this.findOption(command, lastPrevArg);
             if (option) break;
           }
         }
 
-        // If it's a boolean option followed by empty space, don't complete anything
         if (option && option.isBoolean) {
-          // Don't add any completions, just output the directive
           this.complete(toComplete);
           return;
         }
       }
 
-      // 2. Handle command/subcommand completion
       if (this.shouldCompleteCommands(toComplete, endsWithSpace)) {
         this.handleCommandCompletion(previousArgs, toComplete);
       }
-      // 3. Handle positional arguments - always check for root command arguments
       if (matchedCommand && matchedCommand.arguments.size > 0) {
         this.handlePositionalCompletion(
           matchedCommand,
