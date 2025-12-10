@@ -1,5 +1,12 @@
 # @bombsh/tab
 
+## 0.0.10
+
+### Patch Changes
+
+- 060c025: Fix PowerShell completion argument parsing
+- 5832a09: switching command execution from execSync (string-based, shell-parsed) to spawnSync with an argv array. this ensures trailing "" arguments are not dropped during shell re-parsing
+
 ## 0.0.9
 
 ### Patch Changes
