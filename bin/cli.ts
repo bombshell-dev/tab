@@ -11,10 +11,6 @@ async function main() {
   const args = process.argv.slice(2);
   const isPowerShell = process.platform === 'win32' && process.env.PSModulePath;
 
-  if (process.env.TAB_DEBUG) {
-    console.error('RAW ARGS:', process.argv);
-  }
-
   // <packageManager> complete -- <args>
   if (args.length >= 2 && args[1] === 'complete') {
     const packageManager = args[0];
