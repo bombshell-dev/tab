@@ -2,11 +2,7 @@ import { ShellCompDirective } from './t';
 
 // TODO: issue with -- -- completions
 
-export function generate(
-  name: string,
-  exec: string,
-  includeDesc = false
-): string {
+export function generate(name: string, exec: string): string {
   // Replace '-' and ':' with '_' for variable names
   const nameForVar = name.replace(/[-:]/g, '_');
 

@@ -1,4 +1,5 @@
-import { ArgDef, defineCommand } from 'citty';
+import { defineCommand } from 'citty';
+import type { ArgDef } from 'citty';
 import * as zsh from './zsh';
 import * as bash from './bash';
 import * as fish from './fish';
@@ -10,8 +11,9 @@ import type {
   SubCommandsDef,
 } from 'citty';
 import { generateFigSpec } from './fig';
-import { CompletionConfig, assertDoubleDashes } from './shared';
-import t, { RootCommand } from './t';
+import { assertDoubleDashes } from './shared';
+import type { CompletionConfig } from './shared';
+import t, { type RootCommand } from './t';
 
 function quoteIfNeeded(path: string) {
   return path.includes(' ') ? `'${path}'` : path;

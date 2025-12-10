@@ -1,40 +1,40 @@
 import type { CommandDef, ArgsDef, PositionalArgDef, CommandMeta } from 'citty';
 
-type FigSpec = {
+interface FigSpec {
   name: string;
   description: string;
   options?: FigOption[];
   subcommands?: FigSubcommand[];
   args?: FigArg[];
-};
+}
 
-type FigOption = {
+interface FigOption {
   name: string;
   description: string;
   args?: FigArg[];
   isRequired?: boolean;
-};
+}
 
-type FigSubcommand = {
+interface FigSubcommand {
   name: string;
   description: string;
   options?: FigOption[];
   subcommands?: FigSubcommand[];
   args?: FigArg[];
-};
+}
 
-type FigArg = {
+interface FigArg {
   name: string;
   description?: string;
   isOptional?: boolean;
   isVariadic?: boolean;
   suggestions?: FigSuggestion[];
-};
+}
 
-type FigSuggestion = {
+interface FigSuggestion {
   name: string;
   description?: string;
-};
+}
 
 async function processArgs<T extends ArgsDef>(
   args: T

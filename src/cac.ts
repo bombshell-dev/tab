@@ -4,8 +4,8 @@ import * as fish from './fish';
 import * as powershell from './powershell';
 import type { CAC } from 'cac';
 import { assertDoubleDashes } from './shared';
-import { CompletionConfig } from './shared';
-import t, { RootCommand } from './t';
+import type { CompletionConfig } from './shared';
+import t, { type RootCommand } from './t';
 
 const execPath = process.execPath;
 const processArgs = process.argv.slice(1);

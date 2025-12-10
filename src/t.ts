@@ -20,10 +20,10 @@ export type OptionHandler = (
   options: OptionsMap
 ) => void;
 
-export type Completion = {
+export interface Completion {
   description?: string;
   value: string;
-};
+}
 
 export type ArgumentHandler = (
   this: Argument,
@@ -214,8 +214,7 @@ export class RootCommand extends Command {
 
   private shouldCompleteFlags(
     lastPrevArg: string | undefined,
-    toComplete: string,
-    endsWithSpace: boolean
+    toComplete: string
   ): boolean {
     if (toComplete.startsWith('-')) {
       return true;
@@ -244,10 +243,7 @@ export class RootCommand extends Command {
     return false;
   }
 
-  private shouldCompleteCommands(
-    toComplete: string,
-    endsWithSpace: boolean
-  ): boolean {
+  private shouldCompleteCommands(toComplete: string): boolean {
     return !toComplete.startsWith('-');
   }
 
@@ -256,7 +252,6 @@ export class RootCommand extends Command {
     command: Command,
     previousArgs: string[],
     toComplete: string,
-    endsWithSpace: boolean,
     lastPrevArg: string | undefined
   ) {
     // Handle flag value completion
@@ -350,12 +345,7 @@ export class RootCommand extends Command {
   }
 
   // positional argument completion
-  private handlePositionalCompletion(
-    command: Command,
-    previousArgs: string[],
-    toComplete: string,
-    endsWithSpace: boolean
-  ) {
+  private handlePositionalCompletion(command: Command, previousArgs: string[]) {
     // current argument position (subtract command name)
     const commandParts = command.value.split(' ').length;
     const currentArgIndex = Math.max(0, previousArgs.length - commandParts);
@@ -437,12 +427,11 @@ export class RootCommand extends Command {
     const [matchedCommand] = this.matchCommand(previousArgs);
     const lastPrevArg = previousArgs[previousArgs.length - 1];
 
-    if (this.shouldCompleteFlags(lastPrevArg, toComplete, endsWithSpace)) {
+    if (this.shouldCompleteFlags(lastPrevArg, toComplete)) {
       this.handleFlagCompletion(
         matchedCommand,
         previousArgs,
         toComplete,
-        endsWithSpace,
         lastPrevArg
       );
     } else {
@@ -461,16 +450,11 @@ export class RootCommand extends Command {
         }
       }
 
-      if (this.shouldCompleteCommands(toComplete, endsWithSpace)) {
+      if (this.shouldCompleteCommands(toComplete)) {
         this.handleCommandCompletion(previousArgs, toComplete);
       }
       if (matchedCommand && matchedCommand.arguments.size > 0) {
-        this.handlePositionalCompletion(
-          matchedCommand,
-          previousArgs,
-          toComplete,
-          endsWithSpace
-        );
+        this.handlePositionalCompletion(matchedCommand, previousArgs);
       }
     }
 

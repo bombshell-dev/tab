@@ -1,4 +1,4 @@
-import { OptionHandler, ArgumentHandler } from './t';
+import type { OptionHandler, ArgumentHandler } from './t';
 
 export const noopHandler: OptionHandler = function () {
   // No-op handler for options
