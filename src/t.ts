@@ -273,9 +273,12 @@ export class RootCommand extends Command {
   // Determine if we should complete commands
   private shouldCompleteCommands(
     toComplete: string,
-    endsWithSpace: boolean
+    endsWithSpace: boolean,
+    isRootCommandContext: boolean
   ): boolean {
-    return !toComplete.startsWith('-');
+    // Only suggest commands when we're still completing at the root context.
+    // Once a command is matched, we should move on to its arguments/flags.
+    return isRootCommandContext && !toComplete.startsWith('-');
   }
 
   // Handle flag completion (names and values)
@@ -471,6 +474,7 @@ export class RootCommand extends Command {
     }
 
     const [matchedCommand] = this.matchCommand(previousArgs);
+    const isRootContext = matchedCommand === this;
     const lastPrevArg = previousArgs[previousArgs.length - 1];
 
     // 1. Handle flag/option completion
@@ -504,7 +508,9 @@ export class RootCommand extends Command {
       }
 
       // 2. Handle command/subcommand completion
-      if (this.shouldCompleteCommands(toComplete, endsWithSpace)) {
+      if (
+        this.shouldCompleteCommands(toComplete, endsWithSpace, isRootContext)
+      ) {
         this.handleCommandCompletion(previousArgs, toComplete);
       }
       // 3. Handle positional arguments - always check for root command arguments
