@@ -217,20 +217,6 @@ export class RootCommand extends Command {
       }
     }
 
-    // Fallback: if nothing matched yet, try to match any single-token command
-    // later in the args (helps when the executable name or runner is included,
-    // e.g., `pnpm nuxt dev` where `nuxt` is not a registered command).
-    if (!matchedCommand) {
-      for (let i = 0; i < args.length; i++) {
-        const potential = this.commands.get(args[i]);
-        if (potential) {
-          matchedCommand = potential;
-          remaining = args.slice(i + 1);
-          break;
-        }
-      }
-    }
-
     // If no command was matched, use the root command (this)
     return [matchedCommand || this, remaining];
   }
@@ -273,12 +259,9 @@ export class RootCommand extends Command {
   // Determine if we should complete commands
   private shouldCompleteCommands(
     toComplete: string,
-    endsWithSpace: boolean,
-    isRootCommandContext: boolean
+    endsWithSpace: boolean
   ): boolean {
-    // Only suggest commands when we're still completing at the root context.
-    // Once a command is matched, we should move on to its arguments/flags.
-    return isRootCommandContext && !toComplete.startsWith('-');
+    return !toComplete.startsWith('-');
   }
 
   // Handle flag completion (names and values)
@@ -474,7 +457,6 @@ export class RootCommand extends Command {
     }
 
     const [matchedCommand] = this.matchCommand(previousArgs);
-    const isRootContext = matchedCommand === this;
     const lastPrevArg = previousArgs[previousArgs.length - 1];
 
     // 1. Handle flag/option completion
@@ -508,9 +490,7 @@ export class RootCommand extends Command {
       }
 
       // 2. Handle command/subcommand completion
-      if (
-        this.shouldCompleteCommands(toComplete, endsWithSpace, isRootContext)
-      ) {
+      if (this.shouldCompleteCommands(toComplete, endsWithSpace)) {
         this.handleCommandCompletion(previousArgs, toComplete);
       }
       // 3. Handle positional arguments - always check for root command arguments
