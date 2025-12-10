@@ -47,17 +47,14 @@ async function handleSubCommands(
     }
     const isPositional = isConfigPositional(config);
 
-    // Add command using t.ts API
     const commandName = parentCmd ? `${parentCmd} ${cmd}` : cmd;
     const command = t.command(commandName, meta.description);
 
     // Set args for the command if it has positional arguments
     if (isPositional && config.args) {
-      // Add arguments with completion handlers from subCompletionConfig args
       for (const [argName, argConfig] of Object.entries(config.args)) {
         const conf = argConfig as ArgDef;
         if (conf.type === 'positional') {
-          // Check if this is a variadic argument (required: false for variadic in citty)
           const isVariadic = conf.required === false;
           const argHandler = subCompletionConfig?.args?.[argName];
           if (argHandler) {
@@ -69,7 +66,7 @@ async function handleSubCommands(
       }
     }
 
-    // Handle nested subcommands recursively
+    // subcommands (recursive)
     if (subCommands) {
       await handleSubCommands(
         subCommands,
@@ -78,11 +75,11 @@ async function handleSubCommands(
       );
     }
 
-    // Handle arguments
+    // args
     if (config.args) {
       for (const [argName, argConfig] of Object.entries(config.args)) {
         const conf = argConfig as ArgDef;
-        // Extract alias from the config if it exists
+        // alias (if exists)
         const shortFlag =
           typeof conf === 'object' && 'alias' in conf
             ? Array.isArray(conf.alias)
@@ -90,17 +87,17 @@ async function handleSubCommands(
               : conf.alias
             : undefined;
 
-        // Add option using t.ts API - store without -- prefix
+        // option (without -- prefix)
         const handler = subCompletionConfig?.options?.[argName];
         if (handler) {
-          // Has custom handler → value option
+          // value option (if has custom handler)
           if (shortFlag) {
             command.option(argName, conf.description ?? '', handler, shortFlag);
           } else {
             command.option(argName, conf.description ?? '', handler);
           }
         } else {
-          // No custom handler → boolean flag
+          // boolean flag (if no custom handler)
           if (shortFlag) {
             command.option(argName, conf.description ?? '', shortFlag);
           } else {
@@ -130,7 +127,7 @@ export default async function tab<TArgs extends ArgsDef>(
 
   const isPositional = isConfigPositional(instance);
 
-  // Set args for the root command if it has positional arguments
+  // args (if has positional arguments)
   if (isPositional && instance.args) {
     for (const [argName, argConfig] of Object.entries(instance.args)) {
       const conf = argConfig as PositionalArgDef;
@@ -158,7 +155,6 @@ export default async function tab<TArgs extends ArgsDef>(
     for (const [argName, argConfig] of Object.entries(instance.args)) {
       const conf = argConfig as ArgDef;
 
-      // Extract alias (same logic as subcommands)
       const shortFlag =
         typeof conf === 'object' && 'alias' in conf
           ? Array.isArray(conf.alias)
@@ -166,17 +162,14 @@ export default async function tab<TArgs extends ArgsDef>(
             : conf.alias
           : undefined;
 
-      // Add option using t.ts API - store without -- prefix
       const handler = completionConfig?.options?.[argName];
       if (handler) {
-        // Has custom handler → value option
         if (shortFlag) {
           t.option(argName, conf.description ?? '', handler, shortFlag);
         } else {
           t.option(argName, conf.description ?? '', handler);
         }
       } else {
-        // No custom handler → boolean flag
         if (shortFlag) {
           t.option(argName, conf.description ?? '', shortFlag);
         } else {
@@ -235,7 +228,6 @@ export default async function tab<TArgs extends ArgsDef>(
           assertDoubleDashes(name);
 
           const extra = ctx.rawArgs.slice(ctx.rawArgs.indexOf('--') + 1);
-          // Use t.ts parse method instead of completion.parse
           return t.parse(extra);
         }
       }
