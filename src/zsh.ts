@@ -39,6 +39,14 @@ _${name}() {
         __${name}_debug "Detected trailing space in buffer"
     fi
 
+    # When completing a brand-new (empty) word, CURRENT can point past the end
+    # of the words array. Pad with an empty element so downstream logic keeps
+    # the last typed argument (avoids replaying the prior completion).
+    if [ $isNewWord -eq 1 ] && [ \${#words[@]} -lt \${CURRENT} ]; then
+        __${name}_debug "Padding words to CURRENT with empty element"
+        words+=("")
+    fi
+
     # The user could have moved the cursor backwards on the command-line.
     # We need to trigger completion from the $CURRENT location, so we need
     # to truncate the command-line ($words) up to the $CURRENT location.

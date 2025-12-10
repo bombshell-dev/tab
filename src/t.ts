@@ -217,6 +217,20 @@ export class RootCommand extends Command {
       }
     }
 
+    // Fallback: if nothing matched yet, try to match any single-token command
+    // later in the args (helps when the executable name or runner is included,
+    // e.g., `pnpm nuxt dev` where `nuxt` is not a registered command).
+    if (!matchedCommand) {
+      for (let i = 0; i < args.length; i++) {
+        const potential = this.commands.get(args[i]);
+        if (potential) {
+          matchedCommand = potential;
+          remaining = args.slice(i + 1);
+          break;
+        }
+      }
+    }
+
     // If no command was matched, use the root command (this)
     return [matchedCommand || this, remaining];
   }
