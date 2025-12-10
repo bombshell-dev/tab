@@ -1,10 +1,43 @@
-import { execSync } from 'child_process';
+import {
+  spawnSync,
+  type SpawnSyncOptionsWithStringEncoding,
+} from 'child_process';
 import { RootCommand } from '../src/t.js';
 
-function debugLog(...args: any[]) {
+function debugLog(...args: unknown[]) {
   if (process.env.DEBUG) {
     console.error('[DEBUG]', ...args);
   }
+}
+
+const completionSpawnOptions: SpawnSyncOptionsWithStringEncoding = {
+  encoding: 'utf8',
+  stdio: ['pipe', 'pipe', 'ignore'],
+  timeout: 1000,
+};
+
+function runCompletionCommand(
+  command: string,
+  leadingArgs: string[],
+  completionArgs: string[]
+): string {
+  const result = spawnSync(
+    command,
+    [...leadingArgs, 'complete', '--', ...completionArgs],
+    completionSpawnOptions
+  );
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  if (typeof result.status === 'number' && result.status !== 0) {
+    throw new Error(
+      `Completion command "${command}" exited with code ${result.status}`
+    );
+  }
+
+  return (result.stdout ?? '').trim();
 }
 
 async function checkCliHasCompletions(
@@ -12,21 +45,13 @@ async function checkCliHasCompletions(
   packageManager: string
 ): Promise<boolean> {
   try {
-    const result = execSync(`${cliName} complete --`, {
-      encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'ignore'],
-      timeout: 1000,
-    });
-    if (result.trim()) return true;
+    const result = runCompletionCommand(cliName, [], []);
+    if (result) return true;
   } catch {}
 
   try {
-    const result = execSync(`${packageManager} ${cliName} complete --`, {
-      encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'ignore'],
-      timeout: 1000,
-    });
-    return !!result.trim();
+    const result = runCompletionCommand(packageManager, [cliName], []);
+    return !!result;
   } catch {
     return false;
   }
@@ -37,34 +62,16 @@ async function getCliCompletions(
   packageManager: string,
   args: string[]
 ): Promise<string[]> {
-  const completeArgs = args.map((arg) =>
-    arg.includes(' ') ? `"${arg}"` : arg
-  );
-
   try {
-    const result = execSync(
-      `${cliName} complete -- ${completeArgs.join(' ')}`,
-      {
-        encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'ignore'],
-        timeout: 1000,
-      }
-    );
-    if (result.trim()) {
-      return result.trim().split('\n').filter(Boolean);
+    const result = runCompletionCommand(cliName, [], args);
+    if (result) {
+      return result.split('\n').filter(Boolean);
     }
   } catch {}
 
   try {
-    const result = execSync(
-      `${packageManager} ${cliName} complete -- ${completeArgs.join(' ')}`,
-      {
-        encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'ignore'],
-        timeout: 1000,
-      }
-    );
-    return result.trim().split('\n').filter(Boolean);
+    const result = runCompletionCommand(packageManager, [cliName], args);
+    return result.split('\n').filter(Boolean);
   } catch {
     return [];
   }
