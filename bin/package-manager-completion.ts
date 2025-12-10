@@ -4,6 +4,8 @@ import {
 } from 'child_process';
 import { RootCommand } from '../src/t.js';
 
+const noop = () => {};
+
 function debugLog(...args: unknown[]) {
   if (process.env.DEBUG) {
     console.error('[DEBUG]', ...args);
@@ -47,7 +49,9 @@ async function checkCliHasCompletions(
   try {
     const result = runCompletionCommand(cliName, [], []);
     if (result) return true;
-  } catch {}
+  } catch {
+    noop();
+  }
 
   try {
     const result = runCompletionCommand(packageManager, [cliName], []);
@@ -67,7 +71,9 @@ async function getCliCompletions(
     if (result) {
       return result.split('\n').filter(Boolean);
     }
-  } catch {}
+  } catch {
+    noop();
+  }
 
   try {
     const result = runCompletionCommand(packageManager, [cliName], args);

@@ -3,7 +3,7 @@ import * as bash from './bash';
 import * as fish from './fish';
 import * as powershell from './powershell';
 import type { Command as CommanderCommand, ParseOptions } from 'commander';
-import t, { RootCommand } from './t';
+import t, { type RootCommand } from './t';
 import { assertDoubleDashes } from './shared';
 
 const execPath = process.execPath;
@@ -22,10 +22,10 @@ export default function tab(instance: CommanderCommand): RootCommand {
   const programName = instance.name();
 
   // Process the root command
-  processRootCommand(instance, programName);
+  processRootCommand(instance);
 
   // Process all subcommands
-  processSubcommands(instance, programName);
+  processSubcommands(instance);
 
   // Add the complete command for normal shell script generation
   instance
@@ -101,10 +101,7 @@ export default function tab(instance: CommanderCommand): RootCommand {
   return t;
 }
 
-function processRootCommand(
-  command: CommanderCommand,
-  programName: string
-): void {
+function processRootCommand(command: CommanderCommand): void {
   // Add root command options to the root t instance
   for (const option of command.options) {
     // Extract short flag from the name if it exists (e.g., "-c, --config" -> "c")
@@ -122,10 +119,7 @@ function processRootCommand(
   }
 }
 
-function processSubcommands(
-  rootCommand: CommanderCommand,
-  programName: string
-): void {
+function processSubcommands(rootCommand: CommanderCommand): void {
   // Build a map of command paths
   const commandMap = new Map<string, CommanderCommand>();
 
