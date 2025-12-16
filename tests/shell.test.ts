@@ -162,7 +162,9 @@ describe('shell completion generators', () => {
       expect(script).toContain(`[scriptblock]$__${name}CompleterBlock =`);
 
       // Check that the script uses the provided exec path
-      expect(script).toContain(`$RequestComp = "& ${exec} complete --`);
+      expect(script).toContain(
+        `$RequestComp = "& ${exec} complete '--' '$Arguments'`
+      );
 
       // Check that the script handles directives
       expect(script).toContain(
