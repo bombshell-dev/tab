@@ -163,7 +163,7 @@ describe('shell completion generators', () => {
 
       // Check that the script uses the provided exec path
       expect(script).toContain(
-        `$RequestComp = "& ${exec} complete '--' '$Arguments'`
+        `$RequestComp = "& ${exec} complete '--' $QuotedArgs"`
       );
 
       // Check that the script handles directives

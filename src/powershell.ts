@@ -71,7 +71,10 @@ export function generate(name: string, exec: string): string {
     # Split the command at the first space to separate the program and arguments.
     $Program, $Arguments = $Command.Split(" ", 2)
 
-    $RequestComp = "& ${exec} complete '--' '$Arguments'"
+    $QuotedArgs = ($Arguments -split ' ' | ForEach-Object { "'" + ($_ -replace "'", "''") + "'" }) -join ' '
+    __${name}_debug "QuotedArgs: $QuotedArgs"
+
+    $RequestComp = "& ${exec} complete '--' $QuotedArgs"
     __${name}_debug "RequestComp: $RequestComp"
 
     # we cannot use $WordToComplete because it
