@@ -2,6 +2,7 @@ import {
   spawnSync,
   type SpawnSyncOptionsWithStringEncoding,
 } from 'child_process';
+import path from 'node:path';
 import { RootCommand } from '../src/t.js';
 
 const noop = () => {};
@@ -23,11 +24,20 @@ function runCompletionCommand(
   leadingArgs: string[],
   completionArgs: string[]
 ): string {
-  const result = spawnSync(
-    command,
-    [...leadingArgs, 'complete', '--', ...completionArgs],
-    completionSpawnOptions
-  );
+  const args = [...leadingArgs, 'complete', '--', ...completionArgs];
+
+  // On Windows, prefer invoking the PowerShell shim (.ps1) so global installs work.
+  const maybePs1Command =
+    process.platform === 'win32' && path.extname(command) === ''
+      ? `${command}.ps1`
+      : command;
+
+  let result = spawnSync(maybePs1Command, args, completionSpawnOptions);
+
+  // If the .ps1 shim is not found, fall back to the original command.
+  if (result.error && maybePs1Command !== command) {
+    result = spawnSync(command, args, completionSpawnOptions);
+  }
 
   if (result.error) {
     throw result.error;
