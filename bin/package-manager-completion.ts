@@ -26,18 +26,33 @@ function runCompletionCommand(
 ): string {
   const args = [...leadingArgs, 'complete', '--', ...completionArgs];
 
-  // On Windows, prefer invoking the PowerShell shim (.ps1) so global installs work.
-  const maybePs1Command =
-    process.platform === 'win32' && path.extname(command) === ''
-      ? `${command}.ps1`
-      : command;
+  // On Windows, prefer invoking via powershell.exe so .ps1 shims work.
+  if (process.platform === 'win32' && path.extname(command) === '') {
+    const ps1Path = `${command}.ps1`;
+    const psResult = spawnSync(
+      'powershell.exe',
+      [
+        '-NoLogo',
+        '-NoProfile',
+        '-ExecutionPolicy',
+        'Bypass',
+        '-File',
+        ps1Path,
+        ...args,
+      ],
+      completionSpawnOptions
+    );
 
-  let result = spawnSync(maybePs1Command, args, completionSpawnOptions);
-
-  // If the .ps1 shim is not found, fall back to the original command.
-  if (result.error && maybePs1Command !== command) {
-    result = spawnSync(command, args, completionSpawnOptions);
+    // If that fails, fall back to invoking the command directly.
+    if (
+      !psResult.error &&
+      (typeof psResult.status !== 'number' || psResult.status === 0)
+    ) {
+      return (psResult.stdout ?? '').trim();
+    }
   }
+
+  const result = spawnSync(command, args, completionSpawnOptions);
 
   if (result.error) {
     throw result.error;
