@@ -26,9 +26,19 @@ function runCompletionCommand(
 ): string {
   const args = [...leadingArgs, 'complete', '--', ...completionArgs];
 
-  // On Windows, prefer invoking via powershell.exe so .ps1 shims work.
-  if (process.platform === 'win32' && path.extname(command) === '') {
-    const ps1Path = `${command}.ps1`;
+  const result = spawnSync(command, args, completionSpawnOptions);
+
+  // Windows: npm may only produce a .ps1 shim; spawnSync won't resolve .ps1 via PATHEXT.
+  // Fallback: invoke through PowerShell so .ps1 shims (e.g. nuxt.ps1) are discoverable.
+  if (
+    result.error &&
+    (result.error as { code?: string }).code === 'ENOENT' &&
+    process.platform === 'win32' &&
+    path.extname(command) === ''
+  ) {
+    const psArgs = args.map(powerShellQuote);
+    const psCommand = `& ${command} ${psArgs.join(' ')}`.trimEnd();
+
     const psResult = spawnSync(
       'powershell.exe',
       [
@@ -36,23 +46,22 @@ function runCompletionCommand(
         '-NoProfile',
         '-ExecutionPolicy',
         'Bypass',
-        '-File',
-        ps1Path,
-        ...args,
+        '-Command',
+        psCommand,
       ],
       completionSpawnOptions
     );
 
-    // If that fails, fall back to invoking the command directly.
-    if (
-      !psResult.error &&
-      (typeof psResult.status !== 'number' || psResult.status === 0)
-    ) {
-      return (psResult.stdout ?? '').trim();
+    if (psResult.error) {
+      throw psResult.error;
     }
+    if (typeof psResult.status === 'number' && psResult.status !== 0) {
+      throw new Error(
+        `Completion command "${command}" (PowerShell fallback) exited with code ${psResult.status}`
+      );
+    }
+    return (psResult.stdout ?? '').trim();
   }
-
-  const result = spawnSync(command, args, completionSpawnOptions);
 
   if (result.error) {
     throw result.error;
@@ -65,6 +74,11 @@ function runCompletionCommand(
   }
 
   return (result.stdout ?? '').trim();
+}
+
+function powerShellQuote(value: string): string {
+  // Use single quotes and escape embedded single quotes by doubling them.
+  return `'${value.replace(/'/g, "''")}'`;
 }
 
 async function checkCliHasCompletions(
