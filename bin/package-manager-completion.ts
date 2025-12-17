@@ -105,17 +105,7 @@ export class PackageManagerCompletion extends RootCommand {
   }
 
   async parse(args: string[]) {
-    const isPowerShell = process.platform === 'win32' && process.env.PSModulePath;
-    const dashIndex = process.argv.indexOf('--');
-
-    const completionArgs =
-      dashIndex !== -1 && (!isPowerShell || dashIndex < process.argv.length - 1)
-        ? process.argv.slice(dashIndex + 1)
-        : isPowerShell
-          ? process.argv.slice(process.argv.indexOf('complete') + 1)
-          : args;
-
-    const normalizedArgs = this.stripPackageManagerCommands(completionArgs);
+    const normalizedArgs = this.stripPackageManagerCommands(args);
 
     if (normalizedArgs.length >= 1 && normalizedArgs[0].trim() !== '') {
       const potentialCliName = normalizedArgs[0];
