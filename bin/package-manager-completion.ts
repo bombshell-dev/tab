@@ -30,6 +30,8 @@ function runCompletionCommand(
 
   // Windows: npm may only produce a .ps1 shim; spawnSync won't resolve .ps1 via PATHEXT.
   // Fallback: invoke through PowerShell so .ps1 shims (e.g. nuxt.ps1) are discoverable.
+  // TODO(AMIR): This is a hack to get the completion working on Windows.
+  // We should find a better way to do this. as this is not a good solution. and slows down the completion.
   if (
     result.error &&
     (result.error as { code?: string }).code === 'ENOENT' &&
