@@ -103,10 +103,10 @@ export function generate(name: string, exec: string): string {
         if ($PSVersionTable.PsVersion -lt [version]'7.2.0' -or
             ($PSVersionTable.PsVersion -lt [version]'7.3.0' -and -not [ExperimentalFeature]::IsEnabled("PSNativeCommandArgumentPassing")) -or
             (($PSVersionTable.PsVersion -ge [version]'7.3.0' -or [ExperimentalFeature]::IsEnabled("PSNativeCommandArgumentPassing")) -and
-              $PSNativeCommandArgumentPassing -eq 'Legacy')) {
-             $RequestComp="$RequestComp" + ' \`"\`"'
+            $PSNativeCommandArgumentPassing -eq 'Legacy')) {
+            $RequestComp="$RequestComp" + " ''"
         } else {
-             $RequestComp = "$RequestComp" + ' ""'
+            $RequestComp = "$RequestComp" + " ''"
         }
     }
 
