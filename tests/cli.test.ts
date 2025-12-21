@@ -110,6 +110,13 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
       // Should complete subcommands that start with 's' even after a boolean option
       expect(output).toContain('start');
     });
+
+    it('should not interfere with option completion after boolean options', async () => {
+      const command = `${commandPrefix} dev --verbose --h`;
+      const output = await runCommand(command);
+      // Should complete subcommands that start with 's' even after a boolean option
+      expect(output).toContain('--host');
+    });
   });
 
   describe.runIf(!shouldSkipTest)('option API overload tests', () => {

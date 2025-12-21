@@ -261,7 +261,10 @@ export class RootCommand extends Command {
       const [flag] = toComplete.split('=');
       optionName = flag;
     } else if (lastPrevArg?.startsWith('-')) {
-      optionName = lastPrevArg;
+      const option = this.findOption(command, lastPrevArg);
+      if (option && !option.isBoolean) {
+        optionName = lastPrevArg;
+      }
     }
 
     if (optionName) {
