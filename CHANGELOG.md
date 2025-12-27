@@ -1,5 +1,12 @@
 # @bombsh/tab
 
+## 0.0.11
+
+### Patch Changes
+
+- 88bfb2a: fix: wrap dashes and arguments in single quotes
+- 864242b: fix: should complete options after boolean option
+
 ## 0.0.10
 
 ### Patch Changes
