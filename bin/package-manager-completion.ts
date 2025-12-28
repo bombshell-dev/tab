@@ -2,6 +2,7 @@ import {
   spawnSync,
   type SpawnSyncOptionsWithStringEncoding,
 } from 'child_process';
+import path from 'node:path';
 import { RootCommand } from '../src/t.js';
 
 const noop = () => {};
@@ -23,11 +24,46 @@ function runCompletionCommand(
   leadingArgs: string[],
   completionArgs: string[]
 ): string {
-  const result = spawnSync(
-    command,
-    [...leadingArgs, 'complete', '--', ...completionArgs],
-    completionSpawnOptions
-  );
+  const args = [...leadingArgs, 'complete', '--', ...completionArgs];
+
+  const result = spawnSync(command, args, completionSpawnOptions);
+
+  // Windows: npm may only produce a .ps1 shim; spawnSync won't resolve .ps1 via PATHEXT.
+  // Fallback: invoke through PowerShell so .ps1 shims (e.g. nuxt.ps1) are discoverable.
+  // TODO(AMIR): This is a hack to get the completion working on Windows.
+  // We should find a better way to do this. as this is not a good solution. and slows down the completion.
+  if (
+    result.error &&
+    (result.error as { code?: string }).code === 'ENOENT' &&
+    process.platform === 'win32' &&
+    path.extname(command) === ''
+  ) {
+    const psArgs = args.map(powerShellQuote);
+    const psCommand = `& ${command} ${psArgs.join(' ')}`.trimEnd();
+
+    const psResult = spawnSync(
+      'powershell.exe',
+      [
+        '-NoLogo',
+        '-NoProfile',
+        '-ExecutionPolicy',
+        'Bypass',
+        '-Command',
+        psCommand,
+      ],
+      completionSpawnOptions
+    );
+
+    if (psResult.error) {
+      throw psResult.error;
+    }
+    if (typeof psResult.status === 'number' && psResult.status !== 0) {
+      throw new Error(
+        `Completion command "${command}" (PowerShell fallback) exited with code ${psResult.status}`
+      );
+    }
+    return (psResult.stdout ?? '').trim();
+  }
 
   if (result.error) {
     throw result.error;
@@ -40,6 +76,11 @@ function runCompletionCommand(
   }
 
   return (result.stdout ?? '').trim();
+}
+
+function powerShellQuote(value: string): string {
+  // Use single quotes and escape embedded single quotes by doubling them.
+  return `'${value.replace(/'/g, "''")}'`;
 }
 
 async function checkCliHasCompletions(
