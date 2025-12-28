@@ -14,7 +14,9 @@ tab solves this complexity by providing autocompletions that work consistently a
 
 ## Installation
 
-### For Package Manager Completions (Global install is recommended)
+### For Package Manager Completions
+
+> **Note:** Global install is recommended
 
 ```bash
 npm install -g @bomb.sh/tab
@@ -97,10 +99,10 @@ As mentioned earlier, tab provides completions for package managers as well:
 
 ```bash
 # Generate and install completion scripts
-npx @bomb.sh/tab pnpm zsh > ~/.pnpm-completion.zsh && echo 'source ~/.pnpm-completion.zsh' >> ~/.zshrc
-npx @bomb.sh/tab npm bash > ~/.npm-completion.bash && echo 'source ~/.npm-completion.bash' >> ~/.bashrc
-npx @bomb.sh/tab yarn fish > ~/.config/fish/completions/yarn.fish
-npx @bomb.sh/tab bun powershell > ~/.bun-completion.ps1 && echo '. ~/.bun-completion.ps1' >> $PROFILE
+tab pnpm zsh > ~/.pnpm-completion.zsh && echo 'source ~/.pnpm-completion.zsh' >> ~/.zshrc
+tab npm bash > ~/.npm-completion.bash && echo 'source ~/.npm-completion.bash' >> ~/.bashrc
+tab yarn fish > ~/.config/fish/completions/yarn.fish
+tab bun powershell > ~/.bun-completion.ps1 && echo '. ~/.bun-completion.ps1' >> $PROFILE
 ```
 
 Example in action:
