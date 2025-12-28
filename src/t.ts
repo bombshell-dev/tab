@@ -140,6 +140,7 @@ export class RootCommand extends Command {
   commands = new Map<string, Command>();
   completions: Completion[] = [];
   directive = ShellCompDirective.ShellCompDirectiveDefault;
+  private isCompletingFlags = false;
 
   constructor() {
     super('', '');
@@ -385,7 +386,13 @@ export class RootCommand extends Command {
   }
 
   private complete(toComplete: string) {
-    this.directive = ShellCompDirective.ShellCompDirectiveNoFileComp;
+    // only disable file completion when completing flags
+    // allow file fallback for commands/positional args
+    if (this.isCompletingFlags) {
+      this.directive = ShellCompDirective.ShellCompDirectiveNoFileComp;
+    } else {
+      this.directive = ShellCompDirective.ShellCompDirectiveDefault;
+    }
 
     const seen = new Set<string>();
     this.completions
@@ -431,6 +438,7 @@ export class RootCommand extends Command {
     const lastPrevArg = previousArgs[previousArgs.length - 1];
 
     if (this.shouldCompleteFlags(lastPrevArg, toComplete)) {
+      this.isCompletingFlags = true;
       this.handleFlagCompletion(
         matchedCommand,
         previousArgs,
@@ -438,6 +446,7 @@ export class RootCommand extends Command {
         lastPrevArg
       );
     } else {
+      this.isCompletingFlags = false;
       if (lastPrevArg?.startsWith('-') && toComplete === '' && endsWithSpace) {
         let option = this.findOption(this, lastPrevArg);
         if (!option) {
@@ -467,9 +476,9 @@ export class RootCommand extends Command {
   setup(name: string, executable: string, shell: string) {
     assert(
       shell === 'zsh' ||
-        shell === 'bash' ||
-        shell === 'fish' ||
-        shell === 'powershell',
+      shell === 'bash' ||
+      shell === 'fish' ||
+      shell === 'powershell',
       'Unsupported shell'
     );
 
