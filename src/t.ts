@@ -476,9 +476,9 @@ export class RootCommand extends Command {
   setup(name: string, executable: string, shell: string) {
     assert(
       shell === 'zsh' ||
-      shell === 'bash' ||
-      shell === 'fish' ||
-      shell === 'powershell',
+        shell === 'bash' ||
+        shell === 'fish' ||
+        shell === 'powershell',
       'Unsupported shell'
     );
 
