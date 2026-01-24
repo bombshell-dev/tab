@@ -37,33 +37,37 @@ const completion = await tab(cli);
 // custom config for options
 for (const command of completion.commands.values()) {
   for (const [optionName, config] of command.options.entries()) {
-    if (optionName === '--port') {
-      config.handler = () => {
-        return [
-          { value: '3000', description: 'Default port' },
-          { value: '8080', description: 'Alternative port' },
-        ];
+    if (optionName === 'port') {
+      config.handler = function (complete) {
+        complete('3000', 'Default port');
+        complete('8080', 'Alternative port');
       };
     }
 
-    if (optionName === '--mode') {
-      config.handler = () => {
-        return [
-          { value: 'development', description: 'Development mode' },
-          { value: 'production', description: 'Production mode' },
-          { value: 'test', description: 'Test mode' },
-        ];
+    if (optionName === 'mode') {
+      config.handler = function (complete) {
+        complete('development', 'Development mode');
+        complete('production', 'Production mode');
+        complete('test', 'Test mode');
       };
     }
 
-    if (optionName === '--config') {
-      config.handler = () => {
-        return [
-          { value: 'config.json', description: 'JSON config file' },
-          { value: 'config.js', description: 'JavaScript config file' },
-        ];
+    if (optionName === 'config') {
+      config.handler = function (complete) {
+        complete('config.json', 'JSON config file');
+        complete('config.js', 'JavaScript config file');
       };
     }
+  }
+}
+
+// for root command options
+for (const [optionName, config] of completion.options.entries()) {
+  if (optionName === 'config') {
+    config.handler = function (complete) {
+      complete('config.json', 'JSON config file');
+      complete('config.js', 'JavaScript config file');
+    };
   }
 }
 
