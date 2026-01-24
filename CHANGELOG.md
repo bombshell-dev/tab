@@ -1,5 +1,11 @@
 # @bombsh/tab
 
+## 0.0.12
+
+### Patch Changes
+
+- 23a6ef9: Update fish shell completion script to match latest Cobra output. (#99)
+
 ## 0.0.11
 
 ### Patch Changes
