@@ -38,7 +38,7 @@ function __${nameForVar}_perform_completion
     __${nameForVar}_debug "last arg: $lastArg"
 
     # Build the completion request command
-    set -l requestComp "${exec} complete -- (string join ' ' -- (string escape -- \$args[2..-1])) \$lastArg"
+    set -l requestComp "${exec} complete -- (string join ' ' -- (string escape -- $args[2..-1])) $lastArg"
 
     __${nameForVar}_debug "Calling $requestComp"
     set -l results (eval $requestComp 2> /dev/null)
@@ -248,8 +248,8 @@ complete -c ${name} -n '__${nameForVar}_clear_perform_completion_once_result'
 # The call to __${nameForVar}_prepare_completions will setup __${nameForVar}_comp_results
 # which provides the program's completion choices.
 # If this doesn't require order preservation, we don't use the -k flag
-complete -c ${name} -n 'not __${nameForVar}_requires_order_preservation && __${nameForVar}_prepare_completions' -f -a '\$__${nameForVar}_comp_results'
+complete -c ${name} -n 'not __${nameForVar}_requires_order_preservation && __${nameForVar}_prepare_completions' -f -a '$__${nameForVar}_comp_results'
 # Otherwise we use the -k flag
-complete -k -c ${name} -n '__${nameForVar}_requires_order_preservation && __${nameForVar}_prepare_completions' -f -a '\$__${nameForVar}_comp_results'
+complete -k -c ${name} -n '__${nameForVar}_requires_order_preservation && __${nameForVar}_prepare_completions' -f -a '$__${nameForVar}_comp_results'
 `;
 }
