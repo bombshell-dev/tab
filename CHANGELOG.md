@@ -1,5 +1,11 @@
 # @bombsh/tab
 
+## 0.0.13
+
+### Patch Changes
+
+- f619ad7: Widen `peerDependencies` to accept citty v0.2.
+
 ## 0.0.12
 
 ### Patch Changes
