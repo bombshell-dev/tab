@@ -2,7 +2,7 @@ import { defineConfig } from 'tsdown';
 
 export default defineConfig({
   entry: {
-    t: 'src/t.ts',
+    index: 'src/t.ts',
     citty: 'src/citty.ts',
     cac: 'src/cac.ts',
     commander: 'src/commander.ts',
@@ -13,4 +13,5 @@ export default defineConfig({
   clean: true,
   minify: true,
   treeshake: true,
+  exports: true,
 });

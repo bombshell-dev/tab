@@ -1,11 +1,9 @@
 {
   "name": "@bomb.sh/tab",
   "version": "0.0.13",
-  "main": "./dist/t.js",
-  "types": "./dist/t.d.ts",
   "type": "module",
   "bin": {
-    "tab": "./dist/bin/cli.js"
+    "tab": "./dist/bin/cli.mjs"
   },
   "scripts": {
     "test": "vitest run",
@@ -47,7 +45,7 @@
     "eslint-config-prettier": "^10.0.1",
     "prettier": "^3.5.2",
     "tinybench": "^4.0.1",
-    "tsdown": "^0.15.4",
+    "tsdown": "^0.20.3",
     "tsx": "^4.19.1",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.40.0",
@@ -70,26 +68,12 @@
     }
   },
   "exports": {
-    ".": {
-      "types": "./dist/t.d.ts",
-      "import": "./dist/t.js",
-      "require": "./dist/t.js"
-    },
-    "./citty": {
-      "types": "./dist/citty.d.ts",
-      "import": "./dist/citty.js",
-      "require": "./dist/citty.js"
-    },
-    "./cac": {
-      "types": "./dist/cac.d.ts",
-      "import": "./dist/cac.js",
-      "require": "./dist/cac.js"
-    },
-    "./commander": {
-      "types": "./dist/commander.d.ts",
-      "import": "./dist/commander.js",
-      "require": "./dist/commander.js"
-    }
+    ".": "./dist/index.mjs",
+    "./bin/cli": "./dist/bin/cli.mjs",
+    "./cac": "./dist/cac.mjs",
+    "./citty": "./dist/citty.mjs",
+    "./commander": "./dist/commander.mjs",
+    "./package.json": "./package.json"
   },
   "packageManager": "pnpm@10.15.0+sha512.486ebc259d3e999a4e8691ce03b5cac4a71cbeca39372a9b762cb500cfdf0873e2cb16abe3d951b1ee2cf012503f027b98b6584e4df22524e0c7450d9ec7aa7b"
 }
