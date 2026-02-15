@@ -1,5 +1,11 @@
 # @bombsh/tab
 
+## 0.0.14
+
+### Patch Changes
+
+- 0d98c43: Fix package export types
+
 ## 0.0.13
 
 ### Patch Changes

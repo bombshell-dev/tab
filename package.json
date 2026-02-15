@@ -1,6 +1,6 @@
 {
   "name": "@bomb.sh/tab",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "type": "module",
   "bin": {
     "tab": "./dist/bin/cli.mjs"
