@@ -17,7 +17,7 @@ export type Complete = (value: string, description: string) => void;
 export type OptionHandler = (
   this: Option,
   complete: Complete,
-  options: OptionsMap
+  options: OptionsMap,
 ) => void;
 
 export interface Completion {
@@ -28,7 +28,7 @@ export interface Completion {
 export type ArgumentHandler = (
   this: Argument,
   complete: Complete,
-  options: OptionsMap
+  options: OptionsMap,
 ) => void;
 
 export class Argument {
@@ -41,7 +41,7 @@ export class Argument {
     command: Command,
     name: string,
     handler?: ArgumentHandler,
-    variadic: boolean = false
+    variadic: boolean = false,
   ) {
     this.command = command;
     this.name = name;
@@ -64,7 +64,7 @@ export class Option {
     description: string,
     handler?: OptionHandler,
     alias?: string,
-    isBoolean?: boolean
+    isBoolean?: boolean,
   ) {
     this.command = command;
     this.value = value;
@@ -91,7 +91,7 @@ export class Command {
     value: string,
     description: string,
     handlerOrAlias?: OptionHandler | string,
-    alias?: string
+    alias?: string,
   ): Command {
     let handler: OptionHandler | undefined;
     let aliasStr: string | undefined;
@@ -117,7 +117,7 @@ export class Command {
       description,
       handler,
       aliasStr,
-      isBoolean
+      isBoolean,
     );
     this.options.set(value, option);
     return this;
@@ -130,11 +130,11 @@ export class Command {
   }
 }
 
-import * as zsh from './zsh';
+import assert from 'node:assert';
 import * as bash from './bash';
 import * as fish from './fish';
 import * as powershell from './powershell';
-import assert from 'node:assert';
+import * as zsh from './zsh';
 
 export class RootCommand extends Command {
   commands = new Map<string, Command>();
@@ -214,7 +214,7 @@ export class RootCommand extends Command {
 
   private shouldCompleteFlags(
     lastPrevArg: string | undefined,
-    toComplete: string
+    toComplete: string,
   ): boolean {
     if (toComplete.startsWith('-')) {
       return true;
@@ -252,7 +252,7 @@ export class RootCommand extends Command {
     command: Command,
     previousArgs: string[],
     toComplete: string,
-    lastPrevArg: string | undefined
+    lastPrevArg: string | undefined,
   ) {
     // Handle flag value completion
     let optionName: string | undefined;
@@ -275,7 +275,7 @@ export class RootCommand extends Command {
           option,
           (value: string, description: string) =>
             suggestions.push({ value, description }),
-          command.options
+          command.options,
         );
 
         this.completions = suggestions;
@@ -349,9 +349,11 @@ export class RootCommand extends Command {
 
   // positional argument completion
   private handlePositionalCompletion(command: Command, previousArgs: string[]) {
+    // Strip options so flags don't inflate the positional index
+    const strippedArgs = this.stripOptions(previousArgs);
     // current argument position (subtract command name)
     const commandParts = command.value.split(' ').length;
-    const currentArgIndex = Math.max(0, previousArgs.length - commandParts);
+    const currentArgIndex = Math.max(0, strippedArgs.length - commandParts);
     const argumentEntries = Array.from(command.arguments.entries());
 
     if (argumentEntries.length > 0) {
@@ -377,7 +379,7 @@ export class RootCommand extends Command {
           targetArgument,
           (value: string, description: string) =>
             suggestions.push({ value, description }),
-          command.options
+          command.options,
         );
         this.completions.push(...suggestions);
       }
@@ -403,7 +405,7 @@ export class RootCommand extends Command {
         return comp.value.startsWith(toComplete);
       })
       .forEach((comp) =>
-        console.log(`${comp.value}\t${comp.description ?? ''}`)
+        console.log(`${comp.value}\t${comp.description ?? ''}`),
       );
     console.log(`:${this.directive}`);
   }
@@ -435,23 +437,13 @@ export class RootCommand extends Command {
         matchedCommand,
         previousArgs,
         toComplete,
-        lastPrevArg
+        lastPrevArg,
       );
     } else {
-      if (lastPrevArg?.startsWith('-') && toComplete === '' && endsWithSpace) {
-        let option = this.findOption(this, lastPrevArg);
-        if (!option) {
-          for (const [, command] of this.commands) {
-            option = this.findOption(command, lastPrevArg);
-            if (option) break;
-          }
-        }
-
-        if (option && option.isBoolean) {
-          this.complete(toComplete);
-          return;
-        }
-      }
+      // Note: we intentionally do NOT early-return after detecting a boolean
+      // flag. The previous code called this.complete(toComplete) and returned
+      // here, which skipped positional argument completion. After a boolean
+      // flag like -f, the user may still be completing a positional argument.
 
       if (this.shouldCompleteCommands(toComplete)) {
         this.handleCommandCompletion(previousArgs, toComplete);
@@ -470,7 +462,7 @@ export class RootCommand extends Command {
         shell === 'bash' ||
         shell === 'fish' ||
         shell === 'powershell',
-      'Unsupported shell'
+      'Unsupported shell',
     );
 
     switch (shell) {

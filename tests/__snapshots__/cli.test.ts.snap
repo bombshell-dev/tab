@@ -506,12 +506,18 @@ exports[`cli completion tests for citty > root command argument tests > should c
 "dev	Start dev server
 copy	Copy files
 lint	Lint project
+my-app	My application
+my-lib	My library
+my-tool	My tool
 :4
 "
 `;
 
 exports[`cli completion tests for citty > root command argument tests > should complete root command project argument with options and partial input 1`] = `
-":4
+"my-app	My application
+my-lib	My library
+my-tool	My tool
+:4
 "
 `;
 
@@ -616,23 +622,6 @@ lint	Lint project
 my-app	My application
 my-lib	My library
 my-tool	My tool
-:4
-"
-`;
-
-exports[`cli completion tests for commander > cli option value handling > should handle unknown options with no completions 1`] = `":4"`;
-
-exports[`cli completion tests for commander > short flag handling > should handle global short flags 1`] = `
-"-c	specify config file
-:4
-"
-`;
-
-exports[`cli completion tests for commander > should complete cli options 1`] = `
-"serve	Start the server
-build	Build the project
-deploy	Deploy the application
-lint	Lint source files
 :4
 "
 `;
@@ -846,12 +835,18 @@ exports[`cli completion tests for t > root command argument tests > should compl
 serve	Start the server
 copy	Copy files
 lint	Lint project
+my-app	My application
+my-lib	My library
+my-tool	My tool
 :4
 "
 `;
 
 exports[`cli completion tests for t > root command argument tests > should complete root command project argument with options and partial input 1`] = `
-":4
+"my-app	My application
+my-lib	My library
+my-tool	My tool
+:4
 "
 `;
 
