@@ -1,10 +1,10 @@
-import type { Command as CommanderCommand, ParseOptions } from 'commander';
+import * as zsh from './zsh';
 import * as bash from './bash';
 import * as fish from './fish';
 import * as powershell from './powershell';
-import { assertDoubleDashes } from './shared';
+import type { Command as CommanderCommand, ParseOptions } from 'commander';
 import t, { type RootCommand } from './t';
-import * as zsh from './zsh';
+import { assertDoubleDashes } from './shared';
 
 const execPath = process.execPath;
 const processArgs = process.argv.slice(1);
@@ -60,7 +60,7 @@ export default function tab(instance: CommanderCommand): RootCommand {
           console.log('Collected commands:');
           for (const [path, cmd] of commandMap.entries()) {
             console.log(
-              `- ${path || '<root>'}: ${cmd.description() || 'No description'}`,
+              `- ${path || '<root>'}: ${cmd.description() || 'No description'}`
             );
           }
           break;
@@ -75,7 +75,7 @@ export default function tab(instance: CommanderCommand): RootCommand {
 
   // Override the parse method to handle completion requests before normal parsing
   const originalParse = instance.parse.bind(instance);
-  instance.parse = (argv?: readonly string[], options?: ParseOptions) => {
+  instance.parse = function (argv?: readonly string[], options?: ParseOptions) {
     const args = argv || process.argv;
     const completeIndex = args.findIndex((arg) => arg === 'complete');
     const dashDashIndex = args.findIndex((arg) => arg === '--');
@@ -125,13 +125,13 @@ function registerOption(
       value: string,
       description: string,
       handlerOrAlias?: ((...args: unknown[]) => void) | string,
-      alias?: string,
+      alias?: string
     ) => unknown;
   },
   flags: string,
   longFlag: string,
   description: string,
-  shortFlag?: string,
+  shortFlag?: string
 ): void {
   const takesValue = optionTakesValue(flags);
   if (shortFlag) {
@@ -191,7 +191,7 @@ function processSubcommands(rootCommand: CommanderCommand): void {
           flags,
           longFlag,
           option.description || '',
-          shortFlag,
+          shortFlag
         );
       }
     }
@@ -201,7 +201,7 @@ function processSubcommands(rootCommand: CommanderCommand): void {
 function collectCommands(
   command: CommanderCommand,
   parentPath: string,
-  commandMap: Map<string, CommanderCommand>,
+  commandMap: Map<string, CommanderCommand>
 ): void {
   // Add this command to the map
   commandMap.set(parentPath, command);

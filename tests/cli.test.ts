@@ -1,5 +1,5 @@
 import { exec } from 'child_process';
-import { describe, expect, it, test } from 'vitest';
+import { describe, it, expect, test } from 'vitest';
 
 function runCommand(command: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -38,13 +38,14 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
       { partial: '-H', expected: '-H' }, // Test another short flag completion
     ];
 
-    test.each(
-      optionTests,
-    )("should complete option for partial input '%s'", async ({ partial }) => {
-      const command = `${commandPrefix} dev ${partial}`;
-      const output = await runCommand(command);
-      expect(output).toMatchSnapshot();
-    });
+    test.each(optionTests)(
+      "should complete option for partial input '%s'",
+      async ({ partial }) => {
+        const command = `${commandPrefix} dev ${partial}`;
+        const output = await runCommand(command);
+        expect(output).toMatchSnapshot();
+      }
+    );
   });
 
   describe.runIf(!shouldSkipTest)('cli option exclusion tests', () => {
@@ -52,16 +53,14 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
       { specified: '--config', shouldNotContain: '--config' },
     ];
 
-    test.each(
-      alreadySpecifiedTests,
-    )("should not suggest already specified option '%s'", async ({
-      specified,
-      shouldNotContain,
-    }) => {
-      const command = `${commandPrefix} ${specified} --`;
-      const output = await runCommand(command);
-      expect(output).toMatchSnapshot();
-    });
+    test.each(alreadySpecifiedTests)(
+      "should not suggest already specified option '%s'",
+      async ({ specified, shouldNotContain }) => {
+        const command = `${commandPrefix} ${specified} --`;
+        const output = await runCommand(command);
+        expect(output).toMatchSnapshot();
+      }
+    );
   });
 
   describe.runIf(!shouldSkipTest)('cli option value handling', () => {
@@ -332,7 +331,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
         const output = await runCommand(command);
         expect(output).toMatchSnapshot();
       });
-    },
+    }
   );
 
   describe.runIf(!shouldSkipTest)('short flag handling', () => {
