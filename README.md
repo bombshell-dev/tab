@@ -6,17 +6,42 @@ Shell autocompletions are largely missing in the JavaScript CLI ecosystem. tab p
 
 Additionally, tab supports autocompletions for `pnpm`, `npm`, `yarn`, and `bun`.
 
-## Who Is Using Tab
-
 Tab has already been adopted by major tools and CLI frameworks, including:
 
-<p align="center">
-  <a href="https://www.cloudflare.com/"><img src="https://github.com/cloudflare.png?size=200" alt="Cloudflare" width="40" height="40"></a>
-  <a href="https://nuxt.com/"><img src="https://github.com/nuxt.png?size=200" alt="Nuxt" width="40" height="40"></a>
-  <a href="https://vitest.dev/"><img src="https://github.com/vitest-dev.png?size=200" alt="Vitest" width="40" height="40"></a>
-  <a href="https://github.com/kazupon/gunshi"><img src="https://github.com/kazupon.png?size=200" alt="Gunshi" width="40" height="40"></a>
-  <a href="https://github.com/clercjs/clerc"><img src="https://raw.githubusercontent.com/clercjs/clerc/main/docs/public/logo.webp" alt="Clerc" width="40" height="40"></a>
-</p>
+<table align="center">
+  <tr>
+    <td align="center">
+      <a href="https://www.cloudflare.com/">
+        <img src="https://github.com/cloudflare.png?size=200" alt="Cloudflare" width="64"><br>
+        Cloudflare
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://nuxt.com/">
+        <img src="https://github.com/nuxt.png?size=200" alt="Nuxt" width="64"><br>
+        Nuxt
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://vitest.dev/">
+        <img src="https://github.com/vitest-dev.png?size=200" alt="Vitest" width="64"><br>
+        Vitest
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/kazupon/gunshi">
+        <img src="https://raw.githubusercontent.com/kazupon/gunshi/main/assets/logo.png" alt="Gunshi" width="64"><br>
+        Gunshi
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/clercjs/clerc">
+        <img src="https://raw.githubusercontent.com/clercjs/clerc/main/docs/public/logo.webp" alt="Clerc" width="64"><br>
+        Clerc
+      </a>
+    </td>
+  </tr>
+</table>
 
 As CLI tooling authors, if we can spare our users a second or two by not checking documentation or writing the `-h` flag, we're doing them a huge favor. The unconscious mind loves hitting the [TAB] key and always expects feedback. When nothing happens, it breaks the user's flow - a frustration apparent across the whole JavaScript CLI tooling ecosystem.
 
