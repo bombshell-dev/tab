@@ -10,13 +10,13 @@ Additionally, tab supports autocompletions for `pnpm`, `npm`, `yarn`, and `bun`.
 
 Tab has already been adopted by major tools and CLI frameworks, including:
 
-<ul>
-  <li><a href="https://www.cloudflare.com/"><img src="https://github.com/cloudflare.png?size=200" alt="Cloudflare" width="20" height="20"> Cloudflare</a></li>
-  <li><a href="https://nuxt.com/"><img src="https://github.com/nuxt.png?size=200" alt="Nuxt" width="20" height="20"> Nuxt</a></li>
-  <li><a href="https://vitest.dev/"><img src="https://github.com/vitest-dev.png?size=200" alt="Vitest" width="20" height="20"> Vitest</a></li>
-  <li><a href="https://github.com/kazupon/gunshi"><img src="https://raw.githubusercontent.com/kazupon/gunshi/main/assets/logo.png" alt="Gunshi" width="20" height="20"> Gunshi</a></li>
-  <li><a href="https://github.com/clercjs/clerc"><img src="https://raw.githubusercontent.com/clercjs/clerc/main/docs/public/logo.webp" alt="Clerc" width="20" height="20"> Clerc</a></li>
-</ul>
+<p>
+  <a href="https://www.cloudflare.com/"><img src="https://github.com/cloudflare.png?size=200" alt="Cloudflare" width="40" height="40"></a>
+  <a href="https://nuxt.com/"><img src="https://github.com/nuxt.png?size=200" alt="Nuxt" width="40" height="40"></a>
+  <a href="https://vitest.dev/"><img src="https://github.com/vitest-dev.png?size=200" alt="Vitest" width="40" height="40"></a>
+  <a href="https://github.com/kazupon/gunshi"><img src="https://raw.githubusercontent.com/kazupon/gunshi/main/assets/logo.png" alt="Gunshi" width="40" height="40"></a>
+  <a href="https://github.com/clercjs/clerc"><img src="https://raw.githubusercontent.com/clercjs/clerc/main/docs/public/logo.webp" alt="Clerc" width="40" height="40"></a>
+</p>
 
 As CLI tooling authors, if we can spare our users a second or two by not checking documentation or writing the `-h` flag, we're doing them a huge favor. The unconscious mind loves hitting the [TAB] key and always expects feedback. When nothing happens, it breaks the user's flow - a frustration apparent across the whole JavaScript CLI tooling ecosystem.
 
