@@ -10,10 +10,13 @@ Additionally, tab supports autocompletions for `pnpm`, `npm`, `yarn`, and `bun`.
 
 Tab has already been adopted by major tools and CLI frameworks, including:
 
-- [Cloudflare](https://www.cloudflare.com/)
-- [Nuxt](https://nuxt.com/)
-- [Vitest](https://vitest.dev/)
-- [Clerc](https://github.com/sxzz/clerc)
+<ul>
+  <li><a href="https://www.cloudflare.com/"><img src="https://github.com/cloudflare.png?size=200" alt="Cloudflare"> Cloudflare</a></li>
+  <li><a href="https://nuxt.com/"><img src="https://github.com/nuxt.png?size=200" alt="Nuxt"> Nuxt</a></li>
+  <li><a href="https://vitest.dev/"><img src="https://github.com/vitest-dev.png?size=200" alt="Vitest"> Vitest</a></li>
+  <li><a href="https://github.com/kazupon/gunshi"><img src="https://raw.githubusercontent.com/kazupon/gunshi/main/assets/logo.png" alt="Gunshi"> Gunshi</a></li>
+  <li><a href="https://github.com/clercjs/clerc"><img src="https://raw.githubusercontent.com/clercjs/clerc/main/docs/public/logo.webp" alt="Clerc"> Clerc</a></li>
+</ul>
 
 As CLI tooling authors, if we can spare our users a second or two by not checking documentation or writing the `-h` flag, we're doing them a huge favor. The unconscious mind loves hitting the [TAB] key and always expects feedback. When nothing happens, it breaks the user's flow - a frustration apparent across the whole JavaScript CLI tooling ecosystem.
 
