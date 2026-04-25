@@ -23,6 +23,12 @@ Tab has already been adopted by major tools and CLI frameworks, including:
       </a>
     </td>
     <td align="center">
+      <a href="https://astro.build/">
+        <img src="https://github.com/withastro.png?size=200" alt="Astro" width="64"><br>
+        Astro
+      </a>
+    </td>
+    <td align="center">
       <a href="https://vitest.dev/">
         <img src="https://github.com/vitest-dev.png?size=200" alt="Vitest" width="64"><br>
         Vitest
