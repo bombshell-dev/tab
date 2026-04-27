@@ -1,5 +1,11 @@
 # @bombsh/tab
 
+## 0.0.15
+
+### Patch Changes
+
+- a9d4f04: fix positional argument completion broken after flags
+
 ## 0.0.14
 
 ### Patch Changes
