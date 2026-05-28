@@ -14,24 +14,21 @@ function runCommand(command: string): Promise<string> {
 }
 
 const cliTools = ['t', 'citty', 'cac', 'commander'];
+// const cliTools = ['commander']; // TEMP For quick testing of commander-specific behavior, uncomment this line and comment out the line above.
 
 describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
   // For Commander, we need to skip most of the tests since it handles completion differently
+  // Legacy comment? Reenabling tests...
   const shouldSkipTest = cliTool === 'commander';
 
-  // Commander uses a different command structure for completion
-  // TODO: why commander does that? our convention is the -- part which should be always there.
-  const commandPrefix =
-    cliTool === 'commander'
-      ? `pnpm tsx examples/demo.${cliTool}.ts complete`
-      : `pnpm tsx examples/demo.${cliTool}.ts complete --`;
+  const commandPrefix = `pnpm tsx examples/demo.${cliTool}.ts complete --`;
 
-  it.runIf(!shouldSkipTest)('should complete cli options', async () => {
+  it('should complete cli options', async () => {
     const output = await runCommand(`${commandPrefix}`);
     expect(output).toMatchSnapshot();
   });
 
-  describe.runIf(!shouldSkipTest)('cli option completion tests', () => {
+  describe('cli option completion tests', () => {
     const optionTests = [
       { partial: '--p', expected: '--port' },
       { partial: '-p', expected: '-p' }, // Test short flag completion
@@ -48,7 +45,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     );
   });
 
-  describe.runIf(!shouldSkipTest)('cli option exclusion tests', () => {
+  describe('cli option exclusion tests', () => {
     const alreadySpecifiedTests = [
       { specified: '--config', shouldNotContain: '--config' },
     ];
@@ -63,7 +60,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     );
   });
 
-  describe.runIf(!shouldSkipTest)('cli option value handling', () => {
+  describe('cli option value handling', () => {
     it('should resolve port value correctly', async () => {
       const command = `${commandPrefix} dev --port=3`;
       const output = await runCommand(command);
@@ -89,7 +86,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     });
   });
 
-  describe.runIf(!shouldSkipTest)('boolean option handling', () => {
+  describe('boolean option handling', () => {
     it('should complete subcommands and arguments after boolean options', async () => {
       const command = `${commandPrefix} dev --verbose ""`;
       const output = await runCommand(command);
@@ -118,7 +115,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     it('should not interfere with option completion after boolean options', async () => {
       const command = `${commandPrefix} dev --verbose --h`;
       const output = await runCommand(command);
-      // Should complete subcommands that start with 's' even after a boolean option
+      // Should complete options that start with '--h' even after a boolean option
       expect(output).toContain('--host');
     });
   });
