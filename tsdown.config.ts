@@ -6,6 +6,7 @@ export default defineConfig({
     citty: 'src/citty.ts',
     cac: 'src/cac.ts',
     commander: 'src/commander.ts',
+    install: 'src/install/index.ts',
     'bin/cli': 'bin/cli.ts',
   },
   format: ['esm'],

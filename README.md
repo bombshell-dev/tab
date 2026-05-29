@@ -134,6 +134,74 @@ my-cli complete zsh > ~/.my-cli-completion.zsh
 echo 'source ~/.my-cli-completion.zsh' >> ~/.zshrc
 ```
 
+## Installing Completions for Users
+
+Asking users to copy-paste `source <(my-cli complete zsh)` into their shellrc is a friction point. tab ships an installer that detects the user's shell + environment and writes the completion file (or appends to their PowerShell profile) in the right place — no shellrc edits required for most setups.
+
+Use it from a dedicated subcommand, an `init` flow, or a `postinstall` hook:
+
+```typescript
+import { installShellCompletions } from '@bomb.sh/tab/install';
+
+// in your `my-cli completions install` handler:
+await installShellCompletions({
+  name: 'my-cli',          // optional — auto-detected from argv/package.json
+  executable: 'my-cli',    // optional — defaults to `name`
+  shell: 'auto',           // 'zsh' | 'bash' | 'fish' | 'powershell' | 'auto'
+});
+```
+
+The installer is **opt-in, idempotent, and never touches `.zshrc` / `.bashrc` on its own.** When it can't complete the install cleanly (e.g. the CLI isn't on PATH, the user's zsh has no `compinit`, macOS bash without `bash-completion`), it returns a structured `needs-user-action` or `blocked` result with concrete remediation steps.
+
+```typescript
+const result = await installShellCompletions({ name: 'my-cli', dryRun: true });
+
+result.status;          // 'installed' | 'already-installed' | 'updated'
+                        //   | 'needs-user-action' | 'blocked' | 'failed'
+result.actions;         // files we wrote / would write (with `performed` flag)
+result.userInstructions;// numbered next-steps the user must take, if any
+result.warnings;        // e.g. detected a conflicting Homebrew completion
+result.detected;        // PATH reachability, install method, shell env probe
+```
+
+**Options**
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `name` | auto-detected | Command name (drives filenames: `_my-cli`, `my-cli.fish`, …) |
+| `executable` | `name` | How to invoke the CLI from the generated completion script |
+| `shell` | `'auto'` | Target shell, or `'auto'` to detect from the current process |
+| `dryRun` | `false` | Compute the plan without writing anything |
+| `force` | `false` | Overwrite an existing completion file we did not manage |
+| `print` | `'on-error'` | Print a summary to stderr — `true`, `false`, or `'on-error'` |
+| `verbose` | `false` | Log detection steps to stderr |
+
+**What the installer covers per shell**
+
+| Shell | Target | When the user has to do something |
+| --- | --- | --- |
+| fish | `~/.config/fish/completions/<name>.fish` | never |
+| zsh  | first writable `$fpath` dir, else Homebrew `site-functions`, else `~/.zsh/completions` | only if `compinit` is missing or the target dir isn't in `$fpath` (clear instructions are returned) |
+| bash | `$XDG_DATA_HOME/bash-completion/completions/<name>` | only if `bash-completion` isn't installed (macOS default bash) — install hint is returned |
+| powershell | sentinel-wrapped block in `$PROFILE.CurrentUserAllHosts` | only if execution policy is `Restricted` |
+
+The installer always returns its result — you can render your own UI, print the structured plan, or chain it into a larger `init` flow.
+
+### Uninstalling
+
+A matching `uninstallShellCompletions` removes whatever the installer wrote. It only touches files that carry our `managed-by=tab` marker (or sentinel-wrapped blocks in PowerShell profiles), so it won't clobber a user's hand-written or Homebrew-installed completion.
+
+```typescript
+import { uninstallShellCompletions } from '@bomb.sh/tab/install';
+
+await uninstallShellCompletions({
+  name: 'my-cli',
+  shell: 'auto',
+});
+```
+
+For zsh, the uninstaller walks every dir we might have written to (current `$fpath`, Homebrew `site-functions`, `~/.zsh/completions`) so it cleans up even if the user's environment has changed since install. `dryRun`, `force`, `print`, and `verbose` work the same way as on the installer.
+
 ## Package Manager Completions
 
 As mentioned earlier, tab provides completions for package managers as well:
