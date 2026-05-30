@@ -14,6 +14,9 @@ importers:
       '@eslint/js':
         specifier: ^9.33.0
         version: 9.33.0
+      '@stricli/core':
+        specifier: ^1.2.6
+        version: 1.2.6
       '@types/node':
         specifier: ^22.7.4
         version: 22.7.5
@@ -712,6 +715,9 @@ packages:
     resolution: {integrity: sha512-2mLH46K1u3r6uwc95hU+OR9q/ggYMpnS7pSp83Ece1HUQgF9Nh/QwTK5rcgbFnV9j+08yBrU5sA/P0RK2MSBNA==}
     cpu: [x64]
     os: [win32]
+
+  '@stricli/core@1.2.6':
+    resolution: {integrity: sha512-j5fa1wyOLrP9WJqqLFEJeQviqb3cK46K+FXTuISEkG/H5C820YfKDoVQ3CDVdM5WLhEx1ARdpiW6+hU4tYHjCQ==}
 
   '@tybys/wasm-util@0.10.1':
     resolution: {integrity: sha512-9tTaPJLSiejZKx+Bmog4uSubteqTvFrVrURwkmHixBo0G4seD0zUxp98E1DzUBJxLQ3NPwXrGKDiVjwx/DpPsg==}
@@ -2284,6 +2290,8 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.24.2':
     optional: true
+
+  '@stricli/core@1.2.6': {}
 
   '@tybys/wasm-util@0.10.1':
     dependencies:
