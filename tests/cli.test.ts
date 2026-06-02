@@ -457,6 +457,15 @@ describe('commander specific tests', () => {
     expect(output2).toContain('staging');
     expect(output2).toContain('production');
   });
+
+  it('should intercept completion when using parseAsync', async () => {
+    const command = `pnpm tsx examples/demo.commander-async.ts complete -- `;
+    const output = await runCommand(command);
+    expect(output).toContain('greet');
+    expect(output).toContain('Say hello');
+    // directive line must be present, proving t.parse was invoked
+    expect(output).toMatch(/:\d+\s*$/);
+  });
 });
 
 describe('shell completion script generation', () => {

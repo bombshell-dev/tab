@@ -73,9 +73,7 @@ export default function tab(instance: CommanderCommand): RootCommand {
       }
     });
 
-  // Override the parse method to handle completion requests before normal parsing
-  const originalParse = instance.parse.bind(instance);
-  instance.parse = function (argv?: readonly string[], options?: ParseOptions) {
+  const getCompletionArgs = (argv?: readonly string[]): string[] | null => {
     const args = argv || process.argv;
     const completeIndex = args.findIndex((arg) => arg === 'complete');
     const dashDashIndex = args.findIndex((arg) => arg === '--');
@@ -85,17 +83,38 @@ export default function tab(instance: CommanderCommand): RootCommand {
       dashDashIndex !== -1 &&
       dashDashIndex > completeIndex
     ) {
-      // This is a completion request, handle it directly
-      const extra = args.slice(dashDashIndex + 1);
-
-      // Handle the completion directly
-      assertDoubleDashes(programName);
-      t.parse(extra);
-      return instance;
+      return args.slice(dashDashIndex + 1);
     }
 
-    // Normal parsing
+    return null;
+  };
+
+  const handleCompletion = (extra: string[]): void => {
+    assertDoubleDashes(programName);
+    t.parse(extra);
+  };
+
+  const originalParse = instance.parse.bind(instance);
+  instance.parse = function (argv?: readonly string[], options?: ParseOptions) {
+    const extra = getCompletionArgs(argv);
+    if (extra) {
+      handleCompletion(extra);
+      return instance;
+    }
     return originalParse(argv, options);
+  };
+
+  const originalParseAsync = instance.parseAsync.bind(instance);
+  instance.parseAsync = async function (
+    argv?: readonly string[],
+    options?: ParseOptions
+  ) {
+    const extra = getCompletionArgs(argv);
+    if (extra) {
+      handleCompletion(extra);
+      return instance;
+    }
+    return originalParseAsync(argv, options);
   };
 
   return t;
