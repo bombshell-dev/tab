@@ -17,8 +17,7 @@ function runCommand(command: string): Promise<string> {
 const cliTools = ['commander']; // TEMP For quick testing of commander-specific behavior, uncomment this line and comment out the line above.
 
 describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
-  // For Commander, we need to skip most of the tests since it handles completion differently
-  // Legacy comment? Reenabling tests...
+  // Commander has not been refactored yet for new way of passing in custom completion handlers.
   const shouldSkipTest = cliTool === 'commander';
 
   const commandPrefix = `pnpm tsx examples/demo.${cliTool}.ts complete --`;
