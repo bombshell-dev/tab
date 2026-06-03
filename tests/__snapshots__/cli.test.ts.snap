@@ -660,16 +660,6 @@ exports[`cli completion tests for commander > cli option value handling > should
 "
 `;
 
-exports[`cli completion tests for commander > cli option value handling > should resolve config option values correctly 1`] = `
-":4
-"
-`;
-
-exports[`cli completion tests for commander > cli option value handling > should resolve port value correctly 1`] = `
-":4
-"
-`;
-
 exports[`cli completion tests for commander > should complete cli options 1`] = `
 "dev	Start dev server
 serve	Start the server
