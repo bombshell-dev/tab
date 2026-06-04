@@ -13,8 +13,7 @@ function runCommand(command: string): Promise<string> {
   });
 }
 
-// const cliTools = ['t', 'citty', 'cac', 'commander'];
-const cliTools = ['commander']; // TEMP For quick testing of commander-specific behavior, uncomment this line and comment out the line above.
+const cliTools = ['t', 'citty', 'cac', 'commander'];
 
 describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
   // Commander has not been refactored yet for new way of passing in custom completion handlers.
@@ -70,7 +69,6 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     );
 
     // Note: on all frameworks, --config is suggested again, which is inconsistent with test title.
-    // (Which I think is simple behaviour! Do not know whether option allowed to be specified more than once...)
     it('should not show duplicate options', async () => {
       const command = `${commandPrefix} --config vite.config.js --`;
       const output = await runCommand(command);
