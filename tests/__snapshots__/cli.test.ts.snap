@@ -626,6 +626,50 @@ my-tool	My tool
 "
 `;
 
+exports[`cli completion tests for commander > cli option completion tests > should complete option for partial input '{ partial: '--p', expected: '--port' }' 1`] = `
+"--port	Specify port
+:4
+"
+`;
+
+exports[`cli completion tests for commander > cli option completion tests > should complete option for partial input '{ partial: '-H', expected: '-H' }' 1`] = `
+"-H	Specify hostname
+:4
+"
+`;
+
+exports[`cli completion tests for commander > cli option completion tests > should complete option for partial input '{ partial: '-p', expected: '-p' }' 1`] = `
+"-p	Specify port
+:4
+"
+`;
+
+exports[`cli completion tests for commander > cli option exclusion tests > should not suggest already specified option '{ specified: '--config', shouldNotContain: '--config' }' 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for commander > cli option value handling > should handle unknown options with no completions 1`] = `":4"`;
+
+exports[`cli completion tests for commander > cli option value handling > should not show duplicate options 1`] = `
+"--version	output the version number
+--config	specify config file
+--debug	enable debugging
+--verbose	enable verbose output
+:4
+"
+`;
+
+exports[`cli completion tests for commander > should complete cli options 1`] = `
+"dev	Start dev server
+serve	Start the server
+build	Build the project
+deploy	Deploy the application
+lint	Lint source files
+:4
+"
+`;
+
 exports[`cli completion tests for t > --config option tests > should complete --config option values 1`] = `
 "vite.config.ts	Vite config file
 vite.config.js	Vite config file

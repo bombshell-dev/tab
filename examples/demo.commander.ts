@@ -12,6 +12,24 @@ program
   .option('-v, --verbose', 'enable verbose output');
 
 // Add commands
+const devCommand = program
+  .command('dev')
+  .description('Start dev server')
+  .option('-H, --host [host]', `Specify hostname`)
+  .option('-p, --port <port>', `Specify port`)
+  .option('-v, --verbose', `Enable verbose logging`)
+  .option('--quiet', `Suppress output`)
+  .action((options) => {});
+// subcommands of dev
+devCommand
+  .command('start')
+  .description('Start development server')
+  .action((options) => {});
+devCommand
+  .command('build')
+  .description('Build project')
+  .action((options) => {});
+
 program
   .command('serve')
   .description('Start the server')
