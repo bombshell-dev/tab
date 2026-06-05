@@ -68,7 +68,6 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
       }
     );
 
-    // Note: on all frameworks, --config is suggested again, which is inconsistent with test title.
     it('should not show duplicate options', async () => {
       const command = `${commandPrefix} --config vite.config.js --`;
       const output = await runCommand(command);
@@ -230,7 +229,6 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
       expect(output).toMatchSnapshot();
     });
 
-    // Note: on all frameworks, --config is suggested again, which is inconsistent with test title.
     it('should not suggest --config after it has been used', async () => {
       const command = `${commandPrefix} --config vite.config.ts --`;
       const output = await runCommand(command);

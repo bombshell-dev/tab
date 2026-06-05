@@ -78,49 +78,48 @@ program
 const completion = tab(program);
 
 // Configure custom completions
-// This needs rewriting with config passed into tab(program)?
-// for (const command of completion.commands.values()) {
-//   if (command.value === 'lint') {
-//     // Note: Direct handler assignment is not supported in the current API
-//     // Custom completion logic would need to be implemented differently
-//   }
+for (const command of completion.commands.values()) {
+  if (command.value === 'lint') {
+    // Note: Direct handler assignment is not supported in the current API
+    // Custom completion logic would need to be implemented differently
+  }
 
-//   for (const [option, config] of command.options.entries()) {
-//     if (option === '--port') {
-//       config.handler = () => {
-//         return [
-//           { value: '3000', description: 'Default port' },
-//           { value: '8080', description: 'Alternative port' },
-//         ];
-//       };
-//     }
-//     if (option === '--host') {
-//       config.handler = () => {
-//         return [
-//           { value: 'localhost', description: 'Local development' },
-//           { value: '0.0.0.0', description: 'All interfaces' },
-//         ];
-//       };
-//     }
-//     if (option === '--mode') {
-//       config.handler = () => {
-//         return [
-//           { value: 'development', description: 'Development mode' },
-//           { value: 'production', description: 'Production mode' },
-//           { value: 'test', description: 'Test mode' },
-//         ];
-//       };
-//     }
-//     if (option === '--config') {
-//       config.handler = () => {
-//         return [
-//           { value: 'config.json', description: 'JSON config file' },
-//           { value: 'config.yaml', description: 'YAML config file' },
-//         ];
-//       };
-//     }
-//   }
-// }
+  for (const [option, config] of command.options.entries()) {
+    if (option === '--port') {
+      config.handler = () => {
+        return [
+          { value: '3000', description: 'Default port' },
+          { value: '8080', description: 'Alternative port' },
+        ];
+      };
+    }
+    if (option === '--host') {
+      config.handler = () => {
+        return [
+          { value: 'localhost', description: 'Local development' },
+          { value: '0.0.0.0', description: 'All interfaces' },
+        ];
+      };
+    }
+    if (option === '--mode') {
+      config.handler = () => {
+        return [
+          { value: 'development', description: 'Development mode' },
+          { value: 'production', description: 'Production mode' },
+          { value: 'test', description: 'Test mode' },
+        ];
+      };
+    }
+    if (option === '--config') {
+      config.handler = () => {
+        return [
+          { value: 'config.json', description: 'JSON config file' },
+          { value: 'config.yaml', description: 'YAML config file' },
+        ];
+      };
+    }
+  }
+}
 
 // Parse command line arguments
 program.parse();
