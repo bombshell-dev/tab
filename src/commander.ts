@@ -49,7 +49,7 @@ export default function tab(
   // Make a `complete` command for generating tab-time complete suggestions.
   const completeCommand = instance
     .createCommand('complete')
-    .description('generate completion suggestions')
+    .description('Generate completion suggestions')
     .usage('complete -- [args...]')
     .argument('[args...]')
     .action((args) => {
