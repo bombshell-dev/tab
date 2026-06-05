@@ -444,15 +444,14 @@ describe('commander specific tests', () => {
   });
 
   it('should handle subcommands', async () => {
-    // First, we need to check if deploy is recognized as a command
+    // Check subcommands of root command.
     const command1 = `pnpm tsx examples/demo.commander.ts complete -- deploy`;
     const output1 = await runCommand(command1);
     expect(output1).toContain('deploy');
     expect(output1).toContain('Deploy the application');
 
-    // Then we need to check if the deploy command has subcommands
-    // We can check this by running the deploy command with --help
-    const command2 = `pnpm tsx examples/demo.commander.ts deploy --help`;
+    // Check subcommands of subcommand.
+    const command2 = `pnpm tsx examples/demo.commander.ts complete -- deploy ""`;
     const output2 = await runCommand(command2);
     expect(output2).toContain('staging');
     expect(output2).toContain('production');

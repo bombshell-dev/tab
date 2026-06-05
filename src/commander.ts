@@ -1,10 +1,10 @@
-import * as zsh from './zsh';
-import * as bash from './bash';
-import * as fish from './fish';
-import * as powershell from './powershell';
-import type { Command as CommanderCommand, ParseOptions } from 'commander';
+import type { Command as CommanderCommand } from 'commander';
 import t, { type RootCommand } from './t';
-import { assertDoubleDashes } from './shared';
+
+// rawArgs is available on (just) the Commander root command, but is not included in the TypeScript types.
+interface CommandWithRawArgs extends CommanderCommand {
+  rawArgs: string[];
+}
 
 const execPath = process.execPath;
 const processArgs = process.argv.slice(1);
@@ -18,7 +18,10 @@ function quoteIfNeeded(path: string): string {
   return path.includes(' ') ? `'${path}'` : path;
 }
 
-export default function tab(instance: CommanderCommand): RootCommand {
+export default function tab(
+  instance: CommanderCommand,
+  completionConfig?: { completionCommandName?: string }
+): RootCommand {
   const programName = instance.name();
 
   // Process the root command
@@ -27,95 +30,67 @@ export default function tab(instance: CommanderCommand): RootCommand {
   // Process all subcommands
   processSubcommands(instance);
 
-  // Add the complete command for normal shell script generation
-  instance
-    .command('complete [shell]')
+  // Make a `completion` command with a required command-argument.
+  const completionCommandName =
+    completionConfig?.completionCommandName ?? 'complete';
+  const completionCommand = instance
+    .createCommand(completionCommandName)
     .description('Generate shell completion scripts')
-    .action(async (shell) => {
-      switch (shell) {
-        case 'zsh': {
-          const script = zsh.generate(programName, x);
-          console.log(script);
-          break;
-        }
-        case 'bash': {
-          const script = bash.generate(programName, x);
-          console.log(script);
-          break;
-        }
-        case 'fish': {
-          const script = fish.generate(programName, x);
-          console.log(script);
-          break;
-        }
-        case 'powershell': {
-          const script = powershell.generate(programName, x);
-          console.log(script);
-          break;
-        }
-        case 'debug': {
-          // Debug mode to print all collected commands
-          const commandMap = new Map<string, CommanderCommand>();
-          collectCommands(instance, '', commandMap);
-          console.log('Collected commands:');
-          for (const [path, cmd] of commandMap.entries()) {
-            console.log(
-              `- ${path || '<root>'}: ${cmd.description() || 'No description'}`
-            );
-          }
-          break;
-        }
-        default: {
-          console.error(`Unknown shell: ${shell}`);
-          console.error('Supported shells: zsh, bash, fish, powershell');
-          process.exit(1);
-        }
-      }
+    .addArgument(
+      instance
+        .createArgument('<shell>', 'Shell type for completion script')
+        .choices(['zsh', 'bash', 'fish', 'powershell'])
+    )
+    .action((shell) => {
+      t.setup(programName, x, shell);
     });
+  completionCommand.copyInheritedSettings(instance);
 
-  const getCompletionArgs = (argv?: readonly string[]): string[] | null => {
-    const args = argv || process.argv;
-    const completeIndex = args.findIndex((arg) => arg === 'complete');
-    const dashDashIndex = args.findIndex((arg) => arg === '--');
+  // Make a `complete` command for generating tab-time complete suggestions.
+  const completeCommand = instance
+    .createCommand('complete')
+    .description('generate completion suggestions')
+    .usage('complete -- [args...]')
+    .argument('[args...]')
+    .action((args) => {
+      t.parse(args);
+    });
+  completeCommand.copyInheritedSettings(instance);
 
-    if (
-      completeIndex !== -1 &&
-      dashDashIndex !== -1 &&
-      dashDashIndex > completeIndex
-    ) {
-      return args.slice(dashDashIndex + 1);
-    }
+  if (completionCommandName !== 'complete') {
+    // We have indepdendent commands so can hook them up directly.
+    instance.addCommand(completionCommand);
+    instance.addCommand(completeCommand, { hidden: true });
+  } else {
+    // We need to add a dual-use command, work out calling pattern, and dispatch.
+    instance
+      .command('complete')
+      .description('Generate shell completion scripts')
+      .argument(
+        '[shell]',
+        'shell type (choices: "zsh", "bash", "fish", "powershell")'
+      )
+      .allowExcessArguments()
+      .action((shell, _options, cmd) => {
+        // Work out how we are being called, by user or by script as completion handler.
+        const rawArgs = (instance as CommandWithRawArgs).rawArgs;
+        const completeIndex = rawArgs.indexOf('complete');
+        const dashDashIndex = rawArgs.indexOf('--');
 
-    return null;
-  };
-
-  const handleCompletion = (extra: string[]): void => {
-    assertDoubleDashes(programName);
-    t.parse(extra);
-  };
-
-  const originalParse = instance.parse.bind(instance);
-  instance.parse = function (argv?: readonly string[], options?: ParseOptions) {
-    const extra = getCompletionArgs(argv);
-    if (extra) {
-      handleCompletion(extra);
-      return instance;
-    }
-    return originalParse(argv, options);
-  };
-
-  const originalParseAsync = instance.parseAsync.bind(instance);
-  instance.parseAsync = async function (
-    argv?: readonly string[],
-    options?: ParseOptions
-  ) {
-    const extra = getCompletionArgs(argv);
-    if (extra) {
-      handleCompletion(extra);
-      return instance;
-    }
-    return originalParseAsync(argv, options);
-  };
+        if (
+          completeIndex !== -1 &&
+          dashDashIndex !== -1 &&
+          dashDashIndex === completeIndex + 1
+        ) {
+          // Commander stripped `--`, so put it back for reparse
+          completeCommand.parse(['--', ...cmd.args], { from: 'user' });
+        } else {
+          completionCommand.parse(shell !== undefined ? [shell] : [], {
+            from: 'user',
+          });
+        }
+      });
+  }
 
   return t;
 }
