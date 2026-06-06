@@ -50,7 +50,7 @@ export default function tab(
   const completeCommand = instance
     .createCommand('complete')
     .description('Generate completion suggestions')
-    .usage('complete -- [args...]')
+    .usage('-- [args...]')
     .argument('[args...]')
     .action((args) => {
       t.parse(args);
