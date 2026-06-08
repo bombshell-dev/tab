@@ -261,6 +261,16 @@ if (portOption) {
 program.parse();
 ```
 
+The Commander integration supports customising the command name to generate the shell completion script. The default is `complete`. If you use a custom name
+like `completion` then it will be visible in the help as `completion <shell>`, while the runtime suggestions will be hiddden (`complete -- [args...]`).
+You'll need to use your custom command when following examples on this page to generate the shell completion script.
+
+```javascript
+const completion = tab(program, { completionCommandName: 'completion' });
+```
+
+### Custom Integrations
+
 tab uses a standardized completion protocol that any CLI can implement:
 
 ```bash
