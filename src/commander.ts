@@ -53,8 +53,8 @@ export default function tab(
     .usage('-- [args...]')
     .argument('[args...]')
     .action((args) => {
-      // Check for user trying to generate shell completion script, since not using usual tab overloaded complete `command`.
       if (completionCommandName !== 'complete') {
+        // Check for user trying to generate shell completion script, since not using usual tab overloaded complete `command`.
         const rawArgs = (instance as CommandWithRawArgs).rawArgs;
         if (args.length === 1 && !rawArgs.includes('--'))
           instance.error(
