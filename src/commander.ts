@@ -71,7 +71,7 @@ export default function tab(
         'shell type (choices: "zsh", "bash", "fish", "powershell")'
       )
       .allowExcessArguments()
-      .action((shell, _options, cmd) => {
+      .action((_shell, _options, cmd) => {
         // Work out how we are being called, by user or by script as completion handler.
         const rawArgs = (instance as CommandWithRawArgs).rawArgs;
         const completeIndex = rawArgs.indexOf('complete');
@@ -85,7 +85,7 @@ export default function tab(
           // Commander stripped `--`, so put it back for reparse
           completeCommand.parse(['--', ...cmd.args], { from: 'user' });
         } else {
-          completionCommand.parse(shell !== undefined ? [shell] : [], {
+          completionCommand.parse(cmd.args, {
             from: 'user',
           });
         }
