@@ -58,7 +58,7 @@ export default function tab(
         const rawArgs = (instance as CommandWithRawArgs).rawArgs;
         if (args.length === 1 && !rawArgs.includes('--'))
           instance.error(
-            `error: completion requests are called like \`complete -- [args]\`.\n(Did you mean \`${completionCommandName} ${args[0]}\`?)`
+            `error: completion requests are called like \`complete -- [args]\`.\n(Did you mean \`${completionCommandName} ${args[0]}\` to generate shell script?)`
           );
       }
 
