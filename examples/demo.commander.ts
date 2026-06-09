@@ -110,5 +110,24 @@ if (logLevelOption) {
   };
 }
 
+// Options on dev command
+const devCommandInstance = completion.commands.get('dev');
+if (devCommandInstance) {
+  const portOption = devCommandInstance.options.get('port');
+  if (portOption) {
+    portOption.handler = (complete) => {
+      complete('3000', 'Development server port');
+      complete('8080', 'Alternative port');
+    };
+  }
+  const hostOption = devCommandInstance.options.get('host');
+  if (hostOption) {
+    hostOption.handler = (complete) => {
+      complete('localhost', 'Localhost');
+      complete('127.0.0.1', 'Localhost IP');
+    };
+  }
+}
+
 // Parse command line arguments
 program.parse();
