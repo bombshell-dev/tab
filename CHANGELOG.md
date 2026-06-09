@@ -1,5 +1,12 @@
 # @bombsh/tab
 
+## 0.0.16
+
+### Patch Changes
+
+- 04153b8: refactor: commander adapter - remove parse/parseAsync and add optional `completionCommandName` config
+- e784d62: fix: parseasync() commander's adapter
+
 ## 0.0.15
 
 ### Patch Changes
