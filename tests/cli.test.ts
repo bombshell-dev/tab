@@ -262,7 +262,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     });
   });
 
-  describe.runIf(!shouldSkipTest)('root command option tests', () => {
+  describe('root command option tests', () => {
     it('should complete root command --mode option values', async () => {
       const command = `${commandPrefix} --mode ""`;
       const output = await runCommand(command);

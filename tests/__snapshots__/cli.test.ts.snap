@@ -653,9 +653,68 @@ exports[`cli completion tests for commander > cli option value handling > should
 
 exports[`cli completion tests for commander > cli option value handling > should not show duplicate options 1`] = `
 "--version	output the version number
---config	specify config file
---debug	enable debugging
---verbose	enable verbose output
+--config	Use specified config file
+--mode	Set env mode
+--logLevel	Specify log level
+:4
+"
+`;
+
+exports[`cli completion tests for commander > root command option tests > should complete root command --logLevel option values 1`] = `
+"info	Info level
+warn	Warn level
+error	Error level
+silent	Silent level
+:4
+"
+`;
+
+exports[`cli completion tests for commander > root command option tests > should complete root command --logLevel option with partial input 1`] = `
+"info	Info level
+:4
+"
+`;
+
+exports[`cli completion tests for commander > root command option tests > should complete root command --mode option values 1`] = `
+"development	Development mode
+production	Production mode
+:4
+"
+`;
+
+exports[`cli completion tests for commander > root command option tests > should complete root command --mode option with partial input 1`] = `
+"development	Development mode
+:4
+"
+`;
+
+exports[`cli completion tests for commander > root command option tests > should complete root command options after project argument 1`] = `
+"--version	output the version number
+--config	Use specified config file
+--mode	Set env mode
+--logLevel	Specify log level
+:4
+"
+`;
+
+exports[`cli completion tests for commander > root command option tests > should complete root command options with partial input after project argument 1`] = `
+"--mode	Set env mode
+:4
+"
+`;
+
+exports[`cli completion tests for commander > root command option tests > should complete root command short flag -l option values 1`] = `
+"info	Info level
+warn	Warn level
+error	Error level
+silent	Silent level
+:4
+"
+`;
+
+exports[`cli completion tests for commander > root command option tests > should complete root command short flag -m option values 1`] = `
+"development	Development mode
+production	Production mode
 :4
 "
 `;
