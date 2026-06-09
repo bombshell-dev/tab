@@ -16,7 +16,7 @@ function runCommand(command: string): Promise<string> {
 const cliTools = ['t', 'citty', 'cac', 'commander'];
 
 describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
-  // Commander has not been refactored yet for new way of passing in custom completion handlers.
+  // Commander does not have custom completions for arguments yet.
   const shouldSkipTest = cliTool === 'commander';
 
   const commandPrefix = `pnpm tsx examples/demo.${cliTool}.ts complete --`;
