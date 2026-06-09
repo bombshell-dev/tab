@@ -1,4 +1,4 @@
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import tab from '../src/commander';
 
 // Create a new Commander program
@@ -7,9 +7,16 @@ program.version('1.0.0');
 
 // Add global options
 program
-  .option('-c, --config <file>', 'specify config file')
-  .option('-d, --debug', 'enable debugging')
-  .option('-v, --verbose', 'enable verbose output');
+  .option('-c, --config <file>', 'Use specified config file')
+  .option('-m, --mode <mode>', 'Set env mode')
+  .addOption(
+    new Option('-l, --logLevel <level>', 'Specify log level').choices([
+      'info',
+      'warn',
+      'error',
+      'silent',
+    ])
+  );
 
 // Add commands
 const devCommand = program
@@ -78,46 +85,47 @@ program
 const completion = tab(program);
 
 // Configure custom completions
-for (const command of completion.commands.values()) {
-  if (command.value === 'lint') {
-    // Note: Direct handler assignment is not supported in the current API
-    // Custom completion logic would need to be implemented differently
-  }
+// Options on root command
+const configOption = completion.options.get('config');
+if (configOption) {
+  configOption.handler = (complete) => {
+    complete('vite.config.ts', 'Vite config file');
+    complete('vite.config.js', 'Vite config file');
+  };
+}
+const modeOption = completion.options.get('mode');
+if (modeOption) {
+  modeOption.handler = (complete) => {
+    complete('development', 'Development mode');
+    complete('production', 'Production mode');
+  };
+}
+const logLevelOption = completion.options.get('logLevel');
+if (logLevelOption) {
+  logLevelOption.handler = (complete) => {
+    complete('info', 'Info level');
+    complete('warn', 'Warn level');
+    complete('error', 'Error level');
+    complete('silent', 'Silent level');
+  };
+}
 
-  for (const [option, config] of command.options.entries()) {
-    if (option === '--port') {
-      config.handler = () => {
-        return [
-          { value: '3000', description: 'Default port' },
-          { value: '8080', description: 'Alternative port' },
-        ];
-      };
-    }
-    if (option === '--host') {
-      config.handler = () => {
-        return [
-          { value: 'localhost', description: 'Local development' },
-          { value: '0.0.0.0', description: 'All interfaces' },
-        ];
-      };
-    }
-    if (option === '--mode') {
-      config.handler = () => {
-        return [
-          { value: 'development', description: 'Development mode' },
-          { value: 'production', description: 'Production mode' },
-          { value: 'test', description: 'Test mode' },
-        ];
-      };
-    }
-    if (option === '--config') {
-      config.handler = () => {
-        return [
-          { value: 'config.json', description: 'JSON config file' },
-          { value: 'config.yaml', description: 'YAML config file' },
-        ];
-      };
-    }
+// Options on dev command
+const devCommandInstance = completion.commands.get('dev');
+if (devCommandInstance) {
+  const portOption = devCommandInstance.options.get('port');
+  if (portOption) {
+    portOption.handler = (complete) => {
+      complete('3000', 'Development server port');
+      complete('8080', 'Alternative port');
+    };
+  }
+  const hostOption = devCommandInstance.options.get('host');
+  if (hostOption) {
+    hostOption.handler = (complete) => {
+      complete('localhost', 'Localhost');
+      complete('127.0.0.1', 'Localhost IP');
+    };
   }
 }
 

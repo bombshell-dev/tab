@@ -626,6 +626,50 @@ my-tool	My tool
 "
 `;
 
+exports[`cli completion tests for commander > --config option tests > should complete --config option values 1`] = `
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
+:4
+"
+`;
+
+exports[`cli completion tests for commander > --config option tests > should complete --config option with equals sign 1`] = `
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
+:4
+"
+`;
+
+exports[`cli completion tests for commander > --config option tests > should complete --config option with partial input 1`] = `
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
+:4
+"
+`;
+
+exports[`cli completion tests for commander > --config option tests > should complete short flag -c option values 1`] = `
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
+:4
+"
+`;
+
+exports[`cli completion tests for commander > --config option tests > should complete short flag -c option with partial input 1`] = `
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
+:4
+"
+`;
+
+exports[`cli completion tests for commander > --config option tests > should not suggest --config after it has been used 1`] = `
+"--version	output the version number
+--config	Use specified config file
+--mode	Set env mode
+--logLevel	Specify log level
+:4
+"
+`;
+
 exports[`cli completion tests for commander > cli option completion tests > should complete option for partial input '{ partial: '--p', expected: '--port' }' 1`] = `
 "--port	Specify port
 :4
@@ -653,9 +697,128 @@ exports[`cli completion tests for commander > cli option value handling > should
 
 exports[`cli completion tests for commander > cli option value handling > should not show duplicate options 1`] = `
 "--version	output the version number
---config	specify config file
---debug	enable debugging
---verbose	enable verbose output
+--config	Use specified config file
+--mode	Set env mode
+--logLevel	Specify log level
+:4
+"
+`;
+
+exports[`cli completion tests for commander > cli option value handling > should resolve config option values correctly 1`] = `
+"vite.config.ts	Vite config file
+vite.config.js	Vite config file
+:4
+"
+`;
+
+exports[`cli completion tests for commander > cli option value handling > should resolve port value correctly 1`] = `
+"3000	Development server port
+:4
+"
+`;
+
+exports[`cli completion tests for commander > edge case completions for end with space > should keep suggesting the --port option if user typed partial but didn't end with space 1`] = `
+"--port	Specify port
+:4
+"
+`;
+
+exports[`cli completion tests for commander > edge case completions for end with space > should suggest port values if user ends with space after \`--port\` 1`] = `
+"3000	Development server port
+8080	Alternative port
+:4
+"
+`;
+
+exports[`cli completion tests for commander > edge case completions for end with space > should suggest port values if user typed \`--port=\` and hasn't typed a space or value yet 1`] = `
+"3000	Development server port
+8080	Alternative port
+:4
+"
+`;
+
+exports[`cli completion tests for commander > root command option tests > should complete root command --logLevel option values 1`] = `
+"info	Info level
+warn	Warn level
+error	Error level
+silent	Silent level
+:4
+"
+`;
+
+exports[`cli completion tests for commander > root command option tests > should complete root command --logLevel option with partial input 1`] = `
+"info	Info level
+:4
+"
+`;
+
+exports[`cli completion tests for commander > root command option tests > should complete root command --mode option values 1`] = `
+"development	Development mode
+production	Production mode
+:4
+"
+`;
+
+exports[`cli completion tests for commander > root command option tests > should complete root command --mode option with partial input 1`] = `
+"development	Development mode
+:4
+"
+`;
+
+exports[`cli completion tests for commander > root command option tests > should complete root command options after project argument 1`] = `
+"--version	output the version number
+--config	Use specified config file
+--mode	Set env mode
+--logLevel	Specify log level
+:4
+"
+`;
+
+exports[`cli completion tests for commander > root command option tests > should complete root command options with partial input after project argument 1`] = `
+"--mode	Set env mode
+:4
+"
+`;
+
+exports[`cli completion tests for commander > root command option tests > should complete root command short flag -l option values 1`] = `
+"info	Info level
+warn	Warn level
+error	Error level
+silent	Silent level
+:4
+"
+`;
+
+exports[`cli completion tests for commander > root command option tests > should complete root command short flag -m option values 1`] = `
+"development	Development mode
+production	Production mode
+:4
+"
+`;
+
+exports[`cli completion tests for commander > short flag handling > should handle global short flags 1`] = `
+"-c	Use specified config file
+:4
+"
+`;
+
+exports[`cli completion tests for commander > short flag handling > should handle short flag value completion 1`] = `
+"-p	Specify port
+:4
+"
+`;
+
+exports[`cli completion tests for commander > short flag handling > should handle short flag with equals sign 1`] = `
+"3000	Development server port
+:4
+"
+`;
+
+exports[`cli completion tests for commander > short flag handling > should not show duplicate options when short flag is used 1`] = `
+"--version	output the version number
+--config	Use specified config file
+--mode	Set env mode
+--logLevel	Specify log level
 :4
 "
 `;
