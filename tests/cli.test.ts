@@ -16,9 +16,6 @@ function runCommand(command: string): Promise<string> {
 const cliTools = ['t', 'citty', 'cac', 'commander'];
 
 describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
-  // Commander does not have custom completions for arguments yet.
-  const shouldSkipTest = cliTool === 'commander';
-
   const commandPrefix = `pnpm tsx examples/demo.${cliTool}.ts complete --`;
 
   it('should complete cli options', async () => {
@@ -230,7 +227,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     });
   });
 
-  describe.runIf(!shouldSkipTest)('root command argument tests', () => {
+  describe('root command argument tests', () => {
     it('should complete root command project argument', async () => {
       const command = `${commandPrefix} ""`;
       const output = await runCommand(command);
@@ -352,7 +349,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     });
   });
 
-  describe.runIf(!shouldSkipTest)('positional argument completions', () => {
+  describe('positional argument completions', () => {
     it('should complete multiple positional arguments when ending with space', async () => {
       const command = `${commandPrefix} lint ""`;
       const output = await runCommand(command);
@@ -372,7 +369,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     });
   });
 
-  describe.runIf(!shouldSkipTest)('copy command argument handlers', () => {
+  describe('copy command argument handlers', () => {
     it('should complete source argument with directory suggestions', async () => {
       const command = `${commandPrefix} copy ""`;
       const output = await runCommand(command);
@@ -398,7 +395,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     });
   });
 
-  describe.runIf(!shouldSkipTest)('lint command argument handlers', () => {
+  describe('lint command argument handlers', () => {
     it('should complete files argument with file suggestions', async () => {
       const command = `${commandPrefix} lint ""`;
       const output = await runCommand(command);
