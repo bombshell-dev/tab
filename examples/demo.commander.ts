@@ -81,6 +81,14 @@ program
     console.log('Linting files...');
   });
 
+// Command with multiple required positional arguments
+program
+  .command('copy <source> <destination>')
+  .description('Copy files')
+  .action((source, destination) => {
+    console.log(`Copying ${source} to ${destination}...`);
+  });
+
 // Initialize tab completion
 const completion = tab(program);
 
@@ -125,6 +133,39 @@ if (devCommandInstance) {
     hostOption.handler = (complete) => {
       complete('localhost', 'Localhost');
       complete('127.0.0.1', 'Localhost IP');
+    };
+  }
+}
+
+// Positional arguments on lint command
+const lintCommandInstance = completion.commands.get('lint');
+if (lintCommandInstance) {
+  const filesArg = lintCommandInstance.arguments.get('files');
+  if (filesArg) {
+    filesArg.handler = (complete) => {
+      complete('main.ts', 'Main file');
+      complete('index.ts', 'Index file');
+    };
+  }
+}
+
+// Positional arguments on copy command
+const copyCommandInstance = completion.commands.get('copy');
+if (copyCommandInstance) {
+  const sourceArg = copyCommandInstance.arguments.get('source');
+  if (sourceArg) {
+    sourceArg.handler = (complete) => {
+      complete('src/', 'Source directory');
+      complete('dist/', 'Distribution directory');
+      complete('public/', 'Public assets');
+    };
+  }
+  const destinationArg = copyCommandInstance.arguments.get('destination');
+  if (destinationArg) {
+    destinationArg.handler = (complete) => {
+      complete('build/', 'Build output');
+      complete('release/', 'Release directory');
+      complete('backup/', 'Backup location');
     };
   }
 }

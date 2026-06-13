@@ -717,6 +717,35 @@ exports[`cli completion tests for commander > cli option value handling > should
 "
 `;
 
+exports[`cli completion tests for commander > copy command argument handlers > should complete destination argument with build suggestions 1`] = `
+"build/	Build output
+release/	Release directory
+backup/	Backup location
+:4
+"
+`;
+
+exports[`cli completion tests for commander > copy command argument handlers > should complete source argument with directory suggestions 1`] = `
+"src/	Source directory
+dist/	Distribution directory
+public/	Public assets
+:4
+"
+`;
+
+exports[`cli completion tests for commander > copy command argument handlers > should filter destination suggestions when typing partial input 1`] = `
+"build/	Build output
+backup/	Backup location
+:4
+"
+`;
+
+exports[`cli completion tests for commander > copy command argument handlers > should filter source suggestions when typing partial input 1`] = `
+"src/	Source directory
+:4
+"
+`;
+
 exports[`cli completion tests for commander > edge case completions for end with space > should keep suggesting the --port option if user typed partial but didn't end with space 1`] = `
 "--port	Specify port
 :4
@@ -734,6 +763,84 @@ exports[`cli completion tests for commander > edge case completions for end with
 "3000	Development server port
 8080	Alternative port
 :4
+"
+`;
+
+exports[`cli completion tests for commander > lint command argument handlers > should complete files argument with file suggestions 1`] = `
+"main.ts	Main file
+index.ts	Index file
+:4
+"
+`;
+
+exports[`cli completion tests for commander > lint command argument handlers > should continue completing variadic files argument after first file 1`] = `
+"main.ts	Main file
+index.ts	Index file
+:4
+"
+`;
+
+exports[`cli completion tests for commander > lint command argument handlers > should continue completing variadic suggestions after first file 1`] = `
+"index.ts	Index file
+:4
+"
+`;
+
+exports[`cli completion tests for commander > lint command argument handlers > should filter file suggestions when typing partial input 1`] = `
+"main.ts	Main file
+:4
+"
+`;
+
+exports[`cli completion tests for commander > positional argument completions > should complete multiple positional arguments when ending with part of the value 1`] = `
+"index.ts	Index file
+:4
+"
+`;
+
+exports[`cli completion tests for commander > positional argument completions > should complete multiple positional arguments when ending with space 1`] = `
+"main.ts	Main file
+index.ts	Index file
+:4
+"
+`;
+
+exports[`cli completion tests for commander > positional argument completions > should complete single positional argument when ending with space 1`] = `
+"main.ts	Main file
+index.ts	Index file
+:4
+"
+`;
+
+exports[`cli completion tests for commander > root command argument tests > should complete root command project argument 1`] = `
+"dev	Start dev server
+serve	Start the server
+build	Build the project
+deploy	Deploy the application
+lint	Lint source files
+copy	Copy files
+:4
+"
+`;
+
+exports[`cli completion tests for commander > root command argument tests > should complete root command project argument after options 1`] = `
+"dev	Start dev server
+serve	Start the server
+build	Build the project
+deploy	Deploy the application
+lint	Lint source files
+copy	Copy files
+:4
+"
+`;
+
+exports[`cli completion tests for commander > root command argument tests > should complete root command project argument with options and partial input 1`] = `
+":4
+"
+`;
+
+exports[`cli completion tests for commander > root command argument tests > should complete root command project argument with partial input 1`] = `
+":4
 "
 `;
 
@@ -829,6 +936,7 @@ serve	Start the server
 build	Build the project
 deploy	Deploy the application
 lint	Lint source files
+copy	Copy files
 :4
 "
 `;
