@@ -18,8 +18,6 @@ program
     ])
   );
 
-program.argument('[project]', 'Project name');
-
 // Add commands
 const devCommand = program
   .command('dev')
@@ -137,16 +135,6 @@ if (devCommandInstance) {
       complete('127.0.0.1', 'Localhost IP');
     };
   }
-}
-
-// Positional argument on root command
-const projectArg = completion.arguments.get('project');
-if (projectArg) {
-  projectArg.handler = (complete) => {
-    complete('my-app', 'My application');
-    complete('my-lib', 'My library');
-    complete('my-tool', 'My tool');
-  };
 }
 
 // Positional arguments on lint command

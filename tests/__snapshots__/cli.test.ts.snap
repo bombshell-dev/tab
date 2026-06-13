@@ -819,9 +819,6 @@ build	Build the project
 deploy	Deploy the application
 lint	Lint source files
 copy	Copy files
-my-app	My application
-my-lib	My library
-my-tool	My tool
 :4
 "
 `;
@@ -833,26 +830,17 @@ build	Build the project
 deploy	Deploy the application
 lint	Lint source files
 copy	Copy files
-my-app	My application
-my-lib	My library
-my-tool	My tool
 :4
 "
 `;
 
 exports[`cli completion tests for commander > root command argument tests > should complete root command project argument with options and partial input 1`] = `
-"my-app	My application
-my-lib	My library
-my-tool	My tool
-:4
+":4
 "
 `;
 
 exports[`cli completion tests for commander > root command argument tests > should complete root command project argument with partial input 1`] = `
-"my-app	My application
-my-lib	My library
-my-tool	My tool
-:4
+":4
 "
 `;
 
@@ -949,9 +937,6 @@ build	Build the project
 deploy	Deploy the application
 lint	Lint source files
 copy	Copy files
-my-app	My application
-my-lib	My library
-my-tool	My tool
 :4
 "
 `;
