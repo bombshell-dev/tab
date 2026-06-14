@@ -1,5 +1,5 @@
 import type { Command as CommanderCommand } from 'commander';
-import t, { Command as TabCommand, type RootCommand } from './t';
+import t, { Command as TabCommand, type RootCommand, OptionHandler } from './t';
 
 // rawArgs is available on (just) the Commander root command, but is not included in the TypeScript types.
 interface CommandWithRawArgs extends CommanderCommand {
@@ -117,8 +117,19 @@ function processOptions(t: TabCommand, cmd: CommanderCommand): void {
     const longName = option.long?.slice(2);
     if (longName) {
       const optionTakesValue = option.required || option.optional;
-      if (optionTakesValue) {
-        t.option(longName, option.description, () => {}, shortName);
+      const choices = option.argChoices ?? [];
+
+      let optionHandler: OptionHandler | undefined = undefined;
+      if (optionTakesValue && choices.length > 0) {
+        optionHandler = (complete) => {
+          for (const choice of choices) complete(choice, '');
+        };
+      } else if (optionTakesValue) {
+        optionHandler = () => {};
+      }
+
+      if (optionHandler) {
+        t.option(longName, option.description, optionHandler, shortName);
       } else {
         t.option(longName, option.description, shortName);
       }

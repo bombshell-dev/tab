@@ -851,16 +851,16 @@ exports[`cli completion tests for commander > root command argument tests > shou
 `;
 
 exports[`cli completion tests for commander > root command option tests > should complete root command --logLevel option values 1`] = `
-"info	Info level
-warn	Warn level
-error	Error level
-silent	Silent level
+"info	
+warn	
+error	
+silent	
 :4
 "
 `;
 
 exports[`cli completion tests for commander > root command option tests > should complete root command --logLevel option with partial input 1`] = `
-"info	Info level
+"info	
 :4
 "
 `;
@@ -895,10 +895,10 @@ exports[`cli completion tests for commander > root command option tests > should
 `;
 
 exports[`cli completion tests for commander > root command option tests > should complete root command short flag -l option values 1`] = `
-"info	Info level
-warn	Warn level
-error	Error level
-silent	Silent level
+"info	
+warn	
+error	
+silent	
 :4
 "
 `;
