@@ -108,15 +108,7 @@ if (modeOption) {
     complete('production', 'Production mode');
   };
 }
-const logLevelOption = completion.options.get('logLevel');
-if (logLevelOption) {
-  logLevelOption.handler = (complete) => {
-    complete('info', 'Info level');
-    complete('warn', 'Warn level');
-    complete('error', 'Error level');
-    complete('silent', 'Silent level');
-  };
-}
+// Note: loglevel automatically gets completions because uses ".choices()" in option definition.
 
 // Options on dev command
 const devCommandInstance = completion.commands.get('dev');

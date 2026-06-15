@@ -666,6 +666,7 @@ exports[`cli completion tests for commander > --config option tests > should not
 --config	Use specified config file
 --mode	Set env mode
 --logLevel	Specify log level
+--help	display help for command
 :4
 "
 `;
@@ -700,6 +701,7 @@ exports[`cli completion tests for commander > cli option value handling > should
 --config	Use specified config file
 --mode	Set env mode
 --logLevel	Specify log level
+--help	display help for command
 :4
 "
 `;
@@ -819,6 +821,8 @@ build	Build the project
 deploy	Deploy the application
 lint	Lint source files
 copy	Copy files
+complete	Generate shell completion scripts
+help	display help for command
 :4
 "
 `;
@@ -830,6 +834,8 @@ build	Build the project
 deploy	Deploy the application
 lint	Lint source files
 copy	Copy files
+complete	Generate shell completion scripts
+help	display help for command
 :4
 "
 `;
@@ -845,16 +851,16 @@ exports[`cli completion tests for commander > root command argument tests > shou
 `;
 
 exports[`cli completion tests for commander > root command option tests > should complete root command --logLevel option values 1`] = `
-"info	Info level
-warn	Warn level
-error	Error level
-silent	Silent level
+"info	
+warn	
+error	
+silent	
 :4
 "
 `;
 
 exports[`cli completion tests for commander > root command option tests > should complete root command --logLevel option with partial input 1`] = `
-"info	Info level
+"info	
 :4
 "
 `;
@@ -877,6 +883,7 @@ exports[`cli completion tests for commander > root command option tests > should
 --config	Use specified config file
 --mode	Set env mode
 --logLevel	Specify log level
+--help	display help for command
 :4
 "
 `;
@@ -888,10 +895,10 @@ exports[`cli completion tests for commander > root command option tests > should
 `;
 
 exports[`cli completion tests for commander > root command option tests > should complete root command short flag -l option values 1`] = `
-"info	Info level
-warn	Warn level
-error	Error level
-silent	Silent level
+"info	
+warn	
+error	
+silent	
 :4
 "
 `;
@@ -926,6 +933,7 @@ exports[`cli completion tests for commander > short flag handling > should not s
 --config	Use specified config file
 --mode	Set env mode
 --logLevel	Specify log level
+--help	display help for command
 :4
 "
 `;
@@ -937,6 +945,8 @@ build	Build the project
 deploy	Deploy the application
 lint	Lint source files
 copy	Copy files
+complete	Generate shell completion scripts
+help	display help for command
 :4
 "
 `;

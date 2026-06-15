@@ -1,5 +1,5 @@
 import type { Command as CommanderCommand } from 'commander';
-import t, { Command as TabCommand, type RootCommand } from './t';
+import t, { Command as TabCommand, type RootCommand, OptionHandler } from './t';
 
 // rawArgs is available on (just) the Commander root command, but is not included in the TypeScript types.
 interface CommandWithRawArgs extends CommanderCommand {
@@ -23,12 +23,6 @@ export default function tab(
   completionConfig?: { completionCommandName?: string }
 ): RootCommand {
   const programName = instance.name();
-
-  // Process the root command
-  processRootCommand(instance);
-
-  // Process all subcommands
-  processSubcommands(instance);
 
   // Make a `completion` command with a required command-argument.
   const completionCommandName =
@@ -101,71 +95,50 @@ export default function tab(
       });
   }
 
+  // Now we have added complete and completion command...
+  // Process the root command
+  processRootCommand(instance);
+
+  // Process all subcommands
+  processSubcommands(instance);
+
   return t;
 }
 
-/**
- * Detect whether a commander option flag expects a value argument.
- * Options with `<value>` or `[value]` in their flags are value-taking.
- */
-function optionTakesValue(flags: string): boolean {
-  return flags.includes('<') || flags.includes('[');
-}
+function processOptions(t: TabCommand, cmd: CommanderCommand): void {
+  // visibleOptions handles hidden options and built-in help option
+  const visibleOptions = cmd.createHelp().visibleOptions(cmd);
+  for (const option of visibleOptions) {
+    // Commander has at least one of short and long option flags, but can have just one.
+    // Commander also allows special case, shortish long and long like '--ws, --workspace'.
+    // Remove the leading dashes to get the names.
+    let shortName = option.short?.slice(1);
+    if (shortName && shortName[0] === '-') shortName = undefined; // ignore shortish long
+    const longName = option.long?.slice(2);
+    if (longName) {
+      const optionTakesValue = option.required || option.optional;
+      const choices = option.argChoices ?? [];
 
-/**
- * Register a commander option with the tab library, correctly setting
- * isBoolean based on whether the option takes a value.
- *
- * The tab Command.option() method infers isBoolean from the argument types:
- * - string arg → alias, isBoolean=true
- * - function arg → handler, isBoolean=false
- * So for value-taking options with an alias, we pass a no-op handler
- * and the alias separately to get isBoolean=false.
- */
-function registerOption(
-  tabCommand: {
-    option: (
-      value: string,
-      description: string,
-      handlerOrAlias?: ((...args: unknown[]) => void) | string,
-      alias?: string
-    ) => unknown;
-  },
-  flags: string,
-  longFlag: string,
-  description: string,
-  shortFlag?: string
-): void {
-  const takesValue = optionTakesValue(flags);
-  if (shortFlag) {
-    if (takesValue) {
-      // Pass a no-op handler to force isBoolean=false, with alias as 4th arg
-      tabCommand.option(longFlag, description, () => {}, shortFlag);
-    } else {
-      tabCommand.option(longFlag, description, shortFlag);
-    }
-  } else {
-    if (takesValue) {
-      tabCommand.option(longFlag, description, () => {});
-    } else {
-      tabCommand.option(longFlag, description);
+      let optionHandler: OptionHandler | undefined = undefined;
+      if (optionTakesValue && choices.length > 0) {
+        optionHandler = (complete) => {
+          for (const choice of choices) complete(choice, '');
+        };
+      } else if (optionTakesValue) {
+        optionHandler = () => {};
+      }
+
+      if (optionHandler) {
+        t.option(longName, option.description, optionHandler, shortName);
+      } else {
+        t.option(longName, option.description, shortName);
+      }
     }
   }
 }
 
 function processRootCommand(command: CommanderCommand): void {
-  // Add root command options to the root t instance
-  for (const option of command.options) {
-    // Extract short flag from the name if it exists (e.g., "-c, --config" -> "c")
-    const flags = option.flags;
-    const shortFlag = flags.match(/^-([a-zA-Z]), --/)?.[1];
-    const longFlag = flags.match(/--([a-zA-Z0-9-]+)/)?.[1];
-
-    if (longFlag) {
-      registerOption(t, flags, longFlag, option.description || '', shortFlag);
-    }
-  }
-
+  processOptions(t, command);
   processArguments(t, command);
 }
 
@@ -200,24 +173,8 @@ function processSubcommands(rootCommand: CommanderCommand): void {
     // Add command using t.ts API
     const command = t.command(path, cmd.description() || '');
 
-    // Add command options
-    for (const option of cmd.options) {
-      // Extract short flag from the name if it exists (e.g., "-c, --config" -> "c")
-      const flags = option.flags;
-      const shortFlag = flags.match(/^-([a-zA-Z]), --/)?.[1];
-      const longFlag = flags.match(/--([a-zA-Z0-9-]+)/)?.[1];
-
-      if (longFlag) {
-        registerOption(
-          command,
-          flags,
-          longFlag,
-          option.description || '',
-          shortFlag
-        );
-      }
-    }
-
+    // Add command options and arguments
+    processOptions(command, cmd);
     processArguments(command, cmd);
   }
 }
@@ -231,10 +188,9 @@ function collectCommands(
   commandMap.set(parentPath, command);
 
   // Process subcommands
-  for (const subcommand of command.commands) {
-    // Skip the completion command
-    if (subcommand.name() === 'complete') continue;
-
+  // visibleCommands handles hidden commands and built-in help command
+  const visibleCommands = command.createHelp().visibleCommands(command);
+  for (const subcommand of visibleCommands) {
     // Build the full path for this subcommand
     const subcommandPath = parentPath
       ? `${parentPath} ${subcommand.name()}`
