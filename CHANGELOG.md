@@ -1,5 +1,12 @@
 # @bombsh/tab
 
+## 0.0.17
+
+### Patch Changes
+
+- 53ea5e1: feat(commander): support completions for positional arguments
+- 314d836: feat(commander): use commander for determining integration details (#131)
+
 ## 0.0.16
 
 ### Patch Changes
