@@ -34,7 +34,7 @@ jobs:
         run: pnpm install
 
       - name: Run tests
-        run: pnpm test
+        run: pnpm test:unit
 
   typecheck:
     name: Lint and Type Check

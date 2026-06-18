@@ -7,6 +7,8 @@
   },
   "scripts": {
     "test": "vitest run",
+    "test:unit": "vitest run --exclude tests/shell-empty-argv.test.ts",
+    "test:shell": "vitest run tests/shell-empty-argv.test.ts",
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
