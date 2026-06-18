@@ -96,6 +96,14 @@ async function findExecutable(candidates: string[]): Promise<string | null> {
   return null;
 }
 
+function shQuote(value: string): string {
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+function psQuote(value: string): string {
+  return `'${value.replace(/'/g, `''`)}'`;
+}
+
 function formatArgs(args: string[]): string {
   return JSON.stringify(args);
 }
@@ -114,14 +122,6 @@ function logShellCase(
       `  expected: ${formatArgs(expected)}\n` +
       `  received: ${formatArgs(received)}`
   );
-}
-
-function shQuote(value: string): string {
-  return `'${value.replace(/'/g, `'\\''`)}'`;
-}
-
-function psQuote(value: string): string {
-  return `'${value.replace(/'/g, `''`)}'`;
 }
 
 async function createFixture(
@@ -242,7 +242,10 @@ _demo >/dev/null
     TAB_ARGV_CAPTURE: fixture.capturePath,
   });
 
-  expect(result.code, result.stderr).toBe(0);
+  expect(
+    result.code,
+    `stdout:\n${result.stdout}\nstderr:\n${result.stderr}`
+  ).toBe(0);
 
   const capturedArgs = await readLastCapturedArgs(fixture.capturePath);
 
@@ -320,7 +323,10 @@ complete --do-complete ${shQuote(testCase.line)} >/dev/null
 
   const result = await execFileAsync(shell, ['-c', script]);
 
-  expect(result.code, result.stderr).toBe(0);
+  expect(
+    result.code,
+    `stdout:\n${result.stdout}\nstderr:\n${result.stderr}`
+  ).toBe(0);
 
   const capturedArgs = await readLastCapturedArgs(fixture.capturePath);
 
@@ -382,8 +388,30 @@ $commandAst = $ast.EndBlock.Statements[0].PipelineElements[0]
   ).toEqual(testCase.expected);
 }
 
+async function collectCaseFailures(
+  shellName: string,
+  casesToRun: CompletionCase[],
+  runCase: (testCase: CompletionCase) => Promise<void>
+): Promise<string[]> {
+  const failures: string[] = [];
+
+  for (const testCase of casesToRun) {
+    try {
+      await runCase(testCase);
+    } catch (error) {
+      failures.push(
+        `[${shellName}] ${testCase.label}\n${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
+  }
+
+  return failures;
+}
+
 describe('generated shell argv protocol', () => {
-  it('zsh sends exactly one empty arg for root empty completion', async () => {
+  it('zsh sends the expected argv for every completion case', async () => {
     const shell = await findExecutable(['zsh']);
 
     if (!shell) {
@@ -391,14 +419,18 @@ describe('generated shell argv protocol', () => {
       return;
     }
 
+    let failures: string[] = [];
+
     await withFixture('zsh', async (fixture) => {
-      for (const testCase of cases) {
-        await assertZshCase(shell, fixture, testCase);
-      }
+      failures = await collectCaseFailures('zsh', cases, (testCase) =>
+        assertZshCase(shell, fixture, testCase)
+      );
     });
+
+    expect(failures.join('\n\n')).toBe('');
   });
 
-  it('bash sends exactly one empty arg for root empty completion', async () => {
+  it('bash sends the expected argv for every completion case', async () => {
     const shell = await findExecutable(['bash']);
 
     if (!shell) {
@@ -406,14 +438,18 @@ describe('generated shell argv protocol', () => {
       return;
     }
 
+    let failures: string[] = [];
+
     await withFixture('bash', async (fixture) => {
-      for (const testCase of cases) {
-        await assertBashCase(shell, fixture, testCase);
-      }
+      failures = await collectCaseFailures('bash', cases, (testCase) =>
+        assertBashCase(shell, fixture, testCase)
+      );
     });
+
+    expect(failures.join('\n\n')).toBe('');
   });
 
-  it('fish sends exactly one empty arg for root empty completion', async () => {
+  it('fish sends the expected argv for every completion case', async () => {
     const shell = await findExecutable(['fish']);
 
     if (!shell) {
@@ -421,14 +457,18 @@ describe('generated shell argv protocol', () => {
       return;
     }
 
+    let failures: string[] = [];
+
     await withFixture('fish', async (fixture) => {
-      for (const testCase of cases) {
-        await assertFishCase(shell, fixture, testCase);
-      }
+      failures = await collectCaseFailures('fish', cases, (testCase) =>
+        assertFishCase(shell, fixture, testCase)
+      );
     });
+
+    expect(failures.join('\n\n')).toBe('');
   });
 
-  it('PowerShell sends exactly one empty arg for root empty completion', async () => {
+  it('PowerShell sends the expected argv for every completion case', async () => {
     const shell = await findExecutable(['pwsh', 'powershell']);
 
     if (!shell) {
@@ -438,16 +478,14 @@ describe('generated shell argv protocol', () => {
       return;
     }
 
-    const failures: string[] = [];
+    let failures: string[] = [];
+
     await withFixture('powershell', async (fixture) => {
-      for (const testCase of cases) {
-        try {
-          await assertPowerShellCase(shell, fixture, testCase);
-        } catch (error) {
-          failures.push(error instanceof Error ? error.message : String(error));
-        }
-      }
+      failures = await collectCaseFailures('powershell', cases, (testCase) =>
+        assertPowerShellCase(shell, fixture, testCase)
+      );
     });
+
     expect(failures.join('\n\n')).toBe('');
   }, 30_000);
 });
