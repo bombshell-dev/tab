@@ -48,7 +48,7 @@ _${name}() {
 
     # Prepare the command to obtain completions, ensuring arguments are quoted for eval
     local -a args_to_quote=("\${(@)words[2,-1]}")
-    if [ "\${lastChar}" = "" ] && [ "\${args_to_quote[-1]}" != "" ]; then
+    if [ "\${lastChar}" = "" ]; then
         # If the last parameter is complete (there is a space following it)
         # We add an extra empty parameter so we can indicate this to the go completion code.
         __${name}_debug "Adding extra empty parameter"
