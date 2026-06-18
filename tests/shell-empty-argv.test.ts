@@ -109,7 +109,10 @@ async function createFixture(
 ): Promise<Fixture> {
   const dir = await mkdtemp(join(tmpdir(), 'tab-shell-empty-argv-'));
   const helperPath = join(dir, 'capture-argv.cjs');
-  const scriptPath = join(dir, `${shell}.completion`);
+  const scriptPath = join(
+    dir,
+    shell === 'powershell' ? 'powershell.completion.ps1' : `${shell}.completion`
+  );
   const capturePath = join(dir, 'captured-argv.jsonl');
 
   await writeFile(
