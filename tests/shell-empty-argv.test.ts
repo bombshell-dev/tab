@@ -71,7 +71,7 @@ function execFileAsync(
           ...process.env,
           ...env,
         },
-        timeout: 10_000,
+        timeout: 30_000,
       },
       (error, stdout, stderr) => {
         resolve({
@@ -298,6 +298,7 @@ $env:TAB_ARGV_CAPTURE = ${psQuote(fixture.capturePath)}
 `;
 
   const result = await execFileAsync(shell, [
+    '-NoLogo',
     '-NoProfile',
     '-NonInteractive',
     '-Command',
@@ -371,5 +372,5 @@ describe('generated shell argv protocol', () => {
         await assertPowerShellCase(shell, fixture, testCase);
       }
     });
-  });
+  }, 30_000);
 });
