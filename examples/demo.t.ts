@@ -120,17 +120,27 @@ t.command('lint', 'Lint project').argument(
   true
 ); // Variadic argument for multiple files
 
+const supportedShells = ['zsh', 'bash', 'fish', 'powershell'];
+const completeUsage =
+  'ERROR: Usage: vite complete <shell> | vite complete -- <argv>';
+
+function printCompleteUsageAndExit() {
+  console.error(completeUsage);
+  process.exit(1);
+}
+
 // Handle completion command
 if (process.argv[2] === 'complete') {
-  const shell = process.argv[3];
-  if (shell && ['zsh', 'bash', 'fish', 'powershell'].includes(shell)) {
-    t.setup('vite', 'pnpm tsx examples/demo.t.ts', shell);
+  const mode = process.argv[3];
+
+  if (mode === '--') {
+    // Runtime completion request from the generated shell script.
+    t.parse(process.argv.slice(4));
+  } else if (mode && supportedShells.includes(mode)) {
+    // Shell script generation.
+    t.setup('vite', 'pnpm tsx examples/demo.t.ts', mode);
   } else {
-    // Parse completion arguments (everything after --)
-    const separatorIndex = process.argv.indexOf('--');
-    const completionArgs =
-      separatorIndex !== -1 ? process.argv.slice(separatorIndex + 1) : [];
-    t.parse(completionArgs);
+    printCompleteUsageAndExit();
   }
 } else {
   // Regular CLI usage (just show help for demo)
