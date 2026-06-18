@@ -121,8 +121,7 @@ t.command('lint', 'Lint project').argument(
 ); // Variadic argument for multiple files
 
 const supportedShells = ['zsh', 'bash', 'fish', 'powershell'];
-const completeUsage =
-  'ERROR: Usage: vite complete <shell> | vite complete -- <argv>';
+const completeUsage = 'Usage: vite complete <shell> | vite complete -- <argv>';
 
 function printCompleteUsageAndExit() {
   console.error(completeUsage);
