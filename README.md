@@ -156,6 +156,20 @@ yarn add --emoji=<TAB>
 # Shows: true, false
 ```
 
+### Completing locally-installed CLIs
+
+Package manager completion does more than complete the package manager's own flags — it also **delegates to CLIs installed as local project dependencies**. If a CLI implements tab's completion protocol (directly or via a [framework adapter](#framework-adapters)), it becomes completable through your package manager *without* being on your `PATH` and without installing its completion script separately:
+
+```bash
+pnpm exec my-cli <TAB>      # completes my-cli's subcommands and flags
+pnpm dlx my-cli <TAB>
+pnpm my-cli <TAB>           # the bare form works too
+```
+
+Under the hood, tab strips the package-manager wrapper (`exec`, `x`, `run`, `dlx`), detects whether the target CLI supports completion, and forwards the request to it — falling back to running the CLI *through* the package manager (e.g. `pnpm my-cli complete -- …`) so locally-installed binaries resolve. The same works for `npm exec`, `yarn`, and `bun x`.
+
+> **Note:** Completion is registered against the package-manager binary (`npm`, `pnpm`, `yarn`, `bun`). `npx` and `bunx` are separate commands with no completion of their own, so `npx my-cli <TAB>` / `bunx my-cli <TAB>` won't complete — use `npm exec my-cli` / `bun x my-cli` instead.
+
 ## Framework Adapters
 
 tab provides adapters for popular JavaScript CLI frameworks.
