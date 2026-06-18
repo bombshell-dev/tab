@@ -1,7 +1,7 @@
 import { execFile } from 'node:child_process';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { delimiter, join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import * as bash from '../src/bash';
@@ -71,7 +71,7 @@ function execFileAsync(
           ...process.env,
           ...env,
         },
-        timeout: 30_000,
+        timeout: 20_000,
       },
       (error, stdout, stderr) => {
         resolve({
@@ -115,23 +115,43 @@ async function createFixture(
   await writeFile(
     helperPath,
     `
-  const fs = require('node:fs');
-  
-  const capturePath = process.env.TAB_ARGV_CAPTURE;
-  if (!capturePath) {
-    throw new Error('TAB_ARGV_CAPTURE is not set');
-  }
-  
-  const separatorIndex = process.argv.indexOf('--');
-  const completionArgs =
-    separatorIndex === -1 ? [] : process.argv.slice(separatorIndex + 1);
-  
-  fs.appendFileSync(capturePath, JSON.stringify(completionArgs) + '\\n');
-  
-  // Emit one matching completion so bash's compgen exits successfully.
-  // The argv capture is what this test really asserts.
-  process.stdout.write('dev\\tStart dev server\\n:4\\n');
-  `.trimStart()
+const fs = require('node:fs');
+
+const capturePath = process.env.TAB_ARGV_CAPTURE;
+if (!capturePath) {
+  throw new Error('TAB_ARGV_CAPTURE is not set');
+}
+
+const separatorIndex = process.argv.indexOf('--');
+const completionArgs =
+  separatorIndex === -1 ? [] : process.argv.slice(separatorIndex + 1);
+
+fs.appendFileSync(capturePath, JSON.stringify(completionArgs) + '\\n');
+
+// Emit one matching completion so shells that use native filtering still exit successfully.
+// The argv capture is what this test actually asserts.
+process.stdout.write('dev\\tStart dev server\\n:4\\n');
+`.trimStart()
+  );
+
+  // PowerShell's native completion engine may not invoke a registered native
+  // argument completer unless the command exists on PATH. Create a dummy command
+  // so the test environment matches real CLI usage.
+  const posixCommandPath = join(dir, 'demo');
+  await writeFile(
+    posixCommandPath,
+    `#!/usr/bin/env sh
+exit 0
+`
+  );
+  await chmod(posixCommandPath, 0o755);
+
+  // Harmless on Unix, useful if this test is ever run on Windows.
+  await writeFile(
+    join(dir, 'demo.cmd'),
+    `@echo off
+exit /b 0
+`
   );
 
   const posixExec = `${shQuote(process.execPath)} ${shQuote(helperPath)}`;
@@ -156,12 +176,24 @@ async function createFixture(
 }
 
 async function readLastCapturedArgs(capturePath: string): Promise<string[]> {
-  const content = await readFile(capturePath, 'utf8');
+  let content: string;
+
+  try {
+    content = await readFile(capturePath, 'utf8');
+  } catch (error) {
+    throw new Error(
+      `No argv capture found at ${capturePath}. The generated completer probably did not invoke the fake backend.`,
+      {
+        cause: error,
+      }
+    );
+  }
+
   const lines = content.trim().split(/\r?\n/);
   const lastLine = lines.at(-1);
 
   if (!lastLine) {
-    throw new Error(`No argv capture found in ${capturePath}`);
+    throw new Error(`Argv capture file was empty: ${capturePath}`);
   }
 
   return JSON.parse(lastLine);
@@ -208,9 +240,13 @@ _demo >/dev/null
   });
 
   expect(result.code, result.stderr).toBe(0);
-  await expect(readLastCapturedArgs(fixture.capturePath)).resolves.toEqual(
-    testCase.expected
-  );
+
+  const capturedArgs = await readLastCapturedArgs(fixture.capturePath);
+
+  expect(
+    capturedArgs,
+    `zsh did not send expected argv for case: ${testCase.label}`
+  ).toEqual(testCase.expected);
 }
 
 async function assertBashCase(
@@ -254,9 +290,13 @@ __demo_complete >/dev/null
     result.code,
     `stdout:\n${result.stdout}\nstderr:\n${result.stderr}`
   ).toBe(0);
-  await expect(readLastCapturedArgs(fixture.capturePath)).resolves.toEqual(
-    testCase.expected
-  );
+
+  const capturedArgs = await readLastCapturedArgs(fixture.capturePath);
+
+  expect(
+    capturedArgs,
+    `bash did not send expected argv for case: ${testCase.label}`
+  ).toEqual(testCase.expected);
 }
 
 async function assertFishCase(
@@ -274,9 +314,13 @@ complete --do-complete ${shQuote(testCase.line)} >/dev/null
   const result = await execFileAsync(shell, ['-c', script]);
 
   expect(result.code, result.stderr).toBe(0);
-  await expect(readLastCapturedArgs(fixture.capturePath)).resolves.toEqual(
-    testCase.expected
-  );
+
+  const capturedArgs = await readLastCapturedArgs(fixture.capturePath);
+
+  expect(
+    capturedArgs,
+    `fish did not send expected argv for case: ${testCase.label}`
+  ).toEqual(testCase.expected);
 }
 
 async function assertPowerShellCase(
@@ -297,18 +341,25 @@ $env:TAB_ARGV_CAPTURE = ${psQuote(fixture.capturePath)}
 ) | Out-Null
 `;
 
-  const result = await execFileAsync(shell, [
-    '-NoLogo',
-    '-NoProfile',
-    '-NonInteractive',
-    '-Command',
-    script,
-  ]);
-
-  expect(result.code, result.stderr).toBe(0);
-  await expect(readLastCapturedArgs(fixture.capturePath)).resolves.toEqual(
-    testCase.expected
+  const result = await execFileAsync(
+    shell,
+    ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', script],
+    {
+      PATH: `${fixture.dir}${delimiter}${process.env.PATH ?? ''}`,
+    }
   );
+
+  expect(
+    result.code,
+    `stdout:\n${result.stdout}\nstderr:\n${result.stderr}`
+  ).toBe(0);
+
+  const capturedArgs = await readLastCapturedArgs(fixture.capturePath);
+
+  expect(
+    capturedArgs,
+    `PowerShell did not send expected argv for case: ${testCase.label}`
+  ).toEqual(testCase.expected);
 }
 
 describe('generated shell argv protocol', () => {
