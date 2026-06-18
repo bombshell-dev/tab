@@ -1,5 +1,25 @@
 # @bombsh/tab
 
+## 0.0.17
+
+### Patch Changes
+
+- 53ea5e1: feat(commander): support completions for positional arguments
+- 314d836: feat(commander): use commander for determining integration details (#131)
+
+## 0.0.16
+
+### Patch Changes
+
+- 04153b8: refactor: commander adapter - remove parse/parseAsync and add optional `completionCommandName` config
+- e784d62: fix: parseasync() commander's adapter
+
+## 0.0.15
+
+### Patch Changes
+
+- a9d4f04: fix positional argument completion broken after flags
+
 ## 0.0.14
 
 ### Patch Changes

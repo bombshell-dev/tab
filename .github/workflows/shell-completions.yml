@@ -1,0 +1,58 @@
+name: Shell Completions
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  shell-argv-protocol:
+    name: Shell argv protocol
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install shell dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zsh fish wget apt-transport-https software-properties-common
+
+      - name: Install PowerShell
+        shell: bash
+        run: |
+          source /etc/os-release
+          wget -q https://packages.microsoft.com/config/ubuntu/$VERSION_ID/packages-microsoft-prod.deb
+          sudo dpkg -i packages-microsoft-prod.deb
+          rm packages-microsoft-prod.deb
+          sudo apt-get update
+          sudo apt-get install -y powershell
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4.0.0
+
+      - name: Set node version to 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org/
+          cache: pnpm
+
+      - name: Install deps
+        run: pnpm install
+
+      - name: Print shell versions
+        shell: bash
+        run: |
+          bash --version
+          zsh --version
+          fish --version
+          pwsh --version
+
+      - name: Run shell argv protocol tests
+        run: pnpm test tests/shell-empty-argv.test.ts

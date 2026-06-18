@@ -1,12 +1,14 @@
 {
   "name": "@bomb.sh/tab",
-  "version": "0.0.14",
+  "version": "0.0.17",
   "type": "module",
   "bin": {
     "tab": "./dist/bin/cli.mjs"
   },
   "scripts": {
     "test": "vitest run",
+    "test:unit": "vitest run --exclude tests/shell-empty-argv.test.ts",
+    "test:shell": "vitest run tests/shell-empty-argv.test.ts",
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

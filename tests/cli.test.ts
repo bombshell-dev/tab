@@ -16,22 +16,14 @@ function runCommand(command: string): Promise<string> {
 const cliTools = ['t', 'citty', 'cac', 'commander'];
 
 describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
-  // For Commander, we need to skip most of the tests since it handles completion differently
-  const shouldSkipTest = cliTool === 'commander';
+  const commandPrefix = `pnpm tsx examples/demo.${cliTool}.ts complete --`;
 
-  // Commander uses a different command structure for completion
-  // TODO: why commander does that? our convention is the -- part which should be always there.
-  const commandPrefix =
-    cliTool === 'commander'
-      ? `pnpm tsx examples/demo.${cliTool}.ts complete`
-      : `pnpm tsx examples/demo.${cliTool}.ts complete --`;
-
-  it.runIf(!shouldSkipTest)('should complete cli options', async () => {
+  it('should complete cli options', async () => {
     const output = await runCommand(`${commandPrefix}`);
     expect(output).toMatchSnapshot();
   });
 
-  describe.runIf(!shouldSkipTest)('cli option completion tests', () => {
+  describe('cli option completion tests', () => {
     const optionTests = [
       { partial: '--p', expected: '--port' },
       { partial: '-p', expected: '-p' }, // Test short flag completion
@@ -48,7 +40,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     );
   });
 
-  describe.runIf(!shouldSkipTest)('cli option exclusion tests', () => {
+  describe('cli option exclusion tests', () => {
     const alreadySpecifiedTests = [
       { specified: '--config', shouldNotContain: '--config' },
     ];
@@ -63,7 +55,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     );
   });
 
-  describe.runIf(!shouldSkipTest)('cli option value handling', () => {
+  describe('cli option value handling', () => {
     it('should resolve port value correctly', async () => {
       const command = `${commandPrefix} dev --port=3`;
       const output = await runCommand(command);
@@ -89,7 +81,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     });
   });
 
-  describe.runIf(!shouldSkipTest)('boolean option handling', () => {
+  describe('boolean option handling', () => {
     it('should complete subcommands and arguments after boolean options', async () => {
       const command = `${commandPrefix} dev --verbose ""`;
       const output = await runCommand(command);
@@ -118,12 +110,12 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     it('should not interfere with option completion after boolean options', async () => {
       const command = `${commandPrefix} dev --verbose --h`;
       const output = await runCommand(command);
-      // Should complete subcommands that start with 's' even after a boolean option
+      // Should complete options that start with '--h' even after a boolean option
       expect(output).toContain('--host');
     });
   });
 
-  describe.runIf(!shouldSkipTest)('option API overload tests', () => {
+  describe('option API overload tests', () => {
     it('should handle basic option (name + description only) as boolean flag', async () => {
       // This tests the case: option('quiet', 'Suppress output')
       const command = `${commandPrefix} dev --quiet ""`;
@@ -197,7 +189,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     });
   });
 
-  describe.runIf(!shouldSkipTest)('--config option tests', () => {
+  describe('--config option tests', () => {
     it('should complete --config option values', async () => {
       const command = `${commandPrefix} --config ""`;
       const output = await runCommand(command);
@@ -235,7 +227,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     });
   });
 
-  describe.runIf(!shouldSkipTest)('root command argument tests', () => {
+  describe('root command argument tests', () => {
     it('should complete root command project argument', async () => {
       const command = `${commandPrefix} ""`;
       const output = await runCommand(command);
@@ -261,7 +253,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     });
   });
 
-  describe.runIf(!shouldSkipTest)('root command option tests', () => {
+  describe('root command option tests', () => {
     it('should complete root command --mode option values', async () => {
       const command = `${commandPrefix} --mode ""`;
       const output = await runCommand(command);
@@ -311,30 +303,27 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     });
   });
 
-  describe.runIf(!shouldSkipTest)(
-    'edge case completions for end with space',
-    () => {
-      it('should suggest port values if user ends with space after `--port`', async () => {
-        const command = `${commandPrefix} dev --port ""`;
-        const output = await runCommand(command);
-        expect(output).toMatchSnapshot();
-      });
+  describe('edge case completions for end with space', () => {
+    it('should suggest port values if user ends with space after `--port`', async () => {
+      const command = `${commandPrefix} dev --port ""`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
 
-      it("should keep suggesting the --port option if user typed partial but didn't end with space", async () => {
-        const command = `${commandPrefix} dev --po`;
-        const output = await runCommand(command);
-        expect(output).toMatchSnapshot();
-      });
+    it("should keep suggesting the --port option if user typed partial but didn't end with space", async () => {
+      const command = `${commandPrefix} dev --po`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
 
-      it("should suggest port values if user typed `--port=` and hasn't typed a space or value yet", async () => {
-        const command = `${commandPrefix} dev --port=`;
-        const output = await runCommand(command);
-        expect(output).toMatchSnapshot();
-      });
-    }
-  );
+    it("should suggest port values if user typed `--port=` and hasn't typed a space or value yet", async () => {
+      const command = `${commandPrefix} dev --port=`;
+      const output = await runCommand(command);
+      expect(output).toMatchSnapshot();
+    });
+  });
 
-  describe.runIf(!shouldSkipTest)('short flag handling', () => {
+  describe('short flag handling', () => {
     it('should handle short flag value completion', async () => {
       const command = `${commandPrefix} dev -p `;
       const output = await runCommand(command);
@@ -360,7 +349,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     });
   });
 
-  describe.runIf(!shouldSkipTest)('positional argument completions', () => {
+  describe('positional argument completions', () => {
     it('should complete multiple positional arguments when ending with space', async () => {
       const command = `${commandPrefix} lint ""`;
       const output = await runCommand(command);
@@ -380,7 +369,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     });
   });
 
-  describe.runIf(!shouldSkipTest)('copy command argument handlers', () => {
+  describe('copy command argument handlers', () => {
     it('should complete source argument with directory suggestions', async () => {
       const command = `${commandPrefix} copy ""`;
       const output = await runCommand(command);
@@ -406,7 +395,7 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
     });
   });
 
-  describe.runIf(!shouldSkipTest)('lint command argument handlers', () => {
+  describe('lint command argument handlers', () => {
     it('should complete files argument with file suggestions', async () => {
       const command = `${commandPrefix} lint ""`;
       const output = await runCommand(command);
@@ -444,18 +433,26 @@ describe('commander specific tests', () => {
   });
 
   it('should handle subcommands', async () => {
-    // First, we need to check if deploy is recognized as a command
+    // Check subcommands of root command.
     const command1 = `pnpm tsx examples/demo.commander.ts complete -- deploy`;
     const output1 = await runCommand(command1);
     expect(output1).toContain('deploy');
     expect(output1).toContain('Deploy the application');
 
-    // Then we need to check if the deploy command has subcommands
-    // We can check this by running the deploy command with --help
-    const command2 = `pnpm tsx examples/demo.commander.ts deploy --help`;
+    // Check subcommands of subcommand.
+    const command2 = `pnpm tsx examples/demo.commander.ts complete -- deploy ""`;
     const output2 = await runCommand(command2);
     expect(output2).toContain('staging');
     expect(output2).toContain('production');
+  });
+
+  it('should intercept completion when using parseAsync', async () => {
+    const command = `pnpm tsx examples/demo.commander-async.ts complete -- `;
+    const output = await runCommand(command);
+    expect(output).toContain('greet');
+    expect(output).toContain('Say hello');
+    // directive line must be present, proving t.parse was invoked
+    expect(output).toMatch(/:\d+\s*$/);
   });
 });
 

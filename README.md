@@ -6,7 +6,48 @@ Shell autocompletions are largely missing in the JavaScript CLI ecosystem. tab p
 
 Additionally, tab supports autocompletions for `pnpm`, `npm`, `yarn`, and `bun`.
 
-Modern CLI libraries like [Gunshi](https://github.com/kazupon/gunshi) include tab completion natively in their core.
+Tab has already been adopted by major tools and CLI frameworks, including:
+
+<table align="center">
+  <tr>
+    <td align="center">
+      <a href="https://www.cloudflare.com/">
+        <img src="https://github.com/cloudflare.png?size=200" alt="Cloudflare" width="64"><br>
+        Cloudflare
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://nuxt.com/">
+        <img src="https://github.com/nuxt.png?size=200" alt="Nuxt" width="64"><br>
+        Nuxt
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://astro.build/">
+        <img src="https://github.com/withastro.png?size=200" alt="Astro" width="64"><br>
+        Astro
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://vitest.dev/">
+        <img src="https://github.com/vitest-dev.png?size=200" alt="Vitest" width="64"><br>
+        Vitest
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/kazupon/gunshi">
+        <img src="https://raw.githubusercontent.com/kazupon/gunshi/main/assets/logo.png" alt="Gunshi" width="64"><br>
+        Gunshi
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/clercjs/clerc">
+        <img src="https://raw.githubusercontent.com/clercjs/clerc/main/docs/public/logo.webp" alt="Clerc" width="64"><br>
+        Clerc
+      </a>
+    </td>
+  </tr>
+</table>
 
 As CLI tooling authors, if we can spare our users a second or two by not checking documentation or writing the `-h` flag, we're doing them a huge favor. The unconscious mind loves hitting the [TAB] key and always expects feedback. When nothing happens, it breaks the user's flow - a frustration apparent across the whole JavaScript CLI tooling ecosystem.
 
@@ -220,6 +261,14 @@ if (portOption) {
 program.parse();
 ```
 
+The Commander integration supports customising the command name to generate the shell completion script. The default is `complete`. If you use a custom name
+like `completion` then it will be visible in the help as `completion <shell>`, while the runtime suggestions will be hidden (`complete -- [args...]`).
+You'll need to use your custom command when following examples on this page to generate the shell completion script.
+
+```javascript
+const completion = tab(program, { completionCommandName: 'completion' });
+```
+
 ## Bring Your Own Completion Logic
 
 If your CLI framework already implements the logic for figuring out what to
@@ -275,7 +324,7 @@ newline characters, since those are the protocol delimiters.
 A working integration with [stricli](https://github.com/bloomberg/stricli) is
 in `examples/demo.stricli.ts`.
 
----
+### Custom Integrations
 
 tab uses a standardized completion protocol that any CLI can implement:
 

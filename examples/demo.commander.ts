@@ -1,4 +1,4 @@
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
 import tab from '../src/commander';
 
 // Create a new Commander program
@@ -7,11 +7,36 @@ program.version('1.0.0');
 
 // Add global options
 program
-  .option('-c, --config <file>', 'specify config file')
-  .option('-d, --debug', 'enable debugging')
-  .option('-v, --verbose', 'enable verbose output');
+  .option('-c, --config <file>', 'Use specified config file')
+  .option('-m, --mode <mode>', 'Set env mode')
+  .addOption(
+    new Option('-l, --logLevel <level>', 'Specify log level').choices([
+      'info',
+      'warn',
+      'error',
+      'silent',
+    ])
+  );
 
 // Add commands
+const devCommand = program
+  .command('dev')
+  .description('Start dev server')
+  .option('-H, --host [host]', `Specify hostname`)
+  .option('-p, --port <port>', `Specify port`)
+  .option('-v, --verbose', `Enable verbose logging`)
+  .option('--quiet', `Suppress output`)
+  .action((options) => {});
+// subcommands of dev
+devCommand
+  .command('start')
+  .description('Start development server')
+  .action((options) => {});
+devCommand
+  .command('build')
+  .description('Build project')
+  .action((options) => {});
+
 program
   .command('serve')
   .description('Start the server')
@@ -56,50 +81,84 @@ program
     console.log('Linting files...');
   });
 
+// Command with multiple required positional arguments
+program
+  .command('copy <source> <destination>')
+  .description('Copy files')
+  .action((source, destination) => {
+    console.log(`Copying ${source} to ${destination}...`);
+  });
+
 // Initialize tab completion
 const completion = tab(program);
 
 // Configure custom completions
-for (const command of completion.commands.values()) {
-  if (command.value === 'lint') {
-    // Note: Direct handler assignment is not supported in the current API
-    // Custom completion logic would need to be implemented differently
-  }
+// Options on root command
+const configOption = completion.options.get('config');
+if (configOption) {
+  configOption.handler = (complete) => {
+    complete('vite.config.ts', 'Vite config file');
+    complete('vite.config.js', 'Vite config file');
+  };
+}
+const modeOption = completion.options.get('mode');
+if (modeOption) {
+  modeOption.handler = (complete) => {
+    complete('development', 'Development mode');
+    complete('production', 'Production mode');
+  };
+}
+// Note: loglevel automatically gets completions because uses ".choices()" in option definition.
 
-  for (const [option, config] of command.options.entries()) {
-    if (option === '--port') {
-      config.handler = () => {
-        return [
-          { value: '3000', description: 'Default port' },
-          { value: '8080', description: 'Alternative port' },
-        ];
-      };
-    }
-    if (option === '--host') {
-      config.handler = () => {
-        return [
-          { value: 'localhost', description: 'Local development' },
-          { value: '0.0.0.0', description: 'All interfaces' },
-        ];
-      };
-    }
-    if (option === '--mode') {
-      config.handler = () => {
-        return [
-          { value: 'development', description: 'Development mode' },
-          { value: 'production', description: 'Production mode' },
-          { value: 'test', description: 'Test mode' },
-        ];
-      };
-    }
-    if (option === '--config') {
-      config.handler = () => {
-        return [
-          { value: 'config.json', description: 'JSON config file' },
-          { value: 'config.yaml', description: 'YAML config file' },
-        ];
-      };
-    }
+// Options on dev command
+const devCommandInstance = completion.commands.get('dev');
+if (devCommandInstance) {
+  const portOption = devCommandInstance.options.get('port');
+  if (portOption) {
+    portOption.handler = (complete) => {
+      complete('3000', 'Development server port');
+      complete('8080', 'Alternative port');
+    };
+  }
+  const hostOption = devCommandInstance.options.get('host');
+  if (hostOption) {
+    hostOption.handler = (complete) => {
+      complete('localhost', 'Localhost');
+      complete('127.0.0.1', 'Localhost IP');
+    };
+  }
+}
+
+// Positional arguments on lint command
+const lintCommandInstance = completion.commands.get('lint');
+if (lintCommandInstance) {
+  const filesArg = lintCommandInstance.arguments.get('files');
+  if (filesArg) {
+    filesArg.handler = (complete) => {
+      complete('main.ts', 'Main file');
+      complete('index.ts', 'Index file');
+    };
+  }
+}
+
+// Positional arguments on copy command
+const copyCommandInstance = completion.commands.get('copy');
+if (copyCommandInstance) {
+  const sourceArg = copyCommandInstance.arguments.get('source');
+  if (sourceArg) {
+    sourceArg.handler = (complete) => {
+      complete('src/', 'Source directory');
+      complete('dist/', 'Distribution directory');
+      complete('public/', 'Public assets');
+    };
+  }
+  const destinationArg = copyCommandInstance.arguments.get('destination');
+  if (destinationArg) {
+    destinationArg.handler = (complete) => {
+      complete('build/', 'Build output');
+      complete('release/', 'Release directory');
+      complete('backup/', 'Backup location');
+    };
   }
 }
 

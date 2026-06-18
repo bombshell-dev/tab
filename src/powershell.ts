@@ -93,8 +93,10 @@ export function generate(name: string, exec: string): string {
         # Remove the flag part
         $Flag, $WordToComplete = $WordToComplete.Split("=", 2)
     }
-
-    if ( $WordToComplete -eq "" -And ( -Not $IsEqualFlag )) {
+    $HasTrailingEmptyArg = $QuotedArgs -match "(^| )''$"
+    __${name}_debug "HasTrailingEmptyArg: $HasTrailingEmptyArg"
+    
+    if ( $WordToComplete -eq "" -And ( -Not $IsEqualFlag ) -And ( -Not $HasTrailingEmptyArg )) {
         # If the last parameter is complete (there is a space following it)
         # We add an extra empty parameter so we can indicate this to the go method.
         __${name}_debug "Adding extra empty parameter"
