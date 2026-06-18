@@ -96,6 +96,26 @@ async function findExecutable(candidates: string[]): Promise<string | null> {
   return null;
 }
 
+function formatArgs(args: string[]): string {
+  return JSON.stringify(args);
+}
+
+function logShellCase(
+  shell: string,
+  testCase: CompletionCase,
+  expected: string[],
+  received: string[]
+) {
+  const passed = JSON.stringify(received) === JSON.stringify(expected);
+  const status = passed ? 'PASS' : 'FAIL';
+
+  console.log(
+    `[${shell}] ${status} ${testCase.label}\n` +
+      `  expected: ${formatArgs(expected)}\n` +
+      `  received: ${formatArgs(received)}`
+  );
+}
+
 function shQuote(value: string): string {
   return `'${value.replace(/'/g, `'\\''`)}'`;
 }
@@ -226,6 +246,8 @@ _demo >/dev/null
 
   const capturedArgs = await readLastCapturedArgs(fixture.capturePath);
 
+  logShellCase('zsh', testCase, testCase.expected, capturedArgs);
+
   expect(
     capturedArgs,
     `zsh did not send expected argv for case: ${testCase.label}`
@@ -276,6 +298,8 @@ __demo_complete >/dev/null
 
   const capturedArgs = await readLastCapturedArgs(fixture.capturePath);
 
+  logShellCase('bash', testCase, testCase.expected, capturedArgs);
+
   expect(
     capturedArgs,
     `bash did not send expected argv for case: ${testCase.label}`
@@ -299,6 +323,8 @@ complete --do-complete ${shQuote(testCase.line)} >/dev/null
   expect(result.code, result.stderr).toBe(0);
 
   const capturedArgs = await readLastCapturedArgs(fixture.capturePath);
+
+  logShellCase('fish', testCase, testCase.expected, capturedArgs);
 
   expect(
     capturedArgs,
@@ -347,6 +373,8 @@ $commandAst = $ast.EndBlock.Statements[0].PipelineElements[0]
   ).toBe(0);
 
   const capturedArgs = await readLastCapturedArgs(fixture.capturePath);
+
+  logShellCase('powershell', testCase, testCase.expected, capturedArgs);
 
   expect(
     capturedArgs,
@@ -410,10 +438,16 @@ describe('generated shell argv protocol', () => {
       return;
     }
 
+    const failures: string[] = [];
     await withFixture('powershell', async (fixture) => {
       for (const testCase of cases) {
-        await assertPowerShellCase(shell, fixture, testCase);
+        try {
+          await assertPowerShellCase(shell, fixture, testCase);
+        } catch (error) {
+          failures.push(error instanceof Error ? error.message : String(error));
+        }
       }
     });
+    expect(failures.join('\n\n')).toBe('');
   }, 30_000);
 });
