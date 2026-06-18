@@ -1,7 +1,7 @@
 import { execFile } from 'node:child_process';
-import { chmod, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
-import { delimiter, join } from 'node:path';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import * as bash from '../src/bash';
@@ -132,26 +132,6 @@ fs.appendFileSync(capturePath, JSON.stringify(completionArgs) + '\\n');
 // The argv capture is what this test actually asserts.
 process.stdout.write('dev\\tStart dev server\\n:4\\n');
 `.trimStart()
-  );
-
-  // PowerShell's native completion engine may not invoke a registered native
-  // argument completer unless the command exists on PATH. Create a dummy command
-  // so the test environment matches real CLI usage.
-  const posixCommandPath = join(dir, 'demo');
-  await writeFile(
-    posixCommandPath,
-    `#!/usr/bin/env sh
-exit 0
-`
-  );
-  await chmod(posixCommandPath, 0o755);
-
-  // Harmless on Unix, useful if this test is ever run on Windows.
-  await writeFile(
-    join(dir, 'demo.cmd'),
-    `@echo off
-exit /b 0
-`
   );
 
   const posixExec = `${shQuote(process.execPath)} ${shQuote(helperPath)}`;
@@ -329,23 +309,32 @@ async function assertPowerShellCase(
   testCase: CompletionCase
 ) {
   const cursorPosition = testCase.line.length;
+  const wordToComplete = testCase.line.endsWith(' ')
+    ? ''
+    : (testCase.line.split(/\s+/).at(-1) ?? '');
 
   const script = `
 $env:TAB_ARGV_CAPTURE = ${psQuote(fixture.capturePath)}
 . ${psQuote(fixture.scriptPath)}
 
-[System.Management.Automation.CommandCompletion]::CompleteInput(
+$tokens = $null
+$errors = $null
+$ast = [System.Management.Automation.Language.Parser]::ParseInput(
   ${psQuote(testCase.line)},
-  ${cursorPosition},
-  $null
-) | Out-Null
+  [ref]$tokens,
+  [ref]$errors
+)
+
+$commandAst = $ast.EndBlock.Statements[0].PipelineElements[0]
+
+& $__demoCompleterBlock ${psQuote(wordToComplete)} $commandAst ${cursorPosition} | Out-Null
 `;
 
   const result = await execFileAsync(
     shell,
     ['-NoLogo', '-NoProfile', '-NonInteractive', '-Command', script],
     {
-      PATH: `${fixture.dir}${delimiter}${process.env.PATH ?? ''}`,
+      TAB_ARGV_CAPTURE: fixture.capturePath,
     }
   );
 
