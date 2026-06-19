@@ -1,5 +1,11 @@
 # @bombsh/tab
 
+## 0.0.18
+
+### Patch Changes
+
+- 998ab6f: prevent duplicate empty args in generated completions
+
 ## 0.0.17
 
 ### Patch Changes
