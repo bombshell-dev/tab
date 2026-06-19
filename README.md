@@ -276,12 +276,67 @@ program.parse();
 ```
 
 The Commander integration supports customising the command name to generate the shell completion script. The default is `complete`. If you use a custom name
-like `completion` then it will be visible in the help as `completion <shell>`, while the runtime suggestions will be hiddden (`complete -- [args...]`).
+like `completion` then it will be visible in the help as `completion <shell>`, while the runtime suggestions will be hidden (`complete -- [args...]`).
 You'll need to use your custom command when following examples on this page to generate the shell completion script.
 
 ```javascript
 const completion = tab(program, { completionCommandName: 'completion' });
 ```
+
+## Bring Your Own Completion Logic
+
+If your CLI framework already implements the logic for figuring out what to
+suggest from a partial argv (the "what" half), you can use tab purely for the
+shell-side glue (the "how" half) — generated shell scripts and wire-protocol
+emission — across bash, zsh, fish, and powershell, without redeclaring your
+CLI's structure to tab.
+
+Two public functions cover this case:
+
+- `script(shell, name, exec)` — print the shell-side completion script.
+- `emitCompletions(completions, directive)` — write a finished
+  `Completion[]` plus a directive in the wire format the shell scripts
+  consume (`value\tdescription\n…\n:N\n`).
+
+```typescript
+import {
+  emitCompletions,
+  script,
+  ShellCompDirective,
+  type Completion,
+  type Directive,
+} from '@bomb.sh/tab';
+
+// Your CLI's existing logic — tab is not told about its structure.
+declare function myCliResolveCompletions(
+  argv: readonly string[]
+): Promise<Completion[]>;
+
+const argv = process.argv.slice(2);
+
+if (argv[0] === 'complete') {
+  const second = argv[1];
+  if (['bash', 'zsh', 'fish', 'powershell'].includes(second)) {
+    script(
+      second as 'bash' | 'zsh' | 'fish' | 'powershell',
+      'my-cli',
+      'my-cli'
+    );
+  } else if (second === '--') {
+    const completions = await myCliResolveCompletions(argv.slice(2));
+    const directive: Directive =
+      ShellCompDirective.ShellCompDirectiveNoFileComp;
+    emitCompletions(completions, directive);
+  }
+}
+```
+
+`emitCompletions` performs no filtering, deduplication, or sanitization — it
+emits exactly what you pass. Values and descriptions must not contain TAB or
+newline characters, since those are the protocol delimiters.
+
+A working integration with [stricli](https://github.com/bloomberg/stricli) is
+in `examples/demo.stricli.ts`.
 
 ### Custom Integrations
 
