@@ -1,4 +1,11 @@
 // Shell directive constants
+import type { ScriptOptions } from './completion-entrypoint';
+
+export type {
+  CompletionEntrypoint,
+  ScriptOptions,
+} from './completion-entrypoint';
+
 export const ShellCompDirective = {
   ShellCompDirectiveError: 1 << 0,
   ShellCompDirectiveNoSpace: 1 << 1,
@@ -499,7 +506,12 @@ export class RootCommand extends Command {
     this.complete(toComplete);
   }
 
-  setup(name: string, executable: string, shell: string) {
+  setup(
+    name: string,
+    executable: string,
+    shell: string,
+    options: ScriptOptions = {}
+  ) {
     assert(
       shell === 'zsh' ||
         shell === 'bash' ||
@@ -510,22 +522,22 @@ export class RootCommand extends Command {
 
     switch (shell) {
       case 'zsh': {
-        const script = zsh.generate(name, executable);
+        const script = zsh.generate(name, executable, options);
         console.log(script);
         break;
       }
       case 'bash': {
-        const script = bash.generate(name, executable);
+        const script = bash.generate(name, executable, options);
         console.log(script);
         break;
       }
       case 'fish': {
-        const script = fish.generate(name, executable);
+        const script = fish.generate(name, executable, options);
         console.log(script);
         break;
       }
       case 'powershell': {
-        const script = powershell.generate(name, executable);
+        const script = powershell.generate(name, executable, options);
         console.log(script);
         break;
       }
@@ -535,8 +547,13 @@ export class RootCommand extends Command {
 
 const t = new RootCommand();
 
-export function script(shell: string, name: string, executable: string) {
-  t.setup(name, executable, shell);
+export function script(
+  shell: string,
+  name: string,
+  executable: string,
+  options: ScriptOptions = {}
+) {
+  t.setup(name, executable, shell, options);
 }
 
 export default t;

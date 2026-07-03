@@ -1,8 +1,20 @@
 import { ShellCompDirective } from './t';
+import {
+  formatCompletionEntrypointForShell,
+  type ScriptOptions,
+} from './completion-entrypoint';
 
-export function generate(name: string, exec: string): string {
+export function generate(
+  name: string,
+  exec: string,
+  options: ScriptOptions = {}
+): string {
   // Replace '-' and ':' with '_' for variable names
   const nameForVar = name.replace(/[-:]/g, '_');
+  const completionEntrypoint = formatCompletionEntrypointForShell(options);
+  const completionEntrypointSegment = completionEntrypoint
+    ? ` ${completionEntrypoint}`
+    : '';
 
   // Shell completion directives
   const ShellCompDirectiveError = ShellCompDirective.ShellCompDirectiveError;
@@ -42,7 +54,7 @@ __${nameForVar}_complete() {
     local requestComp out directive
     
     # Build the command to get completions
-    requestComp="${exec} complete -- \${words[@]:1}"
+    requestComp="${exec}${completionEntrypointSegment} \${words[@]:1}"
     
     # Add an empty parameter if the last parameter is complete
     if [[ -z "$cur" ]]; then

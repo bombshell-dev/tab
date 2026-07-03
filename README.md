@@ -279,7 +279,8 @@ CLI's structure to tab.
 
 Two public functions cover this case:
 
-- `script(shell, name, exec)` — print the shell-side completion script.
+- `script(shell, name, exec, options?)` — print the shell-side completion
+  script.
 - `emitCompletions(completions, directive)` — write a finished
   `Completion[]` plus a directive in the wire format the shell scripts
   consume (`value\tdescription\n…\n:N\n`).
@@ -306,7 +307,12 @@ if (argv[0] === 'complete') {
     script(
       second as 'bash' | 'zsh' | 'fish' | 'powershell',
       'my-cli',
-      'my-cli'
+      'my-cli',
+      {
+        // Defaults to ['complete', '--'], so generated scripts call:
+        // my-cli complete -- <inputs>
+        completionEntrypoint: ['complete', '--'],
+      }
     );
   } else if (second === '--') {
     const completions = await myCliResolveCompletions(argv.slice(2));
@@ -320,6 +326,19 @@ if (argv[0] === 'complete') {
 `emitCompletions` performs no filtering, deduplication, or sanitization — it
 emits exactly what you pass. Values and descriptions must not contain TAB or
 newline characters, since those are the protocol delimiters.
+
+If your CLI exposes a different hidden completion endpoint, configure the
+generated script to call that endpoint instead:
+
+```typescript
+script('zsh', 'my-cli', 'my-cli', {
+  completionEntrypoint: ['--complete'],
+});
+```
+
+The generated script will request completions with
+`my-cli --complete <inputs>` instead of the default
+`my-cli complete -- <inputs>`.
 
 A working integration with [stricli](https://github.com/bloomberg/stricli) is
 in `examples/demo.stricli.ts`.

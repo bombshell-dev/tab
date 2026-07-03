@@ -1,5 +1,6 @@
 import { exec } from 'child_process';
-import { describe, it, expect, test } from 'vitest';
+import { describe, it, expect, test, vi } from 'vitest';
+import { script, type ScriptOptions } from '../src/t';
 
 function runCommand(command: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -11,6 +12,21 @@ function runCommand(command: string): Promise<string> {
       }
     });
   });
+}
+
+function captureGeneratedScript(
+  shell: string,
+  options: ScriptOptions = {}
+): string {
+  const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+  try {
+    script(shell, 'demo', 'demo', options);
+    expect(consoleSpy).toHaveBeenCalledTimes(1);
+    return String(consoleSpy.mock.calls[0][0]);
+  } finally {
+    consoleSpy.mockRestore();
+  }
 }
 
 const cliTools = ['t', 'citty', 'cac', 'commander'];
@@ -466,4 +482,34 @@ describe('shell completion script generation', () => {
     expect(output).toContain(`# ${shell} completion for`);
     expect(output.length).toBeGreaterThan(100); // Ensure we got a substantial script
   });
+
+  test.each(shells)(
+    'should keep the default %s completion entrypoint',
+    (shell) => {
+      const output = captureGeneratedScript(shell);
+
+      if (shell === 'powershell') {
+        expect(output).toContain("$RequestComp = \"& demo complete '--' ");
+      } else {
+        expect(output).toContain('demo complete -- ');
+      }
+    }
+  );
+
+  test.each(shells)(
+    'should generate %s script with a custom completion entrypoint',
+    (shell) => {
+      const output = captureGeneratedScript(shell, {
+        completionEntrypoint: ['--complete'],
+      });
+
+      if (shell === 'powershell') {
+        expect(output).toContain('$RequestComp = "& demo --complete ');
+      } else {
+        expect(output).toContain('demo --complete ');
+      }
+
+      expect(output).not.toContain('demo complete -- ');
+    }
+  );
 });
