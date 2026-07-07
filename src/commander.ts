@@ -6,18 +6,6 @@ interface CommandWithRawArgs extends CommanderCommand {
   rawArgs: string[];
 }
 
-const execPath = process.execPath;
-const processArgs = process.argv.slice(1);
-const quotedExecPath = quoteIfNeeded(execPath);
-const quotedProcessArgs = processArgs.map(quoteIfNeeded);
-const quotedProcessExecArgs = process.execArgv.map(quoteIfNeeded);
-
-const x = `${quotedExecPath} ${quotedProcessExecArgs.join(' ')} ${quotedProcessArgs[0]}`;
-
-function quoteIfNeeded(path: string): string {
-  return path.includes(' ') ? `'${path}'` : path;
-}
-
 export default function tab(
   instance: CommanderCommand,
   completionConfig?: { completionCommandName?: string }
@@ -36,7 +24,8 @@ export default function tab(
         .choices(['zsh', 'bash', 'fish', 'powershell'])
     )
     .action((shell) => {
-      t.setup(programName, x, shell);
+      // invoke the cli by its program name and not the runtime launch path. see the related issue #135.
+      t.setup(programName, programName, shell);
     });
   completionCommand.copyInheritedSettings(instance);
 
