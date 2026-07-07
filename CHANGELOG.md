@@ -1,5 +1,11 @@
 # @bombsh/tab
 
+## 0.0.19
+
+### Patch Changes
+
+- 0f2d0f3: Widen Commander peer dependency support to include Commander 14 and 15.
+
 ## 0.0.18
 
 ### Patch Changes
