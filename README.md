@@ -134,6 +134,44 @@ my-cli complete zsh > ~/.my-cli-completion.zsh
 echo 'source ~/.my-cli-completion.zsh' >> ~/.zshrc
 ```
 
+### Development Workflow
+
+Generated completion scripts invoke your CLI by its **program name** (e.g. `my-cli`),
+which the shell resolves via `PATH`, an alias, or a shell function. During local
+development your CLI usually isn't installed on `PATH`, so define a session-scoped
+shell function that runs it from source, then source the completions. No build,
+no install, and no `PATH` changes are needed — the function disappears when you
+close the terminal.
+
+Replace `my-cli` with your program name and adjust the source path if needed.
+
+```zsh
+# zsh
+my-cli() { pnpm tsx src/index.ts "$@"; }
+source <(my-cli complete zsh)
+```
+
+```bash
+# bash
+my-cli() { pnpm tsx src/index.ts "$@"; }
+source <(my-cli complete bash)
+```
+
+```fish
+# fish
+function my-cli; pnpm tsx src/index.ts $argv; end
+source (my-cli complete fish | psub)
+```
+
+```powershell
+# powershell
+function my-cli { pnpm tsx src/index.ts $args }
+my-cli complete powershell | Out-String | Invoke-Expression
+```
+
+The function name must match your CLI's program name so the shell resolves the
+completion callback back to it.
+
 ## Package Manager Completions
 
 As mentioned earlier, tab provides completions for package managers as well:
