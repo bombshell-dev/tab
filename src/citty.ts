@@ -189,8 +189,8 @@ export default async function tab<TArgs extends ArgsDef>(
         shell = undefined;
       }
 
-      // the cli by its program name so completion works regardless of
-      // how the cli is launched (including compiled binaries). see the related issue #135
+      // invoke the cli by its program name so completion works regardless of how
+      // the cli is launched (including compiled binaries). see the related issue #135
       const execCommand = name;
       switch (shell) {
         case 'zsh': {
