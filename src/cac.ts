@@ -9,18 +9,9 @@ import t, { type RootCommand } from './t';
 
 const execPath = process.execPath;
 const processArgs = process.argv.slice(1);
-const quotedExecPath = quoteIfNeeded(execPath);
-const quotedProcessArgs = processArgs.map(quoteIfNeeded);
-const quotedProcessExecArgs = process.execArgv.map(quoteIfNeeded);
-
-const x = `${quotedExecPath} ${quotedProcessExecArgs.join(' ')} ${quotedProcessArgs[0]}`;
 
 // Regex to detect if an option takes a value (has <required> or [optional] parameters)
 const VALUE_OPTION_RE = /<[^>]+>|\[[^\]]+\]/;
-
-function quoteIfNeeded(path: string): string {
-  return path.includes(' ') ? `'${path}'` : path;
-}
 
 export default async function tab(
   instance: CAC,
@@ -122,24 +113,27 @@ export default async function tab(
   }
 
   instance.command('complete [shell]').action(async (shell, extra) => {
+    // invoke the cli by its program name so completion works regardless of how
+    // the cli is launched (including compiled binaries). see the related issue #135
+    const execCommand = instance.name;
     switch (shell) {
       case 'zsh': {
-        const script = zsh.generate(instance.name, x);
+        const script = zsh.generate(instance.name, execCommand);
         console.log(script);
         break;
       }
       case 'bash': {
-        const script = bash.generate(instance.name, x);
+        const script = bash.generate(instance.name, execCommand);
         console.log(script);
         break;
       }
       case 'fish': {
-        const script = fish.generate(instance.name, x);
+        const script = fish.generate(instance.name, execCommand);
         console.log(script);
         break;
       }
       case 'powershell': {
-        const script = powershell.generate(instance.name, x);
+        const script = powershell.generate(instance.name, execCommand);
         console.log(script);
         break;
       }

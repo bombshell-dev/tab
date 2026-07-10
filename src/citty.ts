@@ -15,17 +15,6 @@ import { assertDoubleDashes } from './shared';
 import type { CompletionConfig } from './shared';
 import t, { type RootCommand } from './t';
 
-function quoteIfNeeded(path: string) {
-  return path.includes(' ') ? `'${path}'` : path;
-}
-
-const execPath = process.execPath;
-const processArgs = process.argv.slice(1);
-const quotedExecPath = quoteIfNeeded(execPath);
-const quotedProcessArgs = processArgs.map(quoteIfNeeded);
-const quotedProcessExecArgs = process.execArgv.map(quoteIfNeeded);
-const x = `${quotedExecPath} ${quotedProcessExecArgs.join(' ')} ${quotedProcessArgs[0]}`;
-
 function isConfigPositional<T extends ArgsDef>(config: CommandDef<T>) {
   return (
     config.args &&
@@ -200,24 +189,27 @@ export default async function tab<TArgs extends ArgsDef>(
         shell = undefined;
       }
 
+      // invoke the cli by its program name so completion works regardless of how
+      // the cli is launched (including compiled binaries). see the related issue #135
+      const execCommand = name;
       switch (shell) {
         case 'zsh': {
-          const script = zsh.generate(name, x);
+          const script = zsh.generate(name, execCommand);
           console.log(script);
           break;
         }
         case 'bash': {
-          const script = bash.generate(name, x);
+          const script = bash.generate(name, execCommand);
           console.log(script);
           break;
         }
         case 'fish': {
-          const script = fish.generate(name, x);
+          const script = fish.generate(name, execCommand);
           console.log(script);
           break;
         }
         case 'powershell': {
-          const script = powershell.generate(name, x);
+          const script = powershell.generate(name, execCommand);
           console.log(script);
           break;
         }
