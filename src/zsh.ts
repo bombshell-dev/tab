@@ -1,6 +1,19 @@
 import { ShellCompDirective } from './t';
+import {
+  formatCompletionEntrypointForShell,
+  type ScriptOptions,
+} from './completion-entrypoint';
 
-export function generate(name: string, exec: string) {
+export function generate(
+  name: string,
+  exec: string,
+  options: ScriptOptions = {}
+) {
+  const completionEntrypoint = formatCompletionEntrypointForShell(options);
+  const completionEntrypointSegment = completionEntrypoint
+    ? ` ${completionEntrypoint}`
+    : '';
+
   return `#compdef ${name}
 compdef _${name} ${name}
 
@@ -59,7 +72,7 @@ _${name}() {
     local quoted_args=("\${(@q)args_to_quote}")
 
     # Join the main command and the quoted arguments into a single string for eval
-    requestComp="${exec} complete -- \${quoted_args[*]}"
+    requestComp="${exec}${completionEntrypointSegment} \${quoted_args[*]}"
 
     __${name}_debug "About to call: eval \${requestComp}"
 

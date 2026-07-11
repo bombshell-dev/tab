@@ -1,8 +1,20 @@
 import { ShellCompDirective } from './t';
+import {
+  formatCompletionEntrypointForShell,
+  type ScriptOptions,
+} from './completion-entrypoint';
 
-export function generate(name: string, exec: string): string {
+export function generate(
+  name: string,
+  exec: string,
+  options: ScriptOptions = {}
+): string {
   // Replace '-' and ':' with '_' for variable names
   const nameForVar = name.replace(/[-:]/g, '_');
+  const completionEntrypoint = formatCompletionEntrypointForShell(options);
+  const completionEntrypointSegment = completionEntrypoint
+    ? ` ${completionEntrypoint}`
+    : '';
 
   // Shell completion directives
   const ShellCompDirectiveError = ShellCompDirective.ShellCompDirectiveError;
@@ -38,7 +50,7 @@ function __${nameForVar}_perform_completion
     __${nameForVar}_debug "last arg: $lastArg"
 
     # Build the completion request command
-    set -l requestComp "${exec} complete -- (string join ' ' -- (string escape -- $args[2..-1])) $lastArg"
+    set -l requestComp "${exec}${completionEntrypointSegment} (string join ' ' -- (string escape -- $args[2..-1])) $lastArg"
 
     __${nameForVar}_debug "Calling $requestComp"
     set -l results (eval $requestComp 2> /dev/null)

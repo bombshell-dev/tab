@@ -39,6 +39,7 @@
   "devDependencies": {
     "@changesets/cli": "^2.29.6",
     "@eslint/js": "^9.33.0",
+    "@stricli/core": "^1.2.6",
     "@types/node": "^22.7.4",
     "cac": "^6.7.14",
     "citty": "^0.2.0",

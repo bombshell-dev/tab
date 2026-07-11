@@ -1,10 +1,22 @@
 import { ShellCompDirective } from './t';
+import {
+  formatCompletionEntrypointForPowerShell,
+  type ScriptOptions,
+} from './completion-entrypoint';
 
 // TODO: issue with -- -- completions
 
-export function generate(name: string, exec: string): string {
+export function generate(
+  name: string,
+  exec: string,
+  options: ScriptOptions = {}
+): string {
   // Replace '-' and ':' with '_' for variable names
   const nameForVar = name.replace(/[-:]/g, '_');
+  const completionEntrypoint = formatCompletionEntrypointForPowerShell(options);
+  const completionEntrypointSegment = completionEntrypoint
+    ? ` ${completionEntrypoint}`
+    : '';
 
   // Determine the completion command
   // const compCmd = includeDesc ? "complete" : "complete";
@@ -74,7 +86,7 @@ export function generate(name: string, exec: string): string {
     $QuotedArgs = ($Arguments -split ' ' | ForEach-Object { "'" + ($_ -replace "'", "''") + "'" }) -join ' '
     __${name}_debug "QuotedArgs: $QuotedArgs"
 
-    $RequestComp = "& ${exec} complete '--' $QuotedArgs"
+    $RequestComp = "& ${exec}${completionEntrypointSegment} $QuotedArgs"
     __${name}_debug "RequestComp: $RequestComp"
 
     # we cannot use $WordToComplete because it
