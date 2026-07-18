@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import { script } from '../src/t.js';
-import { setupCompletionForPackageManager } from './completion-handlers';
 import { PackageManagerCompletion } from './package-manager-completion.js';
 
 const packageManagers = ['npm', 'pnpm', 'yarn', 'bun'];
@@ -41,8 +40,11 @@ async function main() {
       process.exit(1);
     }
 
+    // Note: we intentionally do NOT build the package manager's command tree
+    // here. `parse` builds it lazily and only when it actually needs to
+    // complete the package manager itself, so the delegation path never pays
+    // for a `<pm> --help` parse.
     const completion = new PackageManagerCompletion(packageManager);
-    await setupCompletionForPackageManager(packageManager, completion);
     await completion.parse(completionArgs);
     process.exit(0);
   }
