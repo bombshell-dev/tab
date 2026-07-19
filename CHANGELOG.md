@@ -1,5 +1,11 @@
 # @bombsh/tab
 
+## 0.0.20
+
+### Patch Changes
+
+- e01ce05: fix: invoke the cli by its program name in generated completion scripts
+
 ## 0.0.19
 
 ### Patch Changes
