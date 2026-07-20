@@ -28,7 +28,9 @@ function extractExecCommand(shell: string, script: string): string | null {
       match = script.match(/requestComp="(.+?) complete --/);
       break;
     case 'fish':
-      match = script.match(/set -l requestComp "(.+?) complete --/);
+      // The fish template invokes the backend directly (no requestComp/eval),
+      // so match the direct call: `set -l results (<exec> complete -- ...)`.
+      match = script.match(/set -l results \((.+?) complete --/);
       break;
     case 'powershell':
       match = script.match(/\$RequestComp = "& (.+?) complete '--'/);
