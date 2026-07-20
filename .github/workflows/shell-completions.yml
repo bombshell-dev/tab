@@ -56,3 +56,6 @@ jobs:
 
       - name: Run shell argv protocol tests
         run: pnpm test tests/shell-empty-argv.test.ts
+
+      - name: Run fish integration tests
+        run: pnpm test tests/fish-integration.test.ts
