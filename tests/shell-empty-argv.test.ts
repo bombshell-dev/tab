@@ -55,6 +55,24 @@ const cases: CompletionCase[] = [
     line: 'demo dev ',
     expected: ['dev', ''],
   },
+  {
+    // Regression guard for delegated CLIs reached through a package manager,
+    // e.g. `pnpm <cli> <sub> <TAB>`. Every segment of the path must reach the
+    // backend as its own argument. fish previously collapsed these into a
+    // single space-joined token via `string join` + `eval`.
+    label: 'multi-segment path with trailing space',
+    words: ['demo', 'sub', 'nested', ''],
+    current: 4,
+    line: 'demo sub nested ',
+    expected: ['sub', 'nested', ''],
+  },
+  {
+    label: 'multi-segment path while completing a flag',
+    words: ['demo', 'sub', 'nested', '--'],
+    current: 4,
+    line: 'demo sub nested --',
+    expected: ['sub', 'nested', '--'],
+  },
 ];
 
 function execFileAsync(
@@ -151,9 +169,12 @@ const completionArgs =
 
 fs.appendFileSync(capturePath, JSON.stringify(completionArgs) + '\\n');
 
-// Emit one matching completion so shells that use native filtering still exit successfully.
-// The argv capture is what this test actually asserts.
-process.stdout.write('dev\\tStart dev server\\n:4\\n');
+// Emit one completion that matches whatever token is currently being typed so
+// shells doing native prefix filtering (e.g. bash's compgen) still find a match
+// and exit successfully. The argv capture is what this test actually asserts.
+const lastArg = completionArgs.length ? completionArgs[completionArgs.length - 1] : '';
+const value = lastArg.length ? lastArg : 'dev';
+process.stdout.write(value + '\\tcompletion\\n:4\\n');
 `.trimStart()
   );
 

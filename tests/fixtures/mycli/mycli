@@ -1,0 +1,60 @@
+#!/usr/bin/env node
+// Minimal tab-protocol CLI fixture with a nested command tree, used to drive the
+// fish delegation integration tests (`pnpm mycli <sub> <TAB>`). It emits
+// `<value>\t<description>` lines plus a trailing `:<directive>`.
+
+const argv = process.argv.slice(2);
+if (argv[0] !== 'complete') {
+  console.log('mycli demo');
+  process.exit(0);
+}
+
+const dashIndex = argv.indexOf('--');
+const rest = dashIndex === -1 ? [] : argv.slice(dashIndex + 1);
+const toComplete = rest.length ? rest[rest.length - 1] : '';
+const prevWords = rest.slice(0, -1).filter((w) => !w.startsWith('-'));
+const commandPath = prevWords.join(' ');
+
+const globalFlags = [
+  ['--config', 'Specify config file'],
+  ['--debug', 'Enable debugging'],
+  ['--help', 'Display help'],
+  ['--version', 'Display version'],
+];
+
+const tree = {
+  '': {
+    subs: [
+      ['start', 'Start the application'],
+      ['build', 'Build the application'],
+      ['db', 'Database commands'],
+    ],
+    flags: [],
+  },
+  start: { subs: [], flags: [['--port', 'Port to use']] },
+  build: { subs: [], flags: [['--mode', 'Build mode']] },
+  db: {
+    subs: [
+      ['migrate', 'Run migrations'],
+      ['seed', 'Seed the database'],
+    ],
+    flags: [],
+  },
+  'db migrate': {
+    subs: [],
+    flags: [
+      ['--force', 'Force the migration'],
+      ['--name', 'Migration name'],
+    ],
+  },
+};
+
+const node = tree[commandPath] || { subs: [], flags: [] };
+const candidates = toComplete.startsWith('-')
+  ? [...node.flags, ...globalFlags]
+  : node.subs;
+
+for (const [value, description] of candidates) {
+  if (value.startsWith(toComplete)) console.log(`${value}\t${description}`);
+}
+console.log(':4');
