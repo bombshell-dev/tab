@@ -6,15 +6,6 @@ import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as fish from '../src/fish';
 
-// End-to-end guard for the real production scenario that broke in fish:
-// completing a locally-installed CLI *through* a package manager
-// (`pnpm <cli> <subcommand> <TAB>`). This drives the actual generated fish
-// completer, so it catches regressions in shell-script generation that unit
-// tests on the backend cannot. Every case where the CLI has a subcommand is a
-// multi-segment path (the CLI name is one token, the subcommand another); the
-// old template collapsed them into a single token, so the CLI name became
-// unresolvable and completion returned nothing.
-
 function isFishAvailable(): boolean {
   try {
     execSync('fish --version', { stdio: 'pipe' });
