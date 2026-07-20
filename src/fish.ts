@@ -31,17 +31,15 @@ function __${nameForVar}_perform_completion
 
     # Extract all args except the last one
     set -l args (commandline -opc)
-    # Extract the last arg and escape it in case it is a space or wildcard
-    set -l lastArg (string escape -- (commandline -ct))
+    # Extract the token currently being completed (may be empty on a trailing space)
+    set -l lastArg (commandline -ct)
 
     __${nameForVar}_debug "args: $args"
     __${nameForVar}_debug "last arg: $lastArg"
 
-    # Build the completion request command
-    set -l requestComp "${exec} complete -- (string join ' ' -- (string escape -- $args[2..-1])) $lastArg"
-
-    __${nameForVar}_debug "Calling $requestComp"
-    set -l results (eval $requestComp 2> /dev/null)
+    # Pass each arg as its own token (no string join/eval, which would collapse multi-segment paths); quote "$lastArg" so an empty trailing token is still sent.
+    __${nameForVar}_debug "Calling ${exec} complete -- $args[2..-1] $lastArg"
+    set -l results (${exec} complete -- $args[2..-1] "$lastArg" 2> /dev/null)
 
     # Some programs may output extra empty lines after the directive.
     # Let's ignore them or else it will break completion.

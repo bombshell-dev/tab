@@ -1,8 +1,11 @@
-import { describe, it, expect, beforeAll } from 'vitest';
-import { execSync, spawnSync } from 'child_process';
-import * as path from 'path';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { execSync, spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { dirname, join, resolve, delimiter } from 'node:path';
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import * as fish from '../src/fish';
 
-// Check if fish is available
 function isFishAvailable(): boolean {
   try {
     execSync('fish --version', { stdio: 'pipe' });
@@ -12,118 +15,100 @@ function isFishAvailable(): boolean {
   }
 }
 
-// Run fish command and return output
-function runFish(script: string): string {
-  const result = spawnSync('fish', ['-c', script], {
-    encoding: 'utf-8',
-    stdio: ['pipe', 'pipe', 'pipe'],
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const fixtureDir = join(repoRoot, 'tests', 'fixtures', 'mycli');
+const tabCli = join(repoRoot, 'dist', 'bin', 'cli.mjs');
+
+function shQuote(value: string): string {
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+describe.skipIf(!isFishAvailable())('fish delegation completion', () => {
+  let cacheDir: string;
+  let scriptPath: string;
+
+  beforeAll(() => {
+    if (!existsSync(tabCli)) {
+      execSync('pnpm build', { cwd: repoRoot, stdio: 'ignore' });
+    }
+
+    cacheDir = mkdtempSync(join(tmpdir(), 'tab-fish-integration-'));
+
+    // Generate the pnpm completer wired to this repo's backend.
+    const exec = `${process.execPath} ${tabCli} pnpm`;
+    scriptPath = join(cacheDir, 'pnpm.fish');
+    writeFileSync(scriptPath, fish.generate('pnpm', exec));
   });
-  if (result.error) {
-    throw result.error;
+
+  afterAll(() => {
+    if (cacheDir) rmSync(cacheDir, { recursive: true, force: true });
+  });
+
+  // Run the generated completer for a command line and return the completion
+  // values (the part before the tab-separated description).
+  function complete(commandLine: string): string[] {
+    const script = `source ${shQuote(scriptPath)}\ncomplete --do-complete ${shQuote(
+      commandLine
+    )}`;
+
+    const result = spawnSync('fish', ['-c', script], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        PATH: `${fixtureDir}${delimiter}${process.env.PATH ?? ''}`,
+        TAB_COMPLETION_CACHE_DIR: cacheDir,
+      },
+    });
+
+    return (result.stdout + result.stderr)
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line !== '');
   }
-  return result.stdout + result.stderr;
-}
 
-// Simulate TAB completion in fish
-function simulateTab(completionScript: string, commandLine: string): string[] {
-  const script = `
-    source (echo '${completionScript.replace(/'/g, "\\'")}' | psub)
-    complete --do-complete "${commandLine}"
-  `;
-  const output = runFish(script);
-  return output
-    .split('\n')
-    .filter((line) => line.trim() !== '')
-    .map((line) => line.trim());
-}
+  it('completes a delegated CLI\u2019s subcommands (single segment)', () => {
+    const completions = complete('pnpm mycli ');
+    expect(completions.some((c) => c.startsWith('start'))).toBe(true);
+    expect(completions.some((c) => c.startsWith('build'))).toBe(true);
+    expect(completions.some((c) => c.startsWith('db'))).toBe(true);
+  });
 
-describe.skipIf(!isFishAvailable())(
-  'fish shell completion integration tests',
-  () => {
-    const demoCliPath = path.join(
-      __dirname,
-      '../examples/demo-cli-cac/demo-cli-cac.js'
-    );
-    let completionScript: string;
+  it('includes descriptions from the delegated CLI', () => {
+    const completions = complete('pnpm mycli ');
+    const start = completions.find((c) => c.startsWith('start'));
+    expect(start).toContain('Start the application');
+  });
 
-    beforeAll(() => {
-      // Generate the completion script from demo-cli-cac
-      const result = spawnSync('node', [demoCliPath, 'complete', 'fish'], {
-        encoding: 'utf-8',
-        cwd: path.dirname(demoCliPath),
-      });
-      completionScript = result.stdout;
-    });
+  it('filters delegated subcommands by partial input', () => {
+    const completions = complete('pnpm mycli st');
+    expect(completions.some((c) => c.startsWith('start'))).toBe(true);
+    expect(completions.some((c) => c.startsWith('build'))).toBe(false);
+  });
 
-    it('should complete subcommands when pressing TAB after command', () => {
-      const completions = simulateTab(completionScript, 'demo-cli-cac ');
+  it('completes the delegated CLI\u2019s flags', () => {
+    const completions = complete('pnpm mycli --');
+    expect(completions.some((c) => c.includes('--config'))).toBe(true);
+    expect(completions.some((c) => c.includes('--debug'))).toBe(true);
+  });
 
-      // Should contain subcommands
-      expect(completions.some((c) => c.startsWith('start'))).toBe(true);
-      expect(completions.some((c) => c.startsWith('build'))).toBe(true);
-    });
+  // The following cases have a subcommand *after* the CLI name, so they are the
+  // multi-segment paths that regressed. Each must reach the delegated CLI with
+  // every segment intact.
+  it('completes a nested subcommand (two-segment path)', () => {
+    const completions = complete('pnpm mycli db ');
+    expect(completions.some((c) => c.startsWith('migrate'))).toBe(true);
+    expect(completions.some((c) => c.startsWith('seed'))).toBe(true);
+  });
 
-    it('should complete flags when pressing TAB after --', () => {
-      const completions = simulateTab(completionScript, 'demo-cli-cac --');
+  it('completes flags after a subcommand (two-segment path)', () => {
+    const completions = complete('pnpm mycli start --');
+    expect(completions.some((c) => c.includes('--port'))).toBe(true);
+    expect(completions.some((c) => c.includes('--config'))).toBe(true);
+  });
 
-      // Should contain global flags
-      expect(completions.some((c) => c.includes('--config'))).toBe(true);
-      expect(completions.some((c) => c.includes('--debug'))).toBe(true);
-      expect(completions.some((c) => c.includes('--help'))).toBe(true);
-      expect(completions.some((c) => c.includes('--version'))).toBe(true);
-    });
-
-    it('should complete subcommand-specific flags', () => {
-      const completions = simulateTab(
-        completionScript,
-        'demo-cli-cac start --'
-      );
-
-      // Should contain start-specific flag
-      expect(completions.some((c) => c.includes('--port'))).toBe(true);
-      // Should also contain global flags
-      expect(completions.some((c) => c.includes('--config'))).toBe(true);
-    });
-
-    it('should complete build command flags', () => {
-      const completions = simulateTab(
-        completionScript,
-        'demo-cli-cac build --'
-      );
-
-      // Should contain build-specific flag
-      expect(completions.some((c) => c.includes('--mode'))).toBe(true);
-      // Should also contain global flags
-      expect(completions.some((c) => c.includes('--config'))).toBe(true);
-    });
-
-    it('should show descriptions with completions', () => {
-      const completions = simulateTab(completionScript, 'demo-cli-cac ');
-
-      // Check that descriptions are included (tab-separated)
-      const startCompletion = completions.find((c) => c.startsWith('start'));
-      expect(startCompletion).toContain('Start the application');
-
-      const buildCompletion = completions.find((c) => c.startsWith('build'));
-      expect(buildCompletion).toContain('Build the application');
-    });
-
-    it('should filter completions based on partial input', () => {
-      const completions = simulateTab(completionScript, 'demo-cli-cac st');
-
-      // Should only show completions starting with 'st'
-      expect(completions.some((c) => c.startsWith('start'))).toBe(true);
-      // 'build' should not appear
-      expect(completions.some((c) => c.startsWith('build'))).toBe(false);
-    });
-
-    it('should filter flag completions based on partial input', () => {
-      const completions = simulateTab(completionScript, 'demo-cli-cac --c');
-
-      // Should show --config
-      expect(completions.some((c) => c.includes('--config'))).toBe(true);
-      // Should not show --debug (doesn't start with --c)
-      expect(completions.some((c) => c.includes('--debug'))).toBe(false);
-    });
-  }
-);
+  it('completes flags after a nested subcommand (three-segment path)', () => {
+    const completions = complete('pnpm mycli db migrate --');
+    expect(completions.some((c) => c.includes('--force'))).toBe(true);
+    expect(completions.some((c) => c.includes('--name'))).toBe(true);
+  });
+});
