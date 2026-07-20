@@ -1,5 +1,6 @@
 import type { PackageManagerCompletion } from '../package-manager-completion.js';
 import { stripAnsiEscapes, type ParsedOption } from '../utils/text-utils.js';
+import { getCachedCommandMap } from '../utils/help-cache.js';
 import {
   LazyCommand,
   OptionHandlers,
@@ -128,8 +129,10 @@ export function parseBunHelp(helpText: string): Record<string, string> {
 export async function getBunCommandsFromMainHelp(): Promise<
   Record<string, string>
 > {
-  const output = await safeExec('bun --help');
-  return output ? parseBunHelp(output) : {};
+  return getCachedCommandMap('bun', async () => {
+    const output = await safeExec('bun --help');
+    return output ? parseBunHelp(output) : {};
+  });
 }
 
 export function parseBunOptions(

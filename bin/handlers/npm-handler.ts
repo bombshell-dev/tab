@@ -1,5 +1,6 @@
 import type { PackageManagerCompletion } from '../package-manager-completion.js';
 import { stripAnsiEscapes, type ParsedOption } from '../utils/text-utils.js';
+import { getCachedCommandMap } from '../utils/help-cache.js';
 import {
   LazyCommand,
   OptionHandlers,
@@ -93,8 +94,10 @@ export function parseNpmHelp(helpText: string): Record<string, string> {
 export async function getNpmCommandsFromMainHelp(): Promise<
   Record<string, string>
 > {
-  const output = await safeExec('npm --help');
-  return output ? parseNpmHelp(output) : {};
+  return getCachedCommandMap('npm', async () => {
+    const output = await safeExec('npm --help');
+    return output ? parseNpmHelp(output) : {};
+  });
 }
 
 export function parseNpmOptions(

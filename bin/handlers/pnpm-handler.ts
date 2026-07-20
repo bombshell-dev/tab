@@ -1,5 +1,6 @@
 import type { PackageManagerCompletion } from '../package-manager-completion.js';
 import { getWorkspacePatterns } from '../utils/filesystem-utils.js';
+import { getCachedCommandMap } from '../utils/help-cache.js';
 import {
   LazyCommand,
   OptionHandlers,
@@ -243,8 +244,10 @@ export function parsePnpmHelp(helpText: string): Record<string, string> {
 export async function getPnpmCommandsFromMainHelp(): Promise<
   Record<string, string>
 > {
-  const output = await safeExec('pnpm --help');
-  return output ? parsePnpmHelp(output) : {};
+  return getCachedCommandMap('pnpm', async () => {
+    const output = await safeExec('pnpm --help');
+    return output ? parsePnpmHelp(output) : {};
+  });
 }
 
 export function parsePnpmOptions(

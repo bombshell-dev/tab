@@ -1,5 +1,6 @@
 import type { PackageManagerCompletion } from '../package-manager-completion.js';
 import { stripAnsiEscapes, type ParsedOption } from '../utils/text-utils.js';
+import { getCachedCommandMap } from '../utils/help-cache.js';
 import {
   LazyCommand,
   OptionHandlers,
@@ -91,8 +92,10 @@ export function parseYarnHelp(helpText: string): Record<string, string> {
 export async function getYarnCommandsFromMainHelp(): Promise<
   Record<string, string>
 > {
-  const output = await safeExec('yarn --help');
-  return output ? parseYarnHelp(output) : {};
+  return getCachedCommandMap('yarn', async () => {
+    const output = await safeExec('yarn --help');
+    return output ? parseYarnHelp(output) : {};
+  });
 }
 
 export function parseYarnOptions(
