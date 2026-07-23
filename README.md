@@ -46,6 +46,12 @@ Tab has already been adopted by major tools and CLI frameworks, including:
         Clerc
       </a>
     </td>
+    <td align="center">
+      <a href="https://www.prisma.io/">
+        <img src="https://github.com/prisma.png?size=200" alt="Prisma" width="64"><br>
+        Prisma
+      </a>
+    </td>
   </tr>
 </table>
 
