@@ -1,5 +1,11 @@
 # @bombsh/tab
 
+## 0.0.22
+
+### Patch Changes
+
+- 913900e: widen cac version to allow v7
+
 ## 0.0.21
 
 ### Patch Changes
