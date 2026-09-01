@@ -52,6 +52,12 @@ Tab has already been adopted by major tools and CLI frameworks, including:
         Prisma
       </a>
     </td>
+    <td align="center">
+      <a href="https://webpack.js.org/">
+        <img src="https://github.com/webpack.png?size=200" alt="Webpack" width="64"><br>
+        Webpack
+      </a>
+    </td>
   </tr>
 </table>
 
