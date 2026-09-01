@@ -23,6 +23,18 @@ Tab has already been adopted by major tools and CLI frameworks, including:
       </a>
     </td>
     <td align="center">
+      <a href="https://webpack.js.org/">
+        <img src="https://github.com/webpack.png?size=200" alt="Webpack" width="64"><br>
+        Webpack
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://www.prisma.io/">
+        <img src="https://github.com/prisma.png?size=200" alt="Prisma" width="64"><br>
+        Prisma
+      </a>
+    </td>
+    <td align="center">
       <a href="https://astro.build/">
         <img src="https://github.com/withastro.png?size=200" alt="Astro" width="64"><br>
         Astro
@@ -44,12 +56,6 @@ Tab has already been adopted by major tools and CLI frameworks, including:
       <a href="https://github.com/clercjs/clerc">
         <img src="https://raw.githubusercontent.com/clercjs/clerc/main/docs/public/logo.webp" alt="Clerc" width="64"><br>
         Clerc
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://www.prisma.io/">
-        <img src="https://github.com/prisma.png?size=200" alt="Prisma" width="64"><br>
-        Prisma
       </a>
     </td>
   </tr>
