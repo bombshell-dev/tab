@@ -151,8 +151,14 @@ export class RootCommand extends Command {
     return c;
   }
 
-  private stripOptions(args: string[]): string[] {
+  private scanArguments(args: string[]): {
+    command: Command;
+    parts: string[];
+  } {
     const parts: string[] = [];
+    const commandParts: string[] = [];
+    let matchedCommand: Command | null = null;
+    let canMatchCommand = true;
     let i = 0;
 
     while (i < args.length) {
@@ -161,21 +167,8 @@ export class RootCommand extends Command {
       if (arg.startsWith('-')) {
         i++;
 
-        let isBoolean = false;
-
-        const rootOption = this.findOption(this, arg);
-        if (rootOption) {
-          isBoolean = rootOption.isBoolean ?? false;
-        } else {
-          // subcommand options
-          for (const [, command] of this.commands) {
-            const option = this.findOption(command, arg);
-            if (option) {
-              isBoolean = option.isBoolean ?? false;
-              break;
-            }
-          }
-        }
+        const option = this.findOption(matchedCommand ?? this, arg);
+        const isBoolean = option?.isBoolean ?? false;
 
         // skip the next argument if this is not a boolean option and the next arg doesn't start with -
         if (!isBoolean && i < args.length && !args[i].startsWith('-')) {
@@ -183,36 +176,43 @@ export class RootCommand extends Command {
         }
       } else {
         parts.push(arg);
+
+        if (canMatchCommand) {
+          commandParts.push(arg);
+          const commandPath = commandParts.join(' ');
+          const command = this.commands.get(commandPath);
+
+          if (command) {
+            matchedCommand = command;
+          }
+
+          canMatchCommand = Array.from(this.commands.keys()).some(
+            (name) => name === commandPath || name.startsWith(`${commandPath} `)
+          );
+        }
+
         i++;
       }
     }
 
-    return parts;
+    return { command: matchedCommand ?? this, parts };
+  }
+
+  private stripOptions(args: string[]): string[] {
+    return this.scanArguments(args).parts;
   }
 
   private matchCommand(args: string[]): [Command, string[]] {
-    args = this.stripOptions(args);
-    const parts: string[] = [];
-    let remaining: string[] = [];
-    let matchedCommand: Command | null = null;
+    const { command, parts } = this.scanArguments(args);
+    const commandPartCount =
+      command === this ? 0 : command.value.split(' ').length;
+    const remaining = parts.slice(commandPartCount);
 
-    for (let i = 0; i < args.length; i++) {
-      const k = args[i];
-      parts.push(k);
-      const potential = this.commands.get(parts.join(' '));
-
-      if (potential) {
-        matchedCommand = potential;
-      } else {
-        remaining = args.slice(i, args.length);
-        break;
-      }
-    }
-
-    return [matchedCommand || this, remaining];
+    return [command, remaining];
   }
 
   private shouldCompleteFlags(
+    command: Command,
     lastPrevArg: string | undefined,
     toComplete: string
   ): boolean {
@@ -222,14 +222,7 @@ export class RootCommand extends Command {
 
     // previous argument was an option, check if it expects a value
     if (lastPrevArg?.startsWith('-')) {
-      let option = this.findOption(this, lastPrevArg);
-      if (!option) {
-        // subcommand options
-        for (const [, command] of this.commands) {
-          option = this.findOption(command, lastPrevArg);
-          if (option) break;
-        }
-      }
+      const option = this.findOption(command, lastPrevArg);
 
       // boolean option, don't try to complete its value
       if (option && option.isBoolean) {
@@ -432,7 +425,7 @@ export class RootCommand extends Command {
     const [matchedCommand] = this.matchCommand(previousArgs);
     const lastPrevArg = previousArgs[previousArgs.length - 1];
 
-    if (this.shouldCompleteFlags(lastPrevArg, toComplete)) {
+    if (this.shouldCompleteFlags(matchedCommand, lastPrevArg, toComplete)) {
       this.handleFlagCompletion(
         matchedCommand,
         previousArgs,
