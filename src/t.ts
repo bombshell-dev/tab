@@ -135,6 +135,7 @@ import * as bash from './bash';
 import * as fish from './fish';
 import * as powershell from './powershell';
 import assert from 'node:assert';
+import { getOptionLookupMode } from './option-scope';
 
 export class RootCommand extends Command {
   commands = new Map<string, Command>();
@@ -147,11 +148,68 @@ export class RootCommand extends Command {
 
   command(value: string, description: string) {
     const c = new Command(value, description);
+    const parentPath = value.split(' ').slice(0, -1).join(' ');
+    c.parent = parentPath ? this.commands.get(parentPath) : this;
     this.commands.set(value, c);
     return c;
   }
 
+  private get optionLookupMode() {
+    return getOptionLookupMode(this);
+  }
+
+  private scanArguments(args: string[]): {
+    command: Command;
+    parts: string[];
+  } {
+    const parts: string[] = [];
+    const commandParts: string[] = [];
+    let matchedCommand: Command | undefined;
+    let canMatchCommand = true;
+    let i = 0;
+
+    while (i < args.length) {
+      const arg = args[i];
+
+      if (arg.startsWith('-')) {
+        i++;
+
+        const option = this.findOptionInScope(matchedCommand ?? this, arg);
+        const isBoolean = option?.isBoolean ?? false;
+
+        // skip the next argument if this is not a boolean option and the next arg doesn't start with -
+        if (!isBoolean && i < args.length && !args[i].startsWith('-')) {
+          i++;
+        }
+      } else {
+        parts.push(arg);
+
+        if (canMatchCommand) {
+          commandParts.push(arg);
+          const commandPath = commandParts.join(' ');
+          const command = this.commands.get(commandPath);
+
+          if (command) {
+            matchedCommand = command;
+          }
+
+          canMatchCommand = Array.from(this.commands.keys()).some(
+            (name) => name === commandPath || name.startsWith(`${commandPath} `)
+          );
+        }
+
+        i++;
+      }
+    }
+
+    return { command: matchedCommand ?? this, parts };
+  }
+
   private stripOptions(args: string[]): string[] {
+    if (this.optionLookupMode) {
+      return this.scanArguments(args).parts;
+    }
+
     const parts: string[] = [];
     let i = 0;
 
@@ -191,6 +249,13 @@ export class RootCommand extends Command {
   }
 
   private matchCommand(args: string[]): [Command, string[]] {
+    if (this.optionLookupMode) {
+      const { command, parts } = this.scanArguments(args);
+      const commandPartCount =
+        command === this ? 0 : command.value.split(' ').length;
+      return [command, parts.slice(commandPartCount)];
+    }
+
     args = this.stripOptions(args);
     const parts: string[] = [];
     let remaining: string[] = [];
@@ -213,6 +278,7 @@ export class RootCommand extends Command {
   }
 
   private shouldCompleteFlags(
+    command: Command,
     lastPrevArg: string | undefined,
     toComplete: string
   ): boolean {
@@ -222,12 +288,18 @@ export class RootCommand extends Command {
 
     // previous argument was an option, check if it expects a value
     if (lastPrevArg?.startsWith('-')) {
-      let option = this.findOption(this, lastPrevArg);
-      if (!option) {
-        // subcommand options
-        for (const [, command] of this.commands) {
-          option = this.findOption(command, lastPrevArg);
-          if (option) break;
+      let option: Option | undefined;
+
+      if (this.optionLookupMode) {
+        option = this.findOptionInScope(command, lastPrevArg);
+      } else {
+        option = this.findOption(this, lastPrevArg);
+        if (!option) {
+          // subcommand options
+          for (const [, candidate] of this.commands) {
+            option = this.findOption(candidate, lastPrevArg);
+            if (option) break;
+          }
         }
       }
 
@@ -261,21 +333,21 @@ export class RootCommand extends Command {
       const [flag] = toComplete.split('=');
       optionName = flag;
     } else if (lastPrevArg?.startsWith('-')) {
-      const option = this.findOption(command, lastPrevArg);
+      const option = this.findOptionForCompletion(command, lastPrevArg);
       if (option && !option.isBoolean) {
         optionName = lastPrevArg;
       }
     }
 
     if (optionName) {
-      const option = this.findOption(command, optionName);
+      const option = this.findOptionForCompletion(command, optionName);
       if (option?.handler) {
         const suggestions: Completion[] = [];
         option.handler.call(
           option,
           (value: string, description: string) =>
             suggestions.push({ value, description }),
-          command.options
+          option.command.options
         );
 
         this.completions = suggestions;
@@ -288,24 +360,65 @@ export class RootCommand extends Command {
         toComplete.startsWith('-') && !toComplete.startsWith('--');
       const cleanToComplete = toComplete.replace(/^-+/, '');
 
-      for (const [name, option] of command.options) {
-        if (
-          isShortFlag &&
-          option.alias &&
-          `-${option.alias}`.startsWith(toComplete)
-        ) {
-          this.completions.push({
-            value: `-${option.alias}`,
-            description: option.description,
-          });
-        } else if (!isShortFlag && name.startsWith(cleanToComplete)) {
-          this.completions.push({
-            value: `--${name}`,
-            description: option.description,
-          });
+      for (const optionCommand of this.optionCommandsFor(command)) {
+        for (const [name, option] of optionCommand.options) {
+          if (
+            isShortFlag &&
+            option.alias &&
+            `-${option.alias}`.startsWith(toComplete)
+          ) {
+            this.completions.push({
+              value: `-${option.alias}`,
+              description: option.description,
+            });
+          } else if (!isShortFlag && name.startsWith(cleanToComplete)) {
+            this.completions.push({
+              value: `--${name}`,
+              description: option.description,
+            });
+          }
         }
       }
     }
+  }
+
+  private optionCommandsFor(command: Command): Command[] {
+    if (!this.optionLookupMode) {
+      return [command];
+    }
+
+    if (this.optionLookupMode === 'local') {
+      return [command];
+    }
+
+    const commands: Command[] = [];
+    let candidate: Command | undefined = command;
+    while (candidate) {
+      commands.unshift(candidate);
+      candidate = candidate.parent;
+    }
+    return commands;
+  }
+
+  private findOptionInScope(
+    command: Command,
+    optionName: string
+  ): Option | undefined {
+    for (const candidate of this.optionCommandsFor(command)) {
+      const option = this.findOption(candidate, optionName);
+      if (option) return option;
+    }
+    return undefined;
+  }
+
+  private findOptionForCompletion(
+    command: Command,
+    optionName: string
+  ): Option | undefined {
+    if (this.optionLookupMode) {
+      return this.findOptionInScope(command, optionName);
+    }
+    return this.findOption(command, optionName);
   }
 
   // find option by name or alias
@@ -432,7 +545,7 @@ export class RootCommand extends Command {
     const [matchedCommand] = this.matchCommand(previousArgs);
     const lastPrevArg = previousArgs[previousArgs.length - 1];
 
-    if (this.shouldCompleteFlags(lastPrevArg, toComplete)) {
+    if (this.shouldCompleteFlags(matchedCommand, lastPrevArg, toComplete)) {
       this.handleFlagCompletion(
         matchedCommand,
         previousArgs,

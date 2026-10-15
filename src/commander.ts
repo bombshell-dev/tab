@@ -1,9 +1,19 @@
 import type { Command as CommanderCommand } from 'commander';
-import t, { Command as TabCommand, type RootCommand, OptionHandler } from './t';
+import t, {
+  type Command as TabCommand,
+  type RootCommand,
+  type OptionHandler,
+} from './t';
+import { setOptionLookupMode } from './option-scope';
 
 // rawArgs is available on (just) the Commander root command, but is not included in the TypeScript types.
 interface CommandWithRawArgs extends CommanderCommand {
   rawArgs: string[];
+}
+
+// Commander does not expose a getter for this setting.
+interface CommandWithPositionalOptions extends CommanderCommand {
+  _enablePositionalOptions: boolean;
 }
 
 export default function tab(
@@ -11,6 +21,9 @@ export default function tab(
   completionConfig?: { completionCommandName?: string }
 ): RootCommand {
   const programName = instance.name();
+  const positionalOptions = (instance as CommandWithPositionalOptions)
+    ._enablePositionalOptions;
+  setOptionLookupMode(t, positionalOptions ? 'local' : 'parent-first');
 
   // Make a `completion` command with a required command-argument.
   const completionCommandName =
