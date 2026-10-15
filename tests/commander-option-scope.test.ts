@@ -1,21 +1,28 @@
 import { execFile } from 'node:child_process';
+import { createRequire } from 'node:module';
 import { promisify } from 'node:util';
 import { describe, expect, it } from 'vitest';
 
 const execFileAsync = promisify(execFile);
+const require = createRequire(import.meta.url);
+const tsxCli = require.resolve('tsx/cli');
 const fixture = 'tests/fixtures/commander-option-scope.ts';
 
 async function complete(
   args: string[],
   positionalOptions: boolean
 ): Promise<string[]> {
-  const { stdout } = await execFileAsync('pnpm', ['tsx', fixture, ...args], {
-    cwd: process.cwd(),
-    env: {
-      ...process.env,
-      COMMANDER_POSITIONAL: positionalOptions ? '1' : '0',
-    },
-  });
+  const { stdout } = await execFileAsync(
+    process.execPath,
+    [tsxCli, fixture, ...args],
+    {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        COMMANDER_POSITIONAL: positionalOptions ? '1' : '0',
+      },
+    }
+  );
 
   return stdout
     .split('\n')
