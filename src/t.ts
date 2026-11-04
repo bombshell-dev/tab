@@ -163,7 +163,6 @@ export class RootCommand extends Command {
     parts: string[];
   } {
     const parts: string[] = [];
-    const commandParts: string[] = [];
     let matchedCommand: Command | undefined;
     let canMatchCommand = true;
     let i = 0;
@@ -185,17 +184,14 @@ export class RootCommand extends Command {
         parts.push(arg);
 
         if (canMatchCommand) {
-          commandParts.push(arg);
-          const commandPath = commandParts.join(' ');
+          const commandPath = parts.join(' ');
           const command = this.commands.get(commandPath);
 
           if (command) {
             matchedCommand = command;
+          } else {
+            canMatchCommand = false;
           }
-
-          canMatchCommand = Array.from(this.commands.keys()).some(
-            (name) => name === commandPath || name.startsWith(`${commandPath} `)
-          );
         }
 
         i++;
