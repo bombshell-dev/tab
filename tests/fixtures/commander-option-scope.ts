@@ -20,13 +20,13 @@ const serve = program
   .command('serve')
   .description('Serve the app')
   .addOption(
-    new Option('-c, --leaf-choice <value>', 'Leaf choice').choices([
-      'leaf',
+    new Option('-c, --serve-choice <value>', 'Serve choice').choices([
+      'serve',
       'local',
     ])
   )
   .addOption(
-    new Option('-b, --leaf-value <value>', 'Leaf value').choices([
+    new Option('-b, --serve-value <value>', 'Serve value').choices([
       'blue',
       'green',
     ])

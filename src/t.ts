@@ -135,12 +135,12 @@ import * as bash from './bash';
 import * as fish from './fish';
 import * as powershell from './powershell';
 import assert from 'node:assert';
-import { getOptionLookupMode } from './option-scope';
 
 export class RootCommand extends Command {
   commands = new Map<string, Command>();
   completions: Completion[] = [];
   directive = ShellCompDirective.ShellCompDirectiveDefault;
+  optionLookupMode?: 'parent-first' | 'local';
 
   constructor() {
     super('', '');
@@ -152,10 +152,6 @@ export class RootCommand extends Command {
     c.parent = parentPath ? this.commands.get(parentPath) : this;
     this.commands.set(value, c);
     return c;
-  }
-
-  private get optionLookupMode() {
-    return getOptionLookupMode(this);
   }
 
   private scanArguments(args: string[]): {

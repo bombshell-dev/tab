@@ -39,10 +39,10 @@ describe('Commander option scope', () => {
       ]);
     });
 
-    it('keeps a non-conflicting leaf long option available', async () => {
+    it('keeps a non-conflicting serve long option available', async () => {
       await expect(
-        complete(['serve', '--leaf-choice', ''], false)
-      ).resolves.toEqual(['leaf', 'local']);
+        complete(['serve', '--serve-choice', ''], false)
+      ).resolves.toEqual(['serve', 'local']);
     });
 
     it('keeps root option values available after a subcommand', async () => {
@@ -74,7 +74,7 @@ describe('Commander option scope', () => {
   describe('positional options', () => {
     it('uses the subcommand option when it reuses a root short flag', async () => {
       await expect(complete(['serve', '-c', ''], true)).resolves.toEqual([
-        'leaf',
+        'serve',
         'local',
       ]);
     });
@@ -92,10 +92,10 @@ describe('Commander option scope', () => {
     it('still accepts root options before the subcommand', async () => {
       await expect(
         complete(['--root-choice', 'top', 'serve', '-c', ''], true)
-      ).resolves.toEqual(['leaf', 'local']);
+      ).resolves.toEqual(['serve', 'local']);
     });
 
-    it('uses leaf option arity for a colliding short flag', async () => {
+    it('uses serve option arity for a colliding short flag', async () => {
       await expect(complete(['serve', '-b', ''], true)).resolves.toEqual([
         'blue',
         'green',
