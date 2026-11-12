@@ -1,5 +1,11 @@
 # @bombsh/tab
 
+## 0.0.23
+
+### Patch Changes
+
+- f0d1e48: Match Commander option scoping in default and positional-options modes.
+
 ## 0.0.22
 
 ### Patch Changes
