@@ -251,6 +251,12 @@ describe.each(cliTools)('cli completion tests for %s', (cliTool) => {
       const output = await runCommand(command);
       expect(output).toMatchSnapshot();
     });
+
+    it('should not complete root command project argument again after it is given', async () => {
+      const command = `${commandPrefix} my-app ""`;
+      const output = await runCommand(command);
+      expect(output).toBe(':4\n');
+    });
   });
 
   describe('root command option tests', () => {

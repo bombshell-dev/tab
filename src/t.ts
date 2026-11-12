@@ -456,8 +456,8 @@ export class RootCommand extends Command {
   private handlePositionalCompletion(command: Command, previousArgs: string[]) {
     // Strip options so flags don't inflate the positional index
     const strippedArgs = this.stripOptions(previousArgs);
-    // current argument position (subtract command name)
-    const commandParts = command.value.split(' ').length;
+    // current argument position (subtract command name; the root has none)
+    const commandParts = command === this ? 0 : command.value.split(' ').length;
     const currentArgIndex = Math.max(0, strippedArgs.length - commandParts);
     const argumentEntries = Array.from(command.arguments.entries());
 
