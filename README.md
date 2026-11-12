@@ -353,6 +353,19 @@ my-cli complete -- install --port=""
 :4
 ```
 
+The last line is the shell directive. `:4` (`ShellCompDirectiveNoFileComp`) is the default and stops the shell from falling back to file completion. A handler can set another directive for its completion request, for example to let the shell complete file or directory paths:
+
+```typescript
+import t, { ShellCompDirective } from '@bomb.sh/tab';
+
+devCmd.option('config', 'Config file', () => {
+  t.directive = ShellCompDirective.ShellCompDirectiveDefault; // files
+});
+devCmd.argument('dir', () => {
+  t.directive = ShellCompDirective.ShellCompDirectiveFilterDirs; // directories
+});
+```
+
 ## Documentation
 
 See [bombshell docs](https://bomb.sh/docs/tab/).

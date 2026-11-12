@@ -492,8 +492,6 @@ export class RootCommand extends Command {
   }
 
   private complete(toComplete: string) {
-    this.directive = ShellCompDirective.ShellCompDirectiveNoFileComp;
-
     const seen = new Set<string>();
     this.completions
       .filter((comp) => {
@@ -517,6 +515,7 @@ export class RootCommand extends Command {
 
   parse(args: string[]) {
     this.completions = [];
+    this.directive = ShellCompDirective.ShellCompDirectiveNoFileComp;
 
     const endsWithSpace = args[args.length - 1] === '';
 
