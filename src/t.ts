@@ -9,7 +9,7 @@ export const ShellCompDirective = {
   shellCompDirectiveMaxValue: 1 << 6,
   ShellCompDirectiveDefault: 0,
 };
-
+ 
 export type OptionsMap = Map<string, Option>;
 
 export type Complete = (value: string, description: string) => void;
